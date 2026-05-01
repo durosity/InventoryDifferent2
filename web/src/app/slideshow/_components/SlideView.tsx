@@ -34,7 +34,7 @@ export function SlideView({ device, historicalNotes, showHistoricalNotes, slideI
   }, [slideIndex, showHistoricalNotes]);
 
   const thumb = pickThumbnail(device.images, true);
-  const imgSrc = thumb ? `${apiBaseUrl}${thumb.thumbnailPath ?? thumb.path}` : null;
+  const imgSrc = thumb ? `${apiBaseUrl}${thumb.path ?? thumb.thumbnailPath}` : null;
 
   return (
     <div className="absolute inset-0" style={{ animation: 'slideFadeIn 600ms ease-out' }}>
