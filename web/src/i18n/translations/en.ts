@@ -791,6 +791,8 @@ export type Translations = {
       orderByYear: string;
       historicalNotes: string;
       historicalNotesHint: string;
+      progressBar: string;
+      progressBarHint: string;
       noDevices: string;
       noFavorites: string;
       noFavoritesHint: string;
@@ -1687,6 +1689,8 @@ export const en: Translations = {
       orderByYear: "By Year",
       historicalNotes: "Historical notes",
       historicalNotesHint: "Fade in after 3 seconds",
+      progressBar: "Progress bar",
+      progressBarHint: "Show timing strip at the bottom",
       noDevices: "No devices to display",
       noFavorites: "No favorites found",
       noFavoritesHint: "Try disabling the favorites filter in settings",

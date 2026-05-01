@@ -138,7 +138,7 @@ export default function SlideshowPage() {
       )}
 
       {/* Progress bar */}
-      {currentDevice && (
+      {currentDevice && settings.showProgressBar && (
         <ProgressBar duration={settings.duration} paused={paused} slideKey={currentIndex} />
       )}
 

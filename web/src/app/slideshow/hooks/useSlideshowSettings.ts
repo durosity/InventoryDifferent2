@@ -7,6 +7,7 @@ export interface SlideshowSettings {
   favoritesOnly: boolean;
   order: 'random' | 'year';
   showHistoricalNotes: boolean;
+  showProgressBar: boolean;
 }
 
 const DEFAULTS: SlideshowSettings = {
@@ -14,6 +15,7 @@ const DEFAULTS: SlideshowSettings = {
   favoritesOnly: false,
   order: 'random',
   showHistoricalNotes: true,
+  showProgressBar: true,
 };
 
 const STORAGE_KEY = 'slideshow_settings';

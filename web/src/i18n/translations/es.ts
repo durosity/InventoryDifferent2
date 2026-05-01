@@ -800,6 +800,8 @@ export const es: Translations = {
       orderByYear: "Por año",
       historicalNotes: "Notas históricas",
       historicalNotesHint: "Aparece después de 3 segundos",
+      progressBar: "Barra de progreso",
+      progressBarHint: "Mostrar franja de tiempo abajo",
       noDevices: "No hay dispositivos para mostrar",
       noFavorites: "No se encontraron favoritos",
       noFavoritesHint: "Desactive el filtro de favoritos en la configuración",

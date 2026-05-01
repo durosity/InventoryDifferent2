@@ -106,7 +106,7 @@ export function SettingsDrawer({ settings, onUpdate, onClose }: SettingsDrawerPr
         </div>
 
         {/* Historical notes */}
-        <div className="px-5 py-4">
+        <div className="px-5 py-4 border-b border-white/[0.08]">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[13px] text-white/85">{ts.historicalNotes}</div>
@@ -115,6 +115,20 @@ export function SettingsDrawer({ settings, onUpdate, onClose }: SettingsDrawerPr
             <Toggle
               on={settings.showHistoricalNotes}
               onToggle={() => onUpdate({ showHistoricalNotes: !settings.showHistoricalNotes })}
+            />
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="px-5 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[13px] text-white/85">{ts.progressBar}</div>
+              <div className="text-[11px] text-white/35 mt-0.5">{ts.progressBarHint}</div>
+            </div>
+            <Toggle
+              on={settings.showProgressBar}
+              onToggle={() => onUpdate({ showProgressBar: !settings.showProgressBar })}
             />
           </div>
         </div>
