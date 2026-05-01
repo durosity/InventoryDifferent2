@@ -802,6 +802,8 @@ export const es: Translations = {
       historicalNotesHint: "Aparece después de 3 segundos",
       progressBar: "Barra de progreso",
       progressBarHint: "Mostrar franja de tiempo abajo",
+      statusFilter: "Estado del dispositivo",
+      statusFilterHint: "Qué estados incluir",
       noDevices: "No hay dispositivos para mostrar",
       noFavorites: "No se encontraron favoritos",
       noFavoritesHint: "Desactive el filtro de favoritos en la configuración",

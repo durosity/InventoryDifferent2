@@ -802,6 +802,8 @@ export const fr: Translations = {
       historicalNotesHint: "Apparaît après 3 secondes",
       progressBar: "Barre de progression",
       progressBarHint: "Afficher la bande de progression en bas",
+      statusFilter: "Statut des appareils",
+      statusFilterHint: "Quels statuts inclure",
       noDevices: "Aucun appareil à afficher",
       noFavorites: "Aucun favori trouvé",
       noFavoritesHint: "Désactivez le filtre favoris dans les paramètres",

@@ -20,6 +20,7 @@ const GET_DEVICES = gql`
       additionalName
       releaseYear
       isFavorite
+      status
       category { name }
       images {
         id

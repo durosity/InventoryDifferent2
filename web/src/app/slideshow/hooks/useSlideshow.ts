@@ -9,6 +9,7 @@ export interface SlideDevice {
   additionalName?: string | null;
   releaseYear?: number | null;
   isFavorite: boolean;
+  status?: string | null;
   category?: { name: string } | null;
   images: Array<{
     id: string;
@@ -30,14 +31,17 @@ function shuffle<T>(arr: T[]): T[] {
 
 export function useSlideshow(allDevices: SlideDevice[], settings: SlideshowSettings) {
   const slides = useMemo(() => {
-    const filtered = settings.favoritesOnly
-      ? allDevices.filter(d => d.isFavorite)
+    let filtered = settings.statusFilter.length > 0
+      ? allDevices.filter(d => settings.statusFilter.includes(d.status ?? 'COLLECTION'))
       : allDevices;
+    if (settings.favoritesOnly) {
+      filtered = filtered.filter(d => d.isFavorite);
+    }
     if (settings.order === 'year') {
       return [...filtered].sort((a, b) => (a.releaseYear ?? 9999) - (b.releaseYear ?? 9999));
     }
     return shuffle(filtered);
-  }, [allDevices, settings.favoritesOnly, settings.order]);
+  }, [allDevices, settings.statusFilter, settings.favoritesOnly, settings.order]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paused, setPaused] = useState(false);

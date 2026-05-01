@@ -802,6 +802,8 @@ export const de: Translations = {
       historicalNotesHint: "Nach 3 Sekunden einblenden",
       progressBar: "Fortschrittsbalken",
       progressBarHint: "Zeitstreifen unten anzeigen",
+      statusFilter: "Gerätestatus",
+      statusFilterHint: "Welche Status einschließen",
       noDevices: "Keine Geräte zum Anzeigen",
       noFavorites: "Keine Favoriten gefunden",
       noFavoritesHint: "Deaktivieren Sie den Favoritenfilter in den Einstellungen",

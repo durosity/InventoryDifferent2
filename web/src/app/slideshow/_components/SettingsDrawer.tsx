@@ -34,7 +34,7 @@ export function SettingsDrawer({ settings, onUpdate, onClose }: SettingsDrawerPr
 
       {/* Drawer panel */}
       <div
-        className="absolute top-0 right-0 bottom-0 w-72 flex flex-col z-10"
+        className="absolute top-0 right-0 bottom-0 w-72 flex flex-col z-10 overflow-y-auto"
         style={{
           background: 'rgba(20,20,22,0.92)',
           backdropFilter: 'blur(24px)',
@@ -102,6 +102,35 @@ export function SettingsDrawer({ settings, onUpdate, onClose }: SettingsDrawerPr
                 {opt === 'random' ? ts.orderRandom : ts.orderByYear}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Status filter */}
+        <div className="px-5 py-4 border-b border-white/[0.08]">
+          <div className="text-[13px] text-white/85 mb-1">{ts.statusFilter}</div>
+          <div className="text-[11px] text-white/35 mb-3">{ts.statusFilterHint}</div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {(['COLLECTION', 'FOR_SALE', 'PENDING_SALE', 'IN_REPAIR', 'REPAIRED', 'SOLD', 'DONATED', 'RETURNED'] as const).map(s => {
+              const active = settings.statusFilter.includes(s);
+              const toggle = () => {
+                const next = active
+                  ? settings.statusFilter.filter(x => x !== s)
+                  : [...settings.statusFilter, s];
+                onUpdate({ statusFilter: next });
+              };
+              return (
+                <button
+                  key={s}
+                  onClick={toggle}
+                  className={`text-[11px] py-1.5 px-2 rounded-md text-left transition-colors ${
+                    active ? 'bg-[#0058bc]/70 text-white' : 'text-white/45 hover:text-white/70'
+                  }`}
+                  style={{ background: active ? 'rgba(0,88,188,0.5)' : 'rgba(255,255,255,0.08)' }}
+                >
+                  {t.status[s]}
+                </button>
+              );
+            })}
           </div>
         </div>
 

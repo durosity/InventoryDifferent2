@@ -8,6 +8,7 @@ export interface SlideshowSettings {
   order: 'random' | 'year';
   showHistoricalNotes: boolean;
   showProgressBar: boolean;
+  statusFilter: string[];
 }
 
 const DEFAULTS: SlideshowSettings = {
@@ -16,6 +17,7 @@ const DEFAULTS: SlideshowSettings = {
   order: 'random',
   showHistoricalNotes: true,
   showProgressBar: true,
+  statusFilter: ['COLLECTION'],
 };
 
 const STORAGE_KEY = 'slideshow_settings';

@@ -793,6 +793,8 @@ export type Translations = {
       historicalNotesHint: string;
       progressBar: string;
       progressBarHint: string;
+      statusFilter: string;
+      statusFilterHint: string;
       noDevices: string;
       noFavorites: string;
       noFavoritesHint: string;
@@ -1691,6 +1693,8 @@ export const en: Translations = {
       historicalNotesHint: "Fade in after 3 seconds",
       progressBar: "Progress bar",
       progressBarHint: "Show timing strip at the bottom",
+      statusFilter: "Device status",
+      statusFilterHint: "Which statuses to include",
       noDevices: "No devices to display",
       noFavorites: "No favorites found",
       noFavoritesHint: "Try disabling the favorites filter in settings",
