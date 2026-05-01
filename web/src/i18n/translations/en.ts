@@ -146,6 +146,7 @@ export type Translations = {
     logOut: string;
     logIn: string;
     loggedInAs: string;
+    slideshow: string;
   };
   home: {
     search: string;
@@ -869,6 +870,23 @@ export type Translations = {
     saveChanges: string;
     externalUrlLabel: string;
   };
+  pages: {
+    slideshow: {
+      settings: string;
+      duration: string;
+      durationUnit: string;
+      favoritesOnly: string;
+      favoritesOnlyHint: string;
+      order: string;
+      orderRandom: string;
+      orderByYear: string;
+      historicalNotes: string;
+      historicalNotesHint: string;
+      noDevices: string;
+      noFavorites: string;
+      noFavoritesHint: string;
+    };
+  };
 };
 
 export const en: Translations = {
@@ -1019,6 +1037,7 @@ export const en: Translations = {
     logOut: "Log Out",
     logIn: "Log In",
     loggedInAs: "Logged in as",
+    slideshow: "Slideshow",
   },
   home: {
     search: "Search...",
@@ -1748,5 +1767,22 @@ export const en: Translations = {
     createDevice: "Create Device",
     saveChanges: "Save Changes",
     externalUrlLabel: "External URL",
+  },
+  pages: {
+    slideshow: {
+      settings: "Settings",
+      duration: "Slide duration",
+      durationUnit: "seconds",
+      favoritesOnly: "Favorites only",
+      favoritesOnlyHint: "Show starred devices only",
+      order: "Order",
+      orderRandom: "Random",
+      orderByYear: "By Year",
+      historicalNotes: "Historical notes",
+      historicalNotesHint: "Fade in after 3 seconds",
+      noDevices: "No devices to display",
+      noFavorites: "No favorites found",
+      noFavoritesHint: "Try disabling the favorites filter in settings",
+    },
   },
 };

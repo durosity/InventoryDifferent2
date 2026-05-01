@@ -148,6 +148,7 @@ export const fr: Translations = {
     logOut: "Se déconnecter",
     logIn: "Se connecter",
     loggedInAs: "Connecté en tant que",
+    slideshow: "Diaporama",
   },
   home: {
     search: "Rechercher...",
@@ -877,5 +878,22 @@ export const fr: Translations = {
     openAssistantTitle: "Ouvrir l'assistant de collection",
     devicesCount: "Appareils",
     resultsCount: "Résultats",
+  },
+  pages: {
+    slideshow: {
+      settings: "Paramètres",
+      duration: "Durée de diapositive",
+      durationUnit: "secondes",
+      favoritesOnly: "Favoris uniquement",
+      favoritesOnlyHint: "Afficher uniquement les appareils favoris",
+      order: "Ordre",
+      orderRandom: "Aléatoire",
+      orderByYear: "Par année",
+      historicalNotes: "Notes historiques",
+      historicalNotesHint: "Apparaît après 3 secondes",
+      noDevices: "Aucun appareil à afficher",
+      noFavorites: "Aucun favori trouvé",
+      noFavoritesHint: "Désactivez le filtre favoris dans les paramètres",
+    },
   },
 };

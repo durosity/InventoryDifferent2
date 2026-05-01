@@ -17,6 +17,7 @@ type MoreItem = { key: string; href: string; icon: string };
 const MORE_ITEMS: MoreItem[] = [
   { key: 'stats',          href: '/stats',            icon: 'bar_chart' },
   { key: 'timeline',       href: '/timeline',         icon: 'timeline' },
+  { key: 'slideshow',      href: '/slideshow',        icon: 'slideshow' },
   { key: 'usage',          href: '/usage',            icon: 'storage' },
 ];
 
