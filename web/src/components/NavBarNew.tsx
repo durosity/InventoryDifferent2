@@ -47,6 +47,7 @@ export function NavBar() {
   const moreRef = useRef<HTMLDivElement>(null);
   const [userOpen, setUserOpen] = useState(false);
   const userRef = useRef<HTMLDivElement>(null);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
   const isDevicesActive = pathname === '/';
 
@@ -58,6 +59,8 @@ export function NavBar() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => { setMobileMoreOpen(false); }, [pathname]);
 
   return (
     <>
@@ -237,14 +240,51 @@ export function NavBar() {
             </Link>
           );
         })}
-        <Link
-          href="/stats"
-          className="flex flex-col items-center justify-center text-outline-variant dark:text-[#414755]"
+        <button
+          onClick={() => setMobileMoreOpen(true)}
+          className={`flex flex-col items-center justify-center ${mobileMoreOpen ? 'text-primary dark:text-[#adc6ff]' : 'text-outline-variant dark:text-[#414755]'} transition-all`}
         >
           <span className="material-symbols-outlined">more_horiz</span>
           <span className="text-[10px] uppercase tracking-widest font-bold mt-1">{t.nav.more}</span>
-        </Link>
+        </button>
       </nav>
+
+      {/* Mobile more sheet */}
+      {mobileMoreOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/30 md:hidden"
+            onClick={() => setMobileMoreOpen(false)}
+          />
+          <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-surface-container-lowest dark:bg-[#1e2129] rounded-t-3xl shadow-[0_-8px_32px_-4px_rgba(0,0,0,0.16)] pb-safe overflow-y-auto max-h-[80vh]">
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-outline-variant/40" />
+            </div>
+            <div className="px-4 pb-8 pt-2">
+              {[MORE_ITEMS, MORE_TOOLS, MORE_MANAGE, MORE_ADMIN].map((group, gi) => (
+                <div key={gi}>
+                  {gi > 0 && <div className="my-2 border-t border-outline-variant/10" />}
+                  {group.map(item => (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      onClick={() => setMobileMoreOpen(false)}
+                      className={`flex items-center gap-4 px-2 py-3 rounded-xl text-sm transition-colors ${
+                        pathname.startsWith(item.href)
+                          ? 'text-primary dark:text-[#adc6ff] bg-primary/5 dark:bg-[#adc6ff]/5 font-medium'
+                          : 'text-on-surface-variant dark:text-[#c1c6d7] hover:text-on-surface dark:hover:text-[#e2e2e7] hover:bg-surface-container dark:hover:bg-[#282d36]'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>{item.icon}</span>
+                      {(t.nav as Record<string, string>)[item.key]}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Desktop FAB */}
       <div className="fixed bottom-12 right-12 hidden md:block z-40">

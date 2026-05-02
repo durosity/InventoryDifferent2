@@ -39,6 +39,8 @@ export const releaseNotes: ReleaseEntry[] = [
       'Web: hardcoded English section headers and tooltip text in device detail page replaced with translations (Quick Overview, Quick Actions, Manufacturer & Model, Serial Number, Location, Last Used, Device Notes, button tooltips)',
       'Web: hardcoded English indicator labels and values, financial card labels, value history popover text, and Technical Specifications section replaced with translations across all four languages',
       'Web: hardcoded English in Lifecycle Actions buttons, Photos/Notes/Maintenance Logs section headers, View all, Show more/Collapse, Add Maintenance Log and Add Note modals, Mark as Sold/Returned modals, and Remove Tag modal replaced with translations',
+      'Mobile: inventory grid now shows two cards per row on large phones (480px+) instead of one',
+      'Mobile: More tab now opens a slide-up sheet with all extra pages instead of navigating directly to Stats',
     ],
   },
   {
