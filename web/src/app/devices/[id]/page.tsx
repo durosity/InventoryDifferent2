@@ -1792,14 +1792,19 @@ export default function DeviceDetailNew() {
             <section className="bg-[var(--card)] p-6 rounded-xl shadow-sm">
               <h2 className="text-on-surface font-bold text-sm uppercase tracking-widest mb-6">{t.detail.lifecycleActions}</h2>
               <div className="space-y-3">
-                {/* COLLECTION → For Sale */}
-                {device.status === 'COLLECTION' && (
+                {/* COLLECTION → For Sale, Loaned */}
+                {device.status === 'COLLECTION' && (<>
                   <button onClick={() => handleSetStatus('FOR_SALE')} disabled={updatingStatus}
                     className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-orange-50 text-orange-700 rounded-xl text-sm font-bold hover:bg-orange-100 dark:bg-orange-900/20 dark:text-orange-300 disabled:opacity-50 transition-all active:scale-[0.98]">
                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M22 9L20 4H4L2 9h2v11h7v-5h2v5h7V9h2zm-4 9h-3v-5H9v5H6V9h12v9zM4.27 9L5.6 5h12.8L19.73 9H4.27z"/></svg>
                     {t.detail.markForSale.toUpperCase()}
                   </button>
-                )}
+                  <button onClick={() => handleSetStatus('LOANED')} disabled={updatingStatus}
+                    className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-sky-50 text-sky-700 rounded-xl text-sm font-bold hover:bg-sky-100 dark:bg-sky-900/20 dark:text-sky-300 disabled:opacity-50 transition-all active:scale-[0.98]">
+                    <Icon name="swap_horiz" className="w-5 h-5" />
+                    {t.detail.markAsLoaned.toUpperCase()}
+                  </button>
+                </>)}
                 {/* FOR_SALE → Pending Sale, Sold */}
                 {device.status === 'FOR_SALE' && (<>
                   <button onClick={() => handleSetStatus('PENDING_SALE')} disabled={updatingStatus}
@@ -1859,8 +1864,16 @@ export default function DeviceDetailNew() {
                     {t.detail.markReturnedButton.toUpperCase()}
                   </button>
                 </>)}
+                {/* LOANED → Return to Collection */}
+                {device.status === 'LOANED' && (
+                  <button onClick={() => handleSetStatus('COLLECTION')} disabled={updatingStatus}
+                    className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-surface-container-low text-on-surface rounded-xl text-sm font-bold hover:bg-surface-container disabled:opacity-50 transition-all active:scale-[0.98]">
+                    <Icon name="arrow_back" className="w-5 h-5" />
+                    {t.detail.backToCollection.toUpperCase()}
+                  </button>
+                )}
                 {/* All other statuses → Back to Collection */}
-                {!['COLLECTION','FOR_SALE','PENDING_SALE','IN_REPAIR','REPAIRED'].includes(device.status) && (
+                {!['COLLECTION','FOR_SALE','PENDING_SALE','IN_REPAIR','REPAIRED','LOANED'].includes(device.status) && (
                   <button onClick={() => handleSetStatus('COLLECTION')} disabled={updatingStatus}
                     className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-surface-container-low text-on-surface rounded-xl text-sm font-bold hover:bg-surface-container disabled:opacity-50 transition-all active:scale-[0.98]">
                     <Icon name="arrow_back" className="w-5 h-5" />
