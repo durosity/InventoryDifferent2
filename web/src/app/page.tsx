@@ -366,7 +366,7 @@ export default function ListNewPage() {
         ) : viewMode === 'fisheye' ? (
           <FisheyeGrid devices={sortedDevices} />
         ) : (
-          <div className="grid grid-cols-1 [@media(min-width:390px)]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 [@media(min-width:1680px)]:grid-cols-6 [@media(min-width:1780px)]:grid-cols-7 [@media(min-width:1980px)]:grid-cols-8 gap-3">
+          <div className="grid grid-cols-1 min-[390px]:grid-cols-2 min-[1024px]:grid-cols-3 min-[1280px]:grid-cols-4 min-[1536px]:grid-cols-5 min-[1680px]:grid-cols-6 min-[1780px]:grid-cols-7 min-[1980px]:grid-cols-8 gap-3">
             {sortedDevices.map((device: any) => (
               <DeviceCardNew key={device.id} device={device} />
             ))}
