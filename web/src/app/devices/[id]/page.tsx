@@ -1106,6 +1106,7 @@ export default function DeviceDetailNew() {
     IN_REPAIR:    'bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300',
     REPAIRED:     'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300',
     RETURNED:     'bg-gray-200 text-gray-700 dark:bg-gray-700/60 dark:text-gray-300',
+    LOANED:       'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300',
   };
 
   return (
