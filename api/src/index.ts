@@ -1579,8 +1579,15 @@ RESTART IDENTITY CASCADE;
 
     // Config endpoint — read at request time so the web can detect feature availability without a build-time bake
     app.get('/generate-image/config', async (_req, res) => {
-        const setting = await (defaultPrisma as any).systemSetting.findUnique({ where: { key: 'imagePrompt' } });
-        return res.json({ enabled: !!process.env.OPENAI_API_KEY, defaultPrompt: setting?.value ?? null });
+        const [promptSetting, modelSetting] = await Promise.all([
+            (defaultPrisma as any).systemSetting.findUnique({ where: { key: 'imagePrompt' } }),
+            (defaultPrisma as any).systemSetting.findUnique({ where: { key: 'imageModel' } }),
+        ]);
+        return res.json({
+            enabled: !!process.env.OPENAI_API_KEY,
+            defaultPrompt: promptSetting?.value ?? null,
+            imageModel: modelSetting?.value ?? 'gpt-image-1',
+        });
     });
 
     app.post('/generate-image', requireAuth, (req, res) => {
@@ -1615,6 +1622,9 @@ RESTART IDENTITY CASCADE;
             try {
                 let imageBase64: string;
 
+                const modelSetting = await (defaultPrisma as any).systemSetting.findUnique({ where: { key: 'imageModel' } });
+                const imageModel = modelSetting?.value ?? 'gpt-image-1';
+
                 if (sourceImageId) {
                     console.log(`[${ts()}] [generate-image] Starting image-edit mode, sourceImageId:`, sourceImageId);
                     const sourceImage = await prisma.image.findUnique({ where: { id: sourceImageId } });
@@ -1636,7 +1646,7 @@ RESTART IDENTITY CASCADE;
 
                     console.log(`[${ts()}] [generate-image] Calling OpenAI images.edit...`);
                     const response = await openai.images.edit({
-                        model: 'gpt-image-1.5',
+                        model: imageModel,
                         image: imageFile,
                         prompt: finalPrompt,
                         size: '1024x1024',

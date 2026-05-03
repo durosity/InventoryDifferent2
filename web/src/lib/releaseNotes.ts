@@ -12,6 +12,9 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
+    added: [
+      'Settings page (/settings) — configure the AI image generation prompt and model (gpt-image-1 or gpt-image-2)',
+    ],
     fixed: [
       'iOS: thumbnail not refreshing on the device list after setting or replacing a thumbnail — now invalidates the full image cache and updates the list store immediately',
       'iOS: clearing the Additional Name field and saving no longer leaves the old value — empty field now sends null to the API',

@@ -36,6 +36,7 @@ const MORE_MANAGE: MoreItem[] = [
 
 const MORE_ADMIN: MoreItem[] = [
   { key: 'trash',              href: '/trash',        icon: 'delete' },
+  { key: 'settings',          href: '/settings',     icon: 'settings' },
 ];
 
 export function NavBar() {

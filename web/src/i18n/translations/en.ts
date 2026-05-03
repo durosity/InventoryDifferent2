@@ -144,6 +144,7 @@ export type Translations = {
     manageTemplates: string;
     manageCustomFields: string;
     trash: string;
+    settings: string;
     logOut: string;
     logIn: string;
     loggedInAs: string;
@@ -782,6 +783,18 @@ export type Translations = {
       functionalPartial: string;
       functionalNo: string;
     };
+    settings: {
+      pageTitle: string;
+      aiImages: string;
+      imagePromptLabel: string;
+      imagePromptHint: string;
+      imageModelLabel: string;
+      imageModelHint: string;
+      gptImage2Warning: string;
+      save: string;
+      saved: string;
+      notConfigured: string;
+    };
     slideshow: {
       settings: string;
       duration: string;
@@ -1039,6 +1052,7 @@ export const en: Translations = {
     manageTemplates: "Manage Templates",
     manageCustomFields: "Manage Custom Fields",
     trash: "Trash",
+    settings: "Settings",
     logOut: "Log Out",
     logIn: "Log In",
     loggedInAs: "Logged in as",
@@ -1683,6 +1697,18 @@ export const en: Translations = {
       functionalYes: "Functional",
       functionalPartial: "Partially Functional",
       functionalNo: "Not Functional",
+    },
+    settings: {
+      pageTitle: "Settings",
+      aiImages: "AI Image Generation",
+      imagePromptLabel: "Image generation prompt",
+      imagePromptHint: "This prompt is sent to the AI model when generating product images. Leave blank to use the default.",
+      imageModelLabel: "Image model",
+      imageModelHint: "Select which OpenAI model to use for image generation.",
+      gptImage2Warning: "gpt-image-2 requires a verified OpenAI organization and incurs higher token costs, but produces significantly better results.",
+      save: "Save",
+      saved: "Saved",
+      notConfigured: "OpenAI API key is not configured. AI image generation is unavailable.",
     },
     slideshow: {
       settings: "Settings",
