@@ -10,7 +10,8 @@ extension Translations {
             REPAIRED: "Reparado",
             SOLD: "Vendido",
             DONATED: "Donado",
-            RETURNED: "Devuelto"
+            RETURNED: "Devuelto",
+            LOANED: "Prestado"
         ),
         functionalStatus: .init(
             YES: "Funcional",
@@ -206,6 +207,8 @@ extension Translations {
             markRepaired: "Marcar como reparado",
             markReturned: "Marcar como devuelto",
             backToRepair: "Volver a reparación",
+            markAsLoaned: "Marcar como prestado",
+            backToCollection: "Volver a la colección",
             historicalNotes: "Notas históricas",
             relatedDevices: "Dispositivos relacionados",
             noRelatedDevices: "Sin dispositivos relacionados",

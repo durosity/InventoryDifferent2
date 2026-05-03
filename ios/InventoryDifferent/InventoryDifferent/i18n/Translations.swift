@@ -5,7 +5,7 @@ struct Translations {
     // MARK: - Enum display names
 
     struct StatusT {
-        let COLLECTION, FOR_SALE, PENDING_SALE, IN_REPAIR, REPAIRED, SOLD, DONATED, RETURNED: String
+        let COLLECTION, FOR_SALE, PENDING_SALE, IN_REPAIR, REPAIRED, SOLD, DONATED, RETURNED, LOANED: String
     }
     struct FunctionalStatusT {
         let YES, PARTIAL, NO: String
@@ -97,6 +97,8 @@ struct Translations {
         let markRepaired: String
         let markReturned: String
         let backToRepair: String
+        let markAsLoaned: String
+        let backToCollection: String
         let historicalNotes: String
         let relatedDevices, noRelatedDevices: String
         let removeRelationship, removeRelationshipFmt: String

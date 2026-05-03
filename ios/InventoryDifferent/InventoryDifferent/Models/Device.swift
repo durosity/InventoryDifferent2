@@ -69,6 +69,7 @@ enum Status: String, Codable, CaseIterable {
     case SOLD
     case DONATED
     case RETURNED
+    case LOANED
 
     var displayName: String {
         let t = LocalizationManager.shared.t
@@ -81,6 +82,7 @@ enum Status: String, Codable, CaseIterable {
         case .IN_REPAIR: return t.status.IN_REPAIR
         case .REPAIRED: return t.status.REPAIRED
         case .RETURNED: return t.status.RETURNED
+        case .LOANED: return t.status.LOANED
         }
     }
 
@@ -94,6 +96,7 @@ enum Status: String, Codable, CaseIterable {
         case .IN_REPAIR: return "teal"
         case .REPAIRED: return "mint"
         case .RETURNED: return "gray"
+        case .LOANED: return "cyan"
         }
     }
 }

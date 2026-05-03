@@ -487,6 +487,7 @@ struct DeviceDetailRedesignView: View {
             case .IN_REPAIR:    return (t.status.IN_REPAIR, .teal)
             case .REPAIRED:     return (t.status.REPAIRED, .mint)
             case .RETURNED:     return (t.status.RETURNED, .gray)
+            case .LOANED:       return (t.status.LOANED, .cyan)
             }
         }()
         return Text(label)

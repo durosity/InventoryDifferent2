@@ -466,6 +466,12 @@ struct ValueSaleInfo: View {
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.red)
                 }
+            case .LOANED:
+                if let value = device.estimatedValue {
+                    Text("\(t.deviceList.estValue)\(formatPrice(value))")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.cyan)
+                }
             }
         }
     }
@@ -513,6 +519,8 @@ struct StatusBadge: View {
             return .mint
         case .RETURNED:
             return .red
+        case .LOANED:
+            return .cyan
         }
     }
 }
