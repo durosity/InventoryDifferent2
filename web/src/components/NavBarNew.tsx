@@ -64,7 +64,7 @@ export function NavBar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-[#e5e5e5]/80 dark:bg-[#2d2d2d]/80 backdrop-blur-2xl">
+      <header className="sticky top-0 z-50 bg-[#e5e5e5]/80 dark:bg-[#2d2d2d]/80 backdrop-blur-2xl" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-[1440px] mx-auto px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="InventoryDifferent" width={32} height={32} />
@@ -224,7 +224,7 @@ export function NavBar() {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-8 pt-4 md:hidden bg-white/90 dark:bg-[#1a1c1f]/90 backdrop-blur-2xl rounded-t-3xl shadow-[0_-4px_20px_0_rgba(0,0,0,0.04)]">
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pt-4 md:hidden bg-white/90 dark:bg-[#1a1c1f]/90 backdrop-blur-2xl rounded-t-3xl shadow-[0_-4px_20px_0_rgba(0,0,0,0.04)]" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}>
         {MAIN_NAV.map(item => {
           const isActive = item.key === 'devices' ? isDevicesActive : pathname.startsWith(item.href);
           return (
