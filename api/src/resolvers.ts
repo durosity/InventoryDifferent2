@@ -666,6 +666,7 @@ export const resolvers = {
                 IN_REPAIR: 'In Repair',
                 REPAIRED: 'Repaired',
                 RETURNED: 'Returned',
+                LOANED: 'Loaned',
             };
             const functionalLabels: Record<string, string> = {
                 YES: 'Working',

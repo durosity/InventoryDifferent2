@@ -12,6 +12,7 @@ export const typeDefs = gql`
     IN_REPAIR
     REPAIRED
     RETURNED
+    LOANED
   }
 
   enum FunctionalStatus {
