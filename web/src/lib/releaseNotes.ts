@@ -43,7 +43,7 @@ export const releaseNotes: ReleaseEntry[] = [
       'Mobile: inventory grid now shows two cards per row on large phones (480px+) instead of one',
       'Mobile: More tab now opens a slide-up sheet with all extra pages instead of navigating directly to Stats',
       'Slideshow: fullscreen button in the control bar enters true browser fullscreen, hiding the address bar and browser chrome on all platforms',
-      'Slideshow: crossfade between slides — previous slide stays visible underneath while the next fades in, and the next image is preloaded in the background to eliminate blanking',
+      'Slideshow: crossfade between slides — two permanent slots alternate so the background slide\'s Ken Burns animation continues from where it was, eliminating the position-reset jitter',
     ],
   },
   {

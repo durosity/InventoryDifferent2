@@ -78,16 +78,24 @@ export default function SlideshowPage() {
 
   const { slides, currentIndex, paused, next, prev, togglePause } = useSlideshow(allDevices, settings);
 
-  // Keep previous slide rendered underneath for crossfade — avoids blanking during image load
-  const [prevSlide, setPrevSlide] = useState<{ index: number; device: SlideDevice } | null>(null);
-  const prevIndexRef = useRef<number | null>(null);
+  // Two permanent slots for seamless crossfade.
+  // The background slot is never unmounted — its component instance stays alive so the
+  // Ken Burns animation continues from wherever it was rather than jumping back to start.
+  const [slotA, setSlotA] = useState<{ device: SlideDevice; index: number } | null>(null);
+  const [slotB, setSlotB] = useState<{ device: SlideDevice; index: number } | null>(null);
+  const [activeSlot, setActiveSlot] = useState<'a' | 'b'>('a');
+  const activeSlotRef = useRef<'a' | 'b'>('a');
+  const activeDeviceIdRef = useRef<string | null>(null);
+
   useLayoutEffect(() => {
-    const oldIndex = prevIndexRef.current;
-    prevIndexRef.current = currentIndex;
-    if (oldIndex === null || oldIndex === currentIndex || !slides[oldIndex]) return;
-    setPrevSlide({ index: oldIndex, device: slides[oldIndex] });
-    const t = setTimeout(() => setPrevSlide(null), 750); // slightly past the 600ms fade
-    return () => clearTimeout(t);
+    const device = slides[currentIndex];
+    if (!device || activeDeviceIdRef.current === device.id) return;
+    activeDeviceIdRef.current = device.id;
+    const next = activeSlotRef.current === 'a' ? 'b' : 'a';
+    activeSlotRef.current = next;
+    if (next === 'b') setSlotB({ device, index: currentIndex });
+    else setSlotA({ device, index: currentIndex });
+    setActiveSlot(next);
   }, [currentIndex, slides]);
 
   // Preload next slide image so the browser cache is warm before we need it
@@ -122,7 +130,7 @@ export default function SlideshowPage() {
     });
   }, [currentIndex, slides, settings.showHistoricalNotes, fetchNotes]);
 
-  const currentDevice = slides[currentIndex];
+  const currentDevice = (activeSlot === 'a' ? slotA : slotB)?.device ?? null;
   const currentNotes = currentDevice ? (notesCache.current[currentDevice.id] ?? undefined) : undefined;
 
   // Show controls on mouse move, hide after 3s
@@ -150,32 +158,37 @@ export default function SlideshowPage() {
       style={{ cursor: controlsVisible ? 'default' : 'none' }}
       onMouseMove={handleMouseMove}
     >
-      {/* Previous slide — stays mounted underneath during crossfade so there's no blank */}
-      {prevSlide && (
-        <SlideView
-          key={prevSlide.index}
-          device={prevSlide.device}
-          historicalNotes={undefined}
-          showHistoricalNotes={false}
-          slideIndex={prevSlide.index}
-          apiBaseUrl={API_BASE_URL}
-          duration={settings.duration}
-          noFade
-        />
-      )}
+      {/* Slot A — z-index tracks which slot is active so background stays visible but below */}
+      <div className="absolute inset-0" style={{ zIndex: activeSlot === 'a' ? 1 : 0 }}>
+        {slotA && (
+          <SlideView
+            key={slotA.index}
+            device={slotA.device}
+            historicalNotes={activeSlot === 'a' ? currentNotes : undefined}
+            showHistoricalNotes={activeSlot === 'a' && settings.showHistoricalNotes}
+            slideIndex={slotA.index}
+            apiBaseUrl={API_BASE_URL}
+            duration={settings.duration}
+            noFade={activeSlot !== 'a'}
+          />
+        )}
+      </div>
 
-      {/* Current slide — fades in on top */}
-      {currentDevice && (
-        <SlideView
-          key={currentIndex}
-          device={currentDevice}
-          historicalNotes={currentNotes}
-          showHistoricalNotes={settings.showHistoricalNotes}
-          slideIndex={currentIndex}
-          apiBaseUrl={API_BASE_URL}
-          duration={settings.duration}
-        />
-      )}
+      {/* Slot B — same device persists in DOM when it transitions to background */}
+      <div className="absolute inset-0" style={{ zIndex: activeSlot === 'b' ? 1 : 0 }}>
+        {slotB && (
+          <SlideView
+            key={slotB.index}
+            device={slotB.device}
+            historicalNotes={activeSlot === 'b' ? currentNotes : undefined}
+            showHistoricalNotes={activeSlot === 'b' && settings.showHistoricalNotes}
+            slideIndex={slotB.index}
+            apiBaseUrl={API_BASE_URL}
+            duration={settings.duration}
+            noFade={activeSlot !== 'b'}
+          />
+        )}
+      </div>
 
       {/* Empty states */}
       {slides.length === 0 && !loading && (
