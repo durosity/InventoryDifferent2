@@ -1,0 +1,16 @@
+{
+  "name": "InventoryDifferent",
+  "short_name": "InvDiff",
+  "description": "Track your vintage computer collection",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e5e5e5",
+  "theme_color": "#e5e5e5",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}
