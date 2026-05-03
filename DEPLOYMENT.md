@@ -80,6 +80,71 @@ docker compose -f docker-compose.build.yml up -d --build
 
 Or deploy via Portainer by creating a new stack and pasting the contents of `docker-compose.build.yml`.
 
+## Synology NAS (Simple, No Traefik)
+
+Use `docker-compose.simple.yml` for a straightforward setup without a reverse proxy.
+
+### Why use SSH instead of Container Station GUI
+
+Container Station's GUI import does not reliably create custom Docker networks. When it fails, containers start on separate default bridges and **cannot communicate by service name** — you'll see errors like `Can't reach database server at postgres:5432` even though all containers appear to be running. Using `docker compose` from the CLI avoids this entirely.
+
+### Setup steps
+
+1. **Enable SSH on your NAS** — Control Panel → Terminal & SNMP → Enable SSH
+2. **SSH in** and navigate to where you want to store the project:
+   ```bash
+   ssh admin@your-nas-ip
+   mkdir -p /volume1/docker/inventory
+   cd /volume1/docker/inventory
+   ```
+3. **Create your `.env` file**:
+   ```bash
+   # Copy the example and edit it
+   curl -o .env.example https://raw.githubusercontent.com/wottle/InventoryDifferent2/main/.env.example
+   cp .env.example .env
+   nano .env
+   ```
+   Set at minimum: `POSTGRES_PASSWORD`, `AUTH_PASSWORD`, `JWT_SECRET`.
+
+4. **Download the compose file**:
+   ```bash
+   curl -o docker-compose.simple.yml https://raw.githubusercontent.com/wottle/InventoryDifferent2/main/docker-compose.simple.yml
+   ```
+
+5. **Start the stack**:
+   ```bash
+   docker compose -f docker-compose.simple.yml up -d
+   ```
+
+6. **Check that all containers are healthy**:
+   ```bash
+   docker compose -f docker-compose.simple.yml ps
+   ```
+   All services should show `healthy` or `running` before you access the web app.
+
+### Synology firewall configuration
+
+The admin web app proxies all API traffic through port 3000 internally — you do **not** need to open port 4000 for the web app to function.
+
+| Port | Service | Open externally? |
+|------|---------|-----------------|
+| 3000 | Admin web app | **Yes** — required |
+| 3001 | Storefront | Optional |
+| 4000 | API (direct) | Optional — only needed for iOS app or direct API access |
+| 5432 | PostgreSQL | **Never** — serious security risk |
+
+In Synology's firewall (Control Panel → Security → Firewall), add a rule to allow port 3000 from your local subnet. Do not add a rule for port 5432.
+
+### Updating
+
+```bash
+cd /volume1/docker/inventory
+docker compose -f docker-compose.simple.yml pull
+docker compose -f docker-compose.simple.yml up -d
+```
+
+---
+
 ## Traefik Configuration
 
 The production compose file includes Traefik labels that:
