@@ -8,6 +8,7 @@ export type Translations = {
     SOLD: string;
     DONATED: string;
     RETURNED: string;
+    LOANED: string;
   };
   functionalStatus: {
     YES: string;
@@ -285,6 +286,7 @@ export type Translations = {
     markReturnedButton: string;
     markInRepair: string;
     backToCollection: string;
+    markAsLoaned: string;
     photos: string;
     viewAll: string;
     noNotesYet: string;
@@ -901,6 +903,7 @@ export const en: Translations = {
     SOLD: "Sold",
     DONATED: "Donated",
     RETURNED: "Returned",
+    LOANED: "Loaned",
   },
   functionalStatus: {
     YES: "Fully Functional",
@@ -1185,6 +1188,7 @@ export const en: Translations = {
     markReturnedButton: "Mark Returned",
     markInRepair: "Mark In Repair",
     backToCollection: "Back to Collection",
+    markAsLoaned: "Mark as Loaned",
     photos: "Photos",
     viewAll: "View all",
     noNotesYet: "No notes yet.",

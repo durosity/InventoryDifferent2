@@ -10,6 +10,7 @@ export const de: Translations = {
     SOLD: "Verkauft",
     DONATED: "Gespendet",
     RETURNED: "Zurückgekehrt",
+    LOANED: "Verliehen",
   },
   functionalStatus: {
     YES: "Voll funktionsfähig",
@@ -294,6 +295,7 @@ export const de: Translations = {
     markReturnedButton: "Als zurückgegeben markieren",
     markInRepair: "In Reparatur markieren",
     backToCollection: "Zurück zur Sammlung",
+    markAsLoaned: "Als Verliehen markieren",
     photos: "Fotos",
     viewAll: "Alle anzeigen",
     noNotesYet: "Noch keine Notizen.",
