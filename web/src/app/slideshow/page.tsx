@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useQuery, useLazyQuery } from '@apollo/client';
 import gql from 'graphql-tag';
 import Link from 'next/link';
@@ -81,7 +81,7 @@ export default function SlideshowPage() {
   // Keep previous slide rendered underneath for crossfade — avoids blanking during image load
   const [prevSlide, setPrevSlide] = useState<{ index: number; device: SlideDevice } | null>(null);
   const prevIndexRef = useRef<number | null>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const oldIndex = prevIndexRef.current;
     prevIndexRef.current = currentIndex;
     if (oldIndex === null || oldIndex === currentIndex || !slides[oldIndex]) return;
