@@ -285,6 +285,7 @@ enum Status {
   IN_REPAIR
   REPAIRED
   RETURNED
+  LOANED
 }
 
 enum FunctionalStatus {
