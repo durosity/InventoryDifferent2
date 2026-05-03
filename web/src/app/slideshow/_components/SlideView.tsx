@@ -19,9 +19,10 @@ interface SlideViewProps {
   slideIndex: number;
   apiBaseUrl: string;
   duration: number;
+  noFade?: boolean;
 }
 
-export function SlideView({ device, historicalNotes, showHistoricalNotes, slideIndex, apiBaseUrl, duration }: SlideViewProps) {
+export function SlideView({ device, historicalNotes, showHistoricalNotes, slideIndex, apiBaseUrl, duration, noFade }: SlideViewProps) {
   const [notesVisible, setNotesVisible] = useState(false);
   const kb = KEN_BURNS[slideIndex % 4];
   const animName = `kb${slideIndex % 4}`;
@@ -37,7 +38,7 @@ export function SlideView({ device, historicalNotes, showHistoricalNotes, slideI
   const imgSrc = thumb ? `${apiBaseUrl}${thumb.path ?? thumb.thumbnailPath}` : null;
 
   return (
-    <div className="absolute inset-0" style={{ animation: 'slideFadeIn 600ms ease-out' }}>
+    <div className="absolute inset-0" style={{ animation: noFade ? 'none' : 'slideFadeIn 600ms ease-out' }}>
       <style>{`
         @keyframes slideFadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes ${animName} {

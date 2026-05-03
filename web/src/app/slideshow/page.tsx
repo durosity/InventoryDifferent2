@@ -6,6 +6,7 @@ import gql from 'graphql-tag';
 import Link from 'next/link';
 import { useT } from '../../i18n/context';
 import { API_BASE_URL } from '../../lib/config';
+import { pickThumbnail } from '../../lib/pickThumbnail';
 import { useSlideshowSettings } from './hooks/useSlideshowSettings';
 import { useSlideshow, SlideDevice } from './hooks/useSlideshow';
 import { SlideView } from './_components/SlideView';
@@ -42,6 +43,26 @@ const GET_DEVICE_NOTES = gql`
   }
 `;
 
+function useFullscreen() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  const toggle = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
+  return { isFullscreen, toggle };
+}
+
 export default function SlideshowPage() {
   const t = useT();
   const ts = t.pages.slideshow;
@@ -50,11 +71,35 @@ export default function SlideshowPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
   const { data, loading } = useQuery(GET_DEVICES);
   const allDevices: SlideDevice[] = data?.devices ?? [];
 
   const { slides, currentIndex, paused, next, prev, togglePause } = useSlideshow(allDevices, settings);
+
+  // Keep previous slide rendered underneath for crossfade — avoids blanking during image load
+  const [prevSlide, setPrevSlide] = useState<{ index: number; device: SlideDevice } | null>(null);
+  const prevIndexRef = useRef<number | null>(null);
+  useEffect(() => {
+    const oldIndex = prevIndexRef.current;
+    prevIndexRef.current = currentIndex;
+    if (oldIndex === null || oldIndex === currentIndex || !slides[oldIndex]) return;
+    setPrevSlide({ index: oldIndex, device: slides[oldIndex] });
+    const t = setTimeout(() => setPrevSlide(null), 750); // slightly past the 600ms fade
+    return () => clearTimeout(t);
+  }, [currentIndex, slides]);
+
+  // Preload next slide image so the browser cache is warm before we need it
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const nextDevice = slides[(currentIndex + 1) % slides.length];
+    if (!nextDevice) return;
+    const thumb = pickThumbnail(nextDevice.images, true);
+    if (!thumb) return;
+    const img = new window.Image();
+    img.src = `${API_BASE_URL}${thumb.path ?? thumb.thumbnailPath}`;
+  }, [currentIndex, slides]);
 
   // Historical notes: cache by deviceId
   const notesCache = useRef<Record<string, string | null>>({});
@@ -105,7 +150,21 @@ export default function SlideshowPage() {
       style={{ cursor: controlsVisible ? 'default' : 'none' }}
       onMouseMove={handleMouseMove}
     >
-      {/* Current slide */}
+      {/* Previous slide — stays mounted underneath during crossfade so there's no blank */}
+      {prevSlide && (
+        <SlideView
+          key={prevSlide.index}
+          device={prevSlide.device}
+          historicalNotes={undefined}
+          showHistoricalNotes={false}
+          slideIndex={prevSlide.index}
+          apiBaseUrl={API_BASE_URL}
+          duration={settings.duration}
+          noFade
+        />
+      )}
+
+      {/* Current slide — fades in on top */}
       {currentDevice && (
         <SlideView
           key={currentIndex}
@@ -166,6 +225,7 @@ export default function SlideshowPage() {
         <div className="flex items-center gap-3">
           <Link
             href="/"
+            onClick={() => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }}
             className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-colors"
             style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.12)' }}
           >
@@ -191,6 +251,15 @@ export default function SlideshowPage() {
             style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.12)' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>skip_next</span>
+          </button>
+          <button
+            onClick={toggleFullscreen}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white transition-colors"
+            style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.12)' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+              {isFullscreen ? 'fullscreen_exit' : 'fullscreen'}
+            </span>
           </button>
           <button
             onClick={() => setSettingsOpen(o => !o)}
