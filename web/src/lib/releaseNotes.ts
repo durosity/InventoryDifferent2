@@ -19,6 +19,7 @@ export const releaseNotes: ReleaseEntry[] = [
       'Barcode/QR scanner button in the filter bar on the main inventory page — scans QR deep-links, device URLs, or serial numbers to navigate directly to the matching device',
       'Fisheye view mode on inventory page — circular thumbnail grid with proximity-based zoom effect',
       'Slideshow view — fullscreen device showcase with Ken Burns imagery, configurable slide duration, favorites filter, random or chronological order, and timed historical notes reveal',
+      'LOANED status for devices temporarily lent to others — sky blue badge, counts toward estimated value, lifecycle action returns device to collection',
     ],
     changed: [
       'Device detail (/devices) now uses the new Technical Atelier design; old layout archived at /devices-old',

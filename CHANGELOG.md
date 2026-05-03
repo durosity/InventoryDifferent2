@@ -15,6 +15,7 @@ All notable changes to InventoryDifferent will be documented here.
 - Value history popover on the Estimated Value card — chart anchors to the card, dismisses on outside click or Escape
 - Fisheye view mode on inventory page — circular thumbnail grid with proximity-based zoom effect
 - Slideshow view — fullscreen device showcase with Ken Burns imagery, configurable slide duration, favorites filter, random or chronological order, and timed historical notes reveal
+- LOANED status for devices temporarily lent to others — sky blue badge, counts toward estimated value, lifecycle action returns device to collection
 
 ### Changed
 - Device detail (/devices) now uses the new Technical Atelier design; old layout archived at /devices-old
