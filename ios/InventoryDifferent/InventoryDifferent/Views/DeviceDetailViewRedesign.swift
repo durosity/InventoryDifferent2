@@ -127,6 +127,7 @@ struct DeviceDetailRedesignView: View {
     let onDeviceDeleted: (() -> Void)?
 
     @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var deviceStore: DeviceStore
     @EnvironmentObject var lm: LocalizationManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
@@ -2104,6 +2105,7 @@ struct DevicePhotosChildView: View {
     @Binding var images: [DeviceImage]
 
     @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var deviceStore: DeviceStore
     @EnvironmentObject var lm: LocalizationManager
 
     @State private var isImageManagementMode = false
@@ -2318,14 +2320,14 @@ struct DevicePhotosChildView: View {
 
     private func setThumbnail(_ image: DeviceImage, mode: String) async {
         do {
-            let existingURLs: [URL] = images
-                .filter { $0.isThumbnail && $0.id != image.id }
+            let urlsToInvalidate: [URL] = images
                 .compactMap { APIService.shared.imageURL(for: $0.thumbnailPath ?? $0.path) }
             _ = try await DeviceService.shared.updateImage(id: image.id, isThumbnail: true, thumbnailMode: mode)
-            for url in existingURLs { await ImageCacheService.shared.removeImage(for: url) }
+            for url in urlsToInvalidate { await ImageCacheService.shared.removeImage(for: url) }
             if let updated = try? await DeviceService.shared.fetchDevice(id: deviceId) {
                 images = updated.images
             }
+            await deviceStore.refreshDevice(id: deviceId)
         } catch { print("setThumbnail: \(error)") }
     }
 

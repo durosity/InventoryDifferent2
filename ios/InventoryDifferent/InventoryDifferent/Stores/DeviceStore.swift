@@ -300,7 +300,10 @@ class DeviceStore: ObservableObject {
     }
     
     func refreshDevice(id: Int) async {
-        // Intentionally left blank. Full device details are fetched on-demand in the detail screen.
+        guard let updated = try? await deviceService.fetchDeviceListItem(id: id) else { return }
+        if let idx = devices.firstIndex(where: { $0.id == id }) {
+            devices[idx] = updated
+        }
     }
     
     func clearFilters() {

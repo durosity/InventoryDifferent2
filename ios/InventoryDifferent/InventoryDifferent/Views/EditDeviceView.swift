@@ -546,7 +546,7 @@ struct EditDeviceView: View {
             var input: [String: Any] = [:]
             
             input["name"] = name.trimmingCharacters(in: .whitespaces)
-            if !additionalName.isEmpty { input["additionalName"] = additionalName }
+            input["additionalName"] = additionalName.isEmpty ? NSNull() : additionalName
             if !manufacturer.isEmpty { input["manufacturer"] = manufacturer }
             if !modelNumber.isEmpty { input["modelNumber"] = modelNumber }
             if !serialNumber.isEmpty { input["serialNumber"] = serialNumber }

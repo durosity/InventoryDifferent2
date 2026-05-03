@@ -74,7 +74,55 @@ class DeviceService {
         let response: Response = try await api.execute(query: query)
         return response.devices
     }
-    
+
+    func fetchDeviceListItem(id: Int) async throws -> DeviceListItem? {
+        let query = """
+        query GetDeviceListItem {
+            devices(where: { id: { equals: \(id) }, deleted: { equals: false } }) {
+                id
+                name
+                additionalName
+                manufacturer
+                modelNumber
+                serialNumber
+                releaseYear
+                location { id name }
+                searchText
+                isFavorite
+                status
+                functionalStatus
+                condition
+                rarity
+                lastPowerOnDate
+                isAssetTagged
+                isPramBatteryRemoved
+                accessories { id name }
+                dateAcquired
+                estimatedValue
+                listPrice
+                soldPrice
+                soldDate
+                category {
+                    id
+                    name
+                    type
+                    sortOrder
+                }
+                thumbnails: images {
+                    id
+                    path
+                    thumbnailPath
+                    isThumbnail
+                    thumbnailMode
+                }
+            }
+        }
+        """
+        struct Response: Decodable { let devices: [DeviceListItem] }
+        let response: Response = try await api.execute(query: query)
+        return response.devices.first
+    }
+
     func fetchDevices(categoryId: Int? = nil, status: Status? = nil) async throws -> [Device] {
         var whereClause = "deleted: { equals: false }"
         
