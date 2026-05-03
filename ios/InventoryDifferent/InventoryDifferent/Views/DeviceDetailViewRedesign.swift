@@ -1671,7 +1671,7 @@ struct DeviceDetailRedesignView: View {
         let t = lm.t
         let hasActions: Bool = {
             switch device.status {
-            case .COLLECTION, .FOR_SALE, .PENDING_SALE, .IN_REPAIR, .REPAIRED: return true
+            case .COLLECTION, .FOR_SALE, .PENDING_SALE, .IN_REPAIR, .REPAIRED, .LOANED: return true
             default: return false
             }
         }()
@@ -1700,6 +1700,22 @@ struct DeviceDetailRedesignView: View {
                             color: .orange
                         ) {
                             showMarkForSaleSheetR = true
+                        }
+                        lifecycleButton(
+                            title: t.deviceDetail.markAsLoaned,
+                            icon: "arrow.left.arrow.right",
+                            color: .cyan
+                        ) {
+                            Task { await updateDeviceStatus(.LOANED) }
+                        }
+
+                    case .LOANED:
+                        lifecycleButton(
+                            title: t.deviceDetail.backToCollection,
+                            icon: "arrow.uturn.backward.circle",
+                            color: .cyan
+                        ) {
+                            Task { await updateDeviceStatus(.COLLECTION) }
                         }
 
                     case .FOR_SALE:
