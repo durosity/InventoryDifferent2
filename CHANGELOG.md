@@ -4,6 +4,10 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+---
+
+## [2.6.0] — 2026-05-03
+
 ### Fixed
 - iOS: hardcoded English strings in redesigned device detail view replaced with translations (remove tag alert, relationship inverse labels)
 - Web: hardcoded English section headers and tooltip text in device detail page replaced with translations (Quick Overview, Quick Actions, Manufacturer & Model, Serial Number, Location, Last Used, Device Notes, button tooltips)

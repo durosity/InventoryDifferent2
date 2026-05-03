@@ -1,4 +1,4 @@
-export const APP_VERSION = '2.5.2';
+export const APP_VERSION = '2.6.0';
 
 export interface ReleaseEntry {
   version: string;
@@ -12,6 +12,10 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
+  },
+  {
+    version: '2.6.0',
+    date: '2026-05-03',
     added: [
       'Redesigned device detail page — cinematic hero, editorial 12-column layout, accessories, related devices, links, and photos sub-page',
       'Value history popover on the Estimated Value card — chart anchors to the card, dismisses on outside click or Escape',
