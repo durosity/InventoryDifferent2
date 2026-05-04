@@ -488,7 +488,7 @@ struct DeviceDetailRedesignView: View {
             case .IN_REPAIR:    return (t.status.IN_REPAIR, .teal)
             case .REPAIRED:     return (t.status.REPAIRED, .mint)
             case .RETURNED:     return (t.status.RETURNED, .gray)
-            case .LOANED:       return (t.status.LOANED, .cyan)
+            case .LOANED:       return (t.status.LOANED, Color(red: 0.6, green: 0.4, blue: 0.85))
             }
         }()
         return Text(label)
@@ -1705,7 +1705,7 @@ struct DeviceDetailRedesignView: View {
                         lifecycleButton(
                             title: t.deviceDetail.markAsLoaned,
                             icon: "arrow.left.arrow.right",
-                            color: .cyan
+                            color: Color(red: 0.6, green: 0.4, blue: 0.85)
                         ) {
                             Task { await updateDeviceStatus(.LOANED) }
                         }
@@ -1714,7 +1714,7 @@ struct DeviceDetailRedesignView: View {
                         lifecycleButton(
                             title: t.deviceDetail.backToCollection,
                             icon: "arrow.uturn.backward.circle",
-                            color: .cyan
+                            color: Color(red: 0.6, green: 0.4, blue: 0.85)
                         ) {
                             Task { await updateDeviceStatus(.COLLECTION) }
                         }

@@ -64,7 +64,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; valueText: strin
   DONATED:      { bg: 'bg-purple-600', text: 'text-white', valueText: 'text-purple-600' },
   IN_REPAIR:    { bg: 'bg-teal-600',   text: 'text-white', valueText: 'text-teal-600' },
   RETURNED:     { bg: 'bg-red-600',    text: 'text-white', valueText: 'text-red-600' },
-  LOANED:       { bg: 'bg-sky-500',    text: 'text-white', valueText: 'text-sky-500' },
+  LOANED:       { bg: 'bg-violet-500',  text: 'text-white', valueText: 'text-violet-500' },
 };
 const FILLED: React.CSSProperties = { fontVariationSettings: "'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24" };
 

@@ -96,7 +96,7 @@ enum Status: String, Codable, CaseIterable {
         case .IN_REPAIR: return "teal"
         case .REPAIRED: return "mint"
         case .RETURNED: return "gray"
-        case .LOANED: return "cyan"
+        case .LOANED: return "violet"
         }
     }
 }

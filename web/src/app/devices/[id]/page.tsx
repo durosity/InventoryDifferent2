@@ -1106,7 +1106,7 @@ export default function DeviceDetailNew() {
     IN_REPAIR:    'bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300',
     REPAIRED:     'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300',
     RETURNED:     'bg-gray-200 text-gray-700 dark:bg-gray-700/60 dark:text-gray-300',
-    LOANED:       'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300',
+    LOANED:       'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300',
   };
 
   return (
@@ -1800,7 +1800,7 @@ export default function DeviceDetailNew() {
                     {t.detail.markForSale.toUpperCase()}
                   </button>
                   <button onClick={() => handleSetStatus('LOANED')} disabled={updatingStatus}
-                    className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-sky-50 text-sky-700 rounded-xl text-sm font-bold hover:bg-sky-100 dark:bg-sky-900/20 dark:text-sky-300 disabled:opacity-50 transition-all active:scale-[0.98]">
+                    className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-violet-50 text-violet-700 rounded-xl text-sm font-bold hover:bg-violet-100 dark:bg-violet-900/20 dark:text-violet-300 disabled:opacity-50 transition-all active:scale-[0.98]">
                     <Icon name="swap_horiz" className="w-5 h-5" />
                     {t.detail.markAsLoaned.toUpperCase()}
                   </button>

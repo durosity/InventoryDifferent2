@@ -470,7 +470,7 @@ struct ValueSaleInfo: View {
                 if let value = device.estimatedValue {
                     Text("\(t.deviceList.estValue)\(formatPrice(value))")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.cyan)
+                        .foregroundColor(Color(red: 0.6, green: 0.4, blue: 0.85))
                 }
             }
         }
@@ -520,7 +520,7 @@ struct StatusBadge: View {
         case .RETURNED:
             return .red
         case .LOANED:
-            return .cyan
+            return Color(red: 0.6, green: 0.4, blue: 0.85)
         }
     }
 }
