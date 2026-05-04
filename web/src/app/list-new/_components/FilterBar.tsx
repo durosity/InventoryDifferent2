@@ -33,7 +33,7 @@ interface FilterBarProps {
   onScanClick?: () => void;
 }
 
-const ALL_STATUSES = ['COLLECTION', 'IN_REPAIR', 'REPAIRED', 'FOR_SALE', 'PENDING_SALE', 'RETURNED', 'SOLD', 'DONATED'];
+const ALL_STATUSES = ['COLLECTION', 'IN_REPAIR', 'REPAIRED', 'LOANED', 'FOR_SALE', 'PENDING_SALE', 'RETURNED', 'SOLD', 'DONATED'];
 
 export function FilterBar({
   totalCount,

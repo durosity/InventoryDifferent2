@@ -66,10 +66,10 @@ enum Status: String, Codable, CaseIterable {
     case PENDING_SALE
     case IN_REPAIR
     case REPAIRED
+    case LOANED
     case SOLD
     case DONATED
     case RETURNED
-    case LOANED
 
     var displayName: String {
         let t = LocalizationManager.shared.t
