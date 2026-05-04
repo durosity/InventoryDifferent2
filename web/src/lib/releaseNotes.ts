@@ -13,7 +13,7 @@ export const releaseNotes: ReleaseEntry[] = [
     version: 'Unreleased',
     date: '',
     added: [
-      'Settings page (/settings) — configure the AI image generation prompt and model (gpt-image-1 or gpt-image-2)',
+      'Settings page (/settings) — configure the AI image generation prompt and model (gpt-image-1.5 or gpt-image-2)',
     ],
     changed: [
       'LOANED status color changed from sky blue to violet (lilac) on web and iOS — distinguishes it from IN_REPAIR (teal) and FOR_SALE (blue)',

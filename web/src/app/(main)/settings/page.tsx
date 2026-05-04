@@ -13,7 +13,7 @@ const SET_SYSTEM_SETTING = gql`
   }
 `;
 
-const MODELS = ['gpt-image-1', 'gpt-image-2'] as const;
+const MODELS = ['gpt-image-1.5', 'gpt-image-2'] as const;
 type ImageModel = (typeof MODELS)[number];
 
 export default function SettingsPage() {
@@ -24,7 +24,7 @@ export default function SettingsPage() {
 
   const [openaiEnabled, setOpenaiEnabled] = useState<boolean | null>(null);
   const [prompt, setPrompt] = useState('');
-  const [imageModel, setImageModel] = useState<ImageModel>('gpt-image-1');
+  const [imageModel, setImageModel] = useState<ImageModel>('gpt-image-1.5');
   const [promptSaved, setPromptSaved] = useState(false);
   const [modelSaved, setModelSaved] = useState(false);
   const [loading, setLoading] = useState(true);

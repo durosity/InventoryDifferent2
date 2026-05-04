@@ -1586,7 +1586,7 @@ RESTART IDENTITY CASCADE;
         return res.json({
             enabled: !!process.env.OPENAI_API_KEY,
             defaultPrompt: promptSetting?.value ?? null,
-            imageModel: modelSetting?.value ?? 'gpt-image-1',
+            imageModel: modelSetting?.value ?? 'gpt-image-1.5',
         });
     });
 
@@ -1623,7 +1623,7 @@ RESTART IDENTITY CASCADE;
                 let imageBase64: string;
 
                 const modelSetting = await (defaultPrisma as any).systemSetting.findUnique({ where: { key: 'imageModel' } });
-                const imageModel = modelSetting?.value ?? 'gpt-image-1';
+                const imageModel = modelSetting?.value ?? 'gpt-image-1.5';
 
                 if (sourceImageId) {
                     console.log(`[${ts()}] [generate-image] Starting image-edit mode, sourceImageId:`, sourceImageId);
