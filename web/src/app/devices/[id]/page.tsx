@@ -367,6 +367,7 @@ const ICON_PATHS: Record<string, string> = {
   crown: "M12 3L8 9L3 7L5 15H19L21 7L16 9Z M5 17H19V19H5Z",
   star_outline: "M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z",
   undo: "M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z",
+  help: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z",
 };
 
 function Icon({ name, className = "w-5 h-5" }: { name: string; className?: string }) {
@@ -1195,10 +1196,25 @@ export default function DeviceDetailNew() {
           {/* Indicator Cards */}
           <section className="grid grid-cols-3 md:grid-cols-6 gap-4">
             <IndicatorCard
-              iconName={device.functionalStatus === 'YES' ? 'thumb_up' : device.functionalStatus === 'PARTIAL' ? 'warning_triangle' : 'thumb_down'}
-              color={device.functionalStatus === 'YES' ? 'emerald' : device.functionalStatus === 'PARTIAL' ? 'amber' : 'red'}
+              iconName={
+                device.functionalStatus === 'YES' ? 'thumb_up'
+                : device.functionalStatus === 'PARTIAL' ? 'warning_triangle'
+                : device.functionalStatus === 'NO' ? 'thumb_down'
+                : 'help'
+              }
+              color={
+                device.functionalStatus === 'YES' ? 'emerald'
+                : device.functionalStatus === 'PARTIAL' ? 'amber'
+                : device.functionalStatus === 'NO' ? 'red'
+                : 'gray'
+              }
               label={t.detail.conditionLabel}
-              value={device.functionalStatus === 'YES' ? t.detail.fullyWorking : device.functionalStatus === 'PARTIAL' ? t.detail.partiallyWorking : t.detail.notWorking}
+              value={
+                device.functionalStatus === 'YES' ? t.detail.fullyWorking
+                : device.functionalStatus === 'PARTIAL' ? t.detail.partiallyWorking
+                : device.functionalStatus === 'NO' ? t.detail.notWorking
+                : t.detail.unknown
+              }
               active={true}
             />
             <IndicatorCard

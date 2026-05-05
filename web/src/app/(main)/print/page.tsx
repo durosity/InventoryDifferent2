@@ -177,6 +177,7 @@ export default function PrintListPage() {
       case "YES": return t.pages.print.functionalYes;
       case "PARTIAL": return t.pages.print.functionalPartial;
       case "NO": return t.pages.print.functionalNo;
+      case "UNKNOWN": return t.pages.print.functionalUnknown;
       default: return status;
     }
   };
