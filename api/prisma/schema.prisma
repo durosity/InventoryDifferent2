@@ -30,7 +30,7 @@ model Device {
 
   // Status & Condition
   status              Status    @default(COLLECTION)
-  functionalStatus    FunctionalStatus @default(YES)
+  functionalStatus    FunctionalStatus @default(UNKNOWN)
   condition           Condition?
   rarity              Rarity?
   lastPowerOnDate     DateTime?
@@ -292,6 +292,7 @@ enum FunctionalStatus {
   YES
   PARTIAL
   NO
+  UNKNOWN
 }
 
 enum Condition {

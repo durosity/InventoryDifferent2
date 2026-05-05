@@ -19,6 +19,7 @@ export const typeDefs = gql`
     YES
     PARTIAL
     NO
+    UNKNOWN
   }
 
   enum Condition {

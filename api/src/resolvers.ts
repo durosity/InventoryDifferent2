@@ -672,6 +672,7 @@ export const resolvers = {
                 YES: 'Working',
                 PARTIAL: 'Partial',
                 NO: 'Not Working',
+                UNKNOWN: 'Unknown',
             };
             const categoryTypeLabels: Record<string, string> = {
                 COMPUTER: 'Computer',
