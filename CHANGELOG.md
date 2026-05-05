@@ -4,6 +4,9 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+### Added
+- Added "Unknown" as a fourth functional status (gray question mark icon); new devices default to Unknown instead of Fully Working
+
 ---
 
 ## [2.6.0] — 2026-05-03
