@@ -86,8 +86,11 @@ function buildIconRow(device: DeviceCardNewProps['device']): IconSpec[] {
     icons.push({ name: 'thumb_up', className: 'text-green-500', style: FILLED });
   } else if (device.functionalStatus === 'PARTIAL') {
     icons.push({ name: 'warning', className: 'text-yellow-400', style: FILLED });
-  } else {
+  } else if (device.functionalStatus === 'NO') {
     icons.push({ name: 'thumb_down', className: 'text-red-500', style: FILLED });
+  } else {
+    // UNKNOWN or any future value
+    icons.push({ name: 'help', className: 'text-gray-400', style: FILLED });
   }
 
   // 2. Rarity — only if set

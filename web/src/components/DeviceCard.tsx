@@ -70,6 +70,14 @@ export function DeviceCard({ device }: DeviceCardProps) {
                         </svg>
                     </div>
                 );
+            case 'UNKNOWN':
+                return (
+                    <div className="w-4 h-4 bg-gray-100 dark:bg-gray-800/30 rounded-full flex items-center justify-center">
+                        <svg width="8" height="8" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-500 dark:text-gray-400">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                );
             default:
                 return null;
         }
@@ -184,6 +192,13 @@ export function DeviceCard({ device }: DeviceCardProps) {
                 <span title={t.icons.functionalNo}>
                     <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/>
+                    </svg>
+                </span>
+            )}
+            {device.functionalStatus === 'UNKNOWN' && (
+                <span title={t.icons.functionalUnknown}>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </span>
             )}
