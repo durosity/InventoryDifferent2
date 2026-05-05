@@ -687,13 +687,16 @@ struct DeviceDetailRedesignView: View {
             indicatorTile(
                 icon: device.functionalStatus == .YES ? "hand.thumbsup.fill"
                     : device.functionalStatus == .PARTIAL ? "exclamationmark.triangle.fill"
-                    : "hand.thumbsdown.fill",
+                    : device.functionalStatus == .NO ? "hand.thumbsdown.fill"
+                    : "questionmark.circle.fill",
                 label: device.functionalStatus == .YES ? t.functionalStatus.YES
                     : device.functionalStatus == .PARTIAL ? t.functionalStatus.PARTIAL
-                    : t.functionalStatus.NO,
+                    : device.functionalStatus == .NO ? t.functionalStatus.NO
+                    : t.functionalStatus.UNKNOWN,
                 color: device.functionalStatus == .YES ? .green
                     : device.functionalStatus == .PARTIAL ? .orange
-                    : .red,
+                    : device.functionalStatus == .NO ? .red
+                    : .gray,
                 active: true
             )
 

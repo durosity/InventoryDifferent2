@@ -399,7 +399,7 @@ struct StatusIndicatorsRow: View {
 
 struct FunctionalStatusIcon: View {
     let status: FunctionalStatus
-    
+
     var body: some View {
         switch status {
         case .YES:
@@ -414,6 +414,10 @@ struct FunctionalStatusIcon: View {
             Image(systemName: "hand.thumbsdown.fill")
                 .font(.system(size: 12))
                 .foregroundColor(.red)
+        case .UNKNOWN:
+            Image(systemName: "questionmark.circle.fill")
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
         }
     }
 }

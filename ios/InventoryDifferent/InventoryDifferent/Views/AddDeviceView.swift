@@ -48,7 +48,7 @@ struct AddDeviceView: View {
     @State private var historicalNotes = ""
 
     @State private var status: Status = .COLLECTION
-    @State private var functionalStatus: FunctionalStatus = .YES
+    @State private var functionalStatus: FunctionalStatus = .UNKNOWN
     @State private var condition: Condition? = nil
     @State private var rarity: Rarity? = nil
     @State private var isFavorite = false
