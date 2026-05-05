@@ -8,7 +8,7 @@ struct Translations {
         let COLLECTION, FOR_SALE, PENDING_SALE, IN_REPAIR, REPAIRED, SOLD, DONATED, RETURNED, LOANED: String
     }
     struct FunctionalStatusT {
-        let YES, PARTIAL, NO: String
+        let YES, PARTIAL, NO, UNKNOWN: String
     }
     struct ConditionT {
         let NEW, LIKE_NEW, VERY_GOOD, GOOD, ACCEPTABLE, FOR_PARTS: String

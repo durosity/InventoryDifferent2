@@ -105,6 +105,7 @@ enum FunctionalStatus: String, Codable, CaseIterable {
     case YES
     case PARTIAL
     case NO
+    case UNKNOWN
 
     var displayName: String {
         let t = LocalizationManager.shared.t
@@ -112,6 +113,7 @@ enum FunctionalStatus: String, Codable, CaseIterable {
         case .YES: return t.functionalStatus.YES
         case .PARTIAL: return t.functionalStatus.PARTIAL
         case .NO: return t.functionalStatus.NO
+        case .UNKNOWN: return t.functionalStatus.UNKNOWN
         }
     }
 }

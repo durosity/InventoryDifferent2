@@ -16,7 +16,8 @@ extension Translations {
         functionalStatus: .init(
             YES: "Funcional",
             PARTIAL: "Parcial",
-            NO: "No funcional"
+            NO: "No funcional",
+            UNKNOWN: "Desconocido"
         ),
         condition: .init(
             NEW: "Nuevo",
