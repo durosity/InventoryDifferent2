@@ -14,6 +14,7 @@ export type Translations = {
     YES: string;
     PARTIAL: string;
     NO: string;
+    UNKNOWN: string;
   };
   condition: {
     NEW: string;
@@ -49,6 +50,7 @@ export type Translations = {
     functionalYes: string;
     functionalPartial: string;
     functionalNo: string;
+    functionalUnknown: string;
   };
   table: {
     thumbnail: string;
@@ -252,6 +254,7 @@ export type Translations = {
     fullyWorking: string;
     partiallyWorking: string;
     notWorking: string;
+    unknown: string;
     tagged: string;
     notTagged: string;
     origBox: string;
@@ -782,6 +785,7 @@ export type Translations = {
       functionalYes: string;
       functionalPartial: string;
       functionalNo: string;
+      functionalUnknown: string;
     };
     settings: {
       pageTitle: string;
@@ -922,6 +926,7 @@ export const en: Translations = {
     YES: "Fully Functional",
     PARTIAL: "Partially Functional",
     NO: "Not Functional",
+    UNKNOWN: "Unknown",
   },
   condition: {
     NEW: "New",
@@ -957,6 +962,7 @@ export const en: Translations = {
     functionalYes: "Functional: YES",
     functionalPartial: "Functional: PARTIAL",
     functionalNo: "Functional: NO",
+    functionalUnknown: "Functional: UNKNOWN",
   },
   table: {
     thumbnail: "Thumbnail",
@@ -1167,6 +1173,7 @@ export const en: Translations = {
     fullyWorking: "Fully Working",
     partiallyWorking: "Partially Working",
     notWorking: "Not Working",
+    unknown: "Unknown",
     tagged: "Tagged",
     notTagged: "Not Tagged",
     origBox: "Orig Box",
@@ -1697,6 +1704,7 @@ export const en: Translations = {
       functionalYes: "Functional",
       functionalPartial: "Partially Functional",
       functionalNo: "Not Functional",
+      functionalUnknown: "Unknown",
     },
     settings: {
       pageTitle: "Settings",

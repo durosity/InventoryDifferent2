@@ -16,6 +16,7 @@ export const es: Translations = {
     YES: "Totalmente funcional",
     PARTIAL: "Parcialmente funcional",
     NO: "No funcional",
+    UNKNOWN: "Desconocido",
   },
   condition: {
     NEW: "Nuevo",
@@ -51,6 +52,7 @@ export const es: Translations = {
     functionalYes: "Funcional: Sí",
     functionalPartial: "Funcional: Parcial",
     functionalNo: "Funcional: No",
+    functionalUnknown: "Funcional: DESCONOCIDO",
   },
   table: {
     thumbnail: "Miniatura",
@@ -261,6 +263,7 @@ export const es: Translations = {
     fullyWorking: "Completamente funcional",
     partiallyWorking: "Parcialmente funcional",
     notWorking: "No funcional",
+    unknown: "Desconocido",
     tagged: "Etiquetado",
     notTagged: "Sin etiquetar",
     origBox: "Caja orig.",
@@ -791,6 +794,7 @@ export const es: Translations = {
       functionalYes: "Funcional",
       functionalPartial: "Parcialmente funcional",
       functionalNo: "No funcional",
+      functionalUnknown: "Desconocido",
     },
     settings: {
       pageTitle: "Configuración",

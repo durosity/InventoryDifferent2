@@ -16,6 +16,7 @@ export const fr: Translations = {
     YES: "Entièrement fonctionnel",
     PARTIAL: "Partiellement fonctionnel",
     NO: "Non fonctionnel",
+    UNKNOWN: "Inconnu",
   },
   condition: {
     NEW: "Neuf",
@@ -51,6 +52,7 @@ export const fr: Translations = {
     functionalYes: "Fonctionnel : Oui",
     functionalPartial: "Fonctionnel : Partiel",
     functionalNo: "Fonctionnel : Non",
+    functionalUnknown: "Fonctionnel : INCONNU",
   },
   table: {
     thumbnail: "Miniature",
@@ -261,6 +263,7 @@ export const fr: Translations = {
     fullyWorking: "Pleinement fonctionnel",
     partiallyWorking: "Partiellement fonctionnel",
     notWorking: "Non fonctionnel",
+    unknown: "Inconnu",
     tagged: "Étiqueté",
     notTagged: "Non étiqueté",
     origBox: "Boîte orig.",
@@ -791,6 +794,7 @@ export const fr: Translations = {
       functionalYes: "Fonctionnel",
       functionalPartial: "Partiellement fonctionnel",
       functionalNo: "Non fonctionnel",
+      functionalUnknown: "Inconnu",
     },
     settings: {
       pageTitle: "Paramètres",

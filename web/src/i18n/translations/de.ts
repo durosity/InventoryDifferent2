@@ -16,6 +16,7 @@ export const de: Translations = {
     YES: "Voll funktionsfähig",
     PARTIAL: "Teilweise funktionsfähig",
     NO: "Nicht funktionsfähig",
+    UNKNOWN: "Unbekannt",
   },
   condition: {
     NEW: "Neu",
@@ -51,6 +52,7 @@ export const de: Translations = {
     functionalYes: "Funktionsfähig: Ja",
     functionalPartial: "Funktionsfähig: Teilweise",
     functionalNo: "Funktionsfähig: Nein",
+    functionalUnknown: "Funktionsfähig: UNBEKANNT",
   },
   table: {
     thumbnail: "Vorschaubild",
@@ -261,6 +263,7 @@ export const de: Translations = {
     fullyWorking: "Voll funktionstüchtig",
     partiallyWorking: "Teilweise funktionstüchtig",
     notWorking: "Nicht funktionstüchtig",
+    unknown: "Unbekannt",
     tagged: "Etikettiert",
     notTagged: "Nicht etikettiert",
     origBox: "Orig. Box",
@@ -791,6 +794,7 @@ export const de: Translations = {
       functionalYes: "Funktionsfähig",
       functionalPartial: "Teilweise funktionsfähig",
       functionalNo: "Nicht funktionsfähig",
+      functionalUnknown: "Unbekannt",
     },
     settings: {
       pageTitle: "Einstellungen",
