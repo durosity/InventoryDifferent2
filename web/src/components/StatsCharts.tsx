@@ -288,6 +288,7 @@ export default function StatsCharts({ stats }: { stats: CollectionStats }) {
     'Working': t.functionalStatus.YES,
     'Partial': t.functionalStatus.PARTIAL,
     'Not Working': t.functionalStatus.NO,
+    'Unknown': t.functionalStatus.UNKNOWN,
   };
   const rarityLabelMap: Record<string, string> = {
     'Common': t.rarity.COMMON,

@@ -80,6 +80,7 @@ export function DeviceFilterPanel({
     { value: "YES", label: t.functionalStatus.YES },
     { value: "PARTIAL", label: t.functionalStatus.PARTIAL },
     { value: "NO", label: t.functionalStatus.NO },
+    { value: "UNKNOWN", label: t.functionalStatus.UNKNOWN },
   ];
 
   const conditionOptions = [

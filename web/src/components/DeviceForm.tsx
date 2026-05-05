@@ -350,7 +350,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
         isFavorite: false,
         externalUrl: prefill?.externalUrl ?? "",
         status: "COLLECTION",
-        functionalStatus: "YES",
+        functionalStatus: "UNKNOWN",
         condition: "" as string,
         rarity: "" as string,
         hasOriginalBox: false,
@@ -413,7 +413,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                 isFavorite: device.isFavorite || false,
                 externalUrl: device.externalUrl || "",
                 status: device.status || "COLLECTION",
-                functionalStatus: device.functionalStatus || "YES",
+                functionalStatus: device.functionalStatus || "UNKNOWN",
                 condition: device.condition || "",
                 rarity: device.rarity || "",
                 hasOriginalBox: device.hasOriginalBox || false,
@@ -985,6 +985,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                         <option value="YES">{t.functionalStatus.YES}</option>
                         <option value="PARTIAL">{t.functionalStatus.PARTIAL}</option>
                         <option value="NO">{t.functionalStatus.NO}</option>
+                        <option value="UNKNOWN">{t.functionalStatus.UNKNOWN}</option>
                     </select>
                 </FormField>
 
