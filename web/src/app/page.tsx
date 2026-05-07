@@ -53,6 +53,11 @@ const GET_DEVICES = gql`
         isThumbnail
         thumbnailMode
       }
+      cpu
+      ram
+      notes {
+        id
+      }
     }
   }
 `;
@@ -122,6 +127,21 @@ export default function ListNewPage() {
   const [barcodeSupported, setBarcodeSupported] = useState(false);
   const assetScanFormats = useMemo(() => ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'itf'], []);
   const [getDeviceBySerial] = useLazyQuery(GET_DEVICE_BY_SERIAL);
+  const [healthFilters, setHealthFilters] = useState({
+    noImages: false,
+    noNotes: false,
+    missingSpecs: false,
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    setHealthFilters({
+      noImages: params.get('noImages') === 'true',
+      noNotes: params.get('noNotes') === 'true',
+      missingSpecs: params.get('missingSpecs') === 'true',
+    });
+  }, []);
 
   const setViewMode = (v: 'grid' | 'list' | 'fisheye') => {
     setViewModeState(v);
@@ -165,8 +185,11 @@ export default function ListNewPage() {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter((d: any) => d.searchText?.includes(q));
     }
+    if (healthFilters.noImages) result = result.filter((d: any) => !d.images || d.images.length === 0);
+    if (healthFilters.noNotes) result = result.filter((d: any) => !d.notes || d.notes.length === 0);
+    if (healthFilters.missingSpecs) result = result.filter((d: any) => !d.cpu && !d.ram);
     return result;
-  }, [data?.devices, filters, searchQuery]);
+  }, [data?.devices, filters, searchQuery, healthFilters]);
 
   const sortedDevices = useMemo(() => {
     return [...filteredDevices].sort((a: any, b: any) => {
