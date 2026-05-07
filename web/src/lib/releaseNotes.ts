@@ -23,7 +23,7 @@ export const releaseNotes: ReleaseEntry[] = [
     fixed: [
       'iOS: thumbnail not refreshing on the device list after setting or replacing a thumbnail — now invalidates the full image cache and updates the list store immediately',
       'iOS: clearing the Additional Name field and saving no longer leaves the old value — empty field now sends null to the API',
-      'Dashboard collection health metrics now exclude sold, donated, and returned devices from counts',
+      'Dashboard collection health metrics now exclude sold, donated, and returned devices from counts; missing-specs count also excludes accessories',
     ],
   },
   {

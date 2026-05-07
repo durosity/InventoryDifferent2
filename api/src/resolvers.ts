@@ -985,6 +985,7 @@ export const resolvers = {
                 context.prisma.device.count({
                     where: {
                         ...inCollectionFilter,
+                        category: { type: { notIn: ['ACCESSORY'] as any } },
                         AND: [
                             { OR: [{ cpu: null }, { cpu: '' }] },
                             { OR: [{ ram: null }, { ram: '' }] },
