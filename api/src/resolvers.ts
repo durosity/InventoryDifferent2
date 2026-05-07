@@ -900,6 +900,103 @@ export const resolvers = {
                 effectiveVolumeNumber: volumeRank.get(j.id) ?? 0,
             }));
         },
+
+        dashboard: async (_parent: any, _args: any, context: Context) => {
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+            // Last 50 activity entries with device name + thumbnail image
+            const recentActivity = await (context.prisma as any).activityLog.findMany({
+                take: 50,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    device: {
+                        include: {
+                            images: { where: { isThumbnail: true }, take: 1 },
+                        },
+                    },
+                },
+            });
+
+            // Financial snapshot — auth-gated; returns null when not authenticated
+            let financialSnapshot = null;
+            try {
+                requireAuth(context);
+
+                const spentAgg = await context.prisma.device.aggregate({
+                    where: { deleted: false, dateAcquired: { gte: startOfMonth, lte: endOfMonth } },
+                    _sum: { priceAcquired: true },
+                });
+                const revenueAgg = await context.prisma.device.aggregate({
+                    where: {
+                        deleted: false,
+                        soldDate: { gte: startOfMonth, lte: endOfMonth },
+                        status: { in: ['SOLD', 'DONATED', 'RETURNED'] as any },
+                    },
+                    _sum: { soldPrice: true },
+                });
+                const valueAgg = await context.prisma.device.aggregate({
+                    where: { deleted: false, status: { notIn: ['SOLD', 'DONATED'] as any } },
+                    _sum: { estimatedValue: true },
+                });
+
+                const spentThisMonth = Number(spentAgg._sum.priceAcquired ?? 0);
+                const revenueThisMonth = Number(revenueAgg._sum.soldPrice ?? 0);
+
+                financialSnapshot = {
+                    spentThisMonth,
+                    revenueThisMonth,
+                    netThisMonth: revenueThisMonth - spentThisMonth,
+                    collectionValue: Number(valueAgg._sum.estimatedValue ?? 0),
+                };
+            } catch {
+                // Not authenticated — financialSnapshot remains null
+            }
+
+            // Needs Attention — each list includes device + thumbnail
+            const deviceInclude = { images: { where: { isThumbnail: true }, take: 1 } };
+            const [inRepair, pramBatteryPending, unknownFunctionalStatus] = await Promise.all([
+                context.prisma.device.findMany({
+                    where: { deleted: false, status: 'IN_REPAIR' as any },
+                    include: deviceInclude,
+                }),
+                context.prisma.device.findMany({
+                    where: { deleted: false, isPramBatteryRemoved: false },
+                    include: deviceInclude,
+                }),
+                context.prisma.device.findMany({
+                    where: { deleted: false, functionalStatus: 'UNKNOWN' as any },
+                    include: deviceInclude,
+                }),
+            ]);
+
+            // Collection Health — counts of devices missing key data
+            const [noImages, noNotes, missingSpecs] = await Promise.all([
+                context.prisma.device.count({ where: { deleted: false, images: { none: {} } } }),
+                context.prisma.device.count({ where: { deleted: false, notes: { none: {} } } }),
+                context.prisma.device.count({
+                    where: {
+                        deleted: false,
+                        AND: [
+                            { OR: [{ cpu: null }, { cpu: '' }] },
+                            { OR: [{ ram: null }, { ram: '' }] },
+                        ],
+                    },
+                }),
+            ]);
+
+            return {
+                recentActivity: recentActivity.map((entry: any) => ({
+                    ...entry,
+                    metadata: entry.metadata != null ? JSON.stringify(entry.metadata) : null,
+                    createdAt: entry.createdAt.toISOString(),
+                })),
+                financialSnapshot,
+                needsAttention: { inRepair, pramBatteryPending, unknownFunctionalStatus },
+                collectionHealth: { noImages, noNotes, missingSpecs },
+            };
+        },
     },
     Mutation: {
         recordDeviceView: async (_parent: any, args: { deviceId: number }, context: Context) => {
