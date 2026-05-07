@@ -182,7 +182,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface font-sans p-8 lg:p-12">
+    <div className="min-h-screen font-sans p-8 lg:p-12">
       <div className="max-w-screen-xl mx-auto space-y-10">
 
         {/* ── Financial Snapshot (auth-gated) ── */}
