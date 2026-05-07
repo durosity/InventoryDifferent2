@@ -151,6 +151,55 @@ export type Translations = {
     logIn: string;
     loggedInAs: string;
     slideshow: string;
+    dashboard: string;
+  };
+  dashboard: {
+    title: string;
+    loading: string;
+    loadingSubtitle: string;
+    financialSnapshot: string;
+    allFinancials: string;
+    spentThisMonth: string;
+    revenueThisMonth: string;
+    netThisMonth: string;
+    collectionValue: string;
+    premium: string;
+    recentActivity: string;
+    noActivity: string;
+    viewCompleteLog: string;
+    activityListed: string;
+    activityPendingSale: string;
+    activitySold: string;
+    activityDonated: string;
+    activityReturned: string;
+    activityLoaned: string;
+    activityReturnedFromLoan: string;
+    activityStatusChanged: string;
+    activityConditionUpdated: string;
+    activityNoteAdded: string;
+    activityMaintenance: string;
+    activityPoweredOn: string;
+    activityAcquired: string;
+    subtitleMovedForSale: string;
+    subtitlePendingSale: string;
+    subtitleSaleCompleted: string;
+    subtitleDonated: string;
+    subtitleRepairReturn: string;
+    subtitleLoaned: string;
+    subtitleBackInCollection: string;
+    subtitleLastPowerOn: string;
+    subtitleNewAddition: string;
+    needsAttention: string;
+    inRepair: string;
+    highPriority: string;
+    pramBatteryPending: string;
+    unknownCondition: string;
+    allGood: string;
+    addNewEntry: string;
+    collectionHealth: string;
+    noImages: string;
+    noNotes: string;
+    missingSpecs: string;
   };
   home: {
     search: string;
@@ -1063,6 +1112,55 @@ export const en: Translations = {
     logIn: "Log In",
     loggedInAs: "Logged in as",
     slideshow: "Slideshow",
+    dashboard: "Dashboard",
+  },
+  dashboard: {
+    title: "Dashboard",
+    loading: "Loading dashboard…",
+    loadingSubtitle: "Fetching your collection overview",
+    financialSnapshot: "Financial Snapshot",
+    allFinancials: "All Financials",
+    spentThisMonth: "Spent This Month",
+    revenueThisMonth: "Revenue This Month",
+    netThisMonth: "Net This Month",
+    collectionValue: "Collection Value",
+    premium: "Premium",
+    recentActivity: "Recent Activity",
+    noActivity: "No activity yet. Changes to your devices will appear here.",
+    viewCompleteLog: "View Complete Log",
+    activityListed: "Listed {device} for ${price}",
+    activityPendingSale: "{device} sale pending",
+    activitySold: "Sold {device} for ${price}",
+    activityDonated: "Donated {device}",
+    activityReturned: "{device} returned from repair",
+    activityLoaned: "Loaned out {device}",
+    activityReturnedFromLoan: "{device} returned from loan",
+    activityStatusChanged: "{device} status changed to {status}",
+    activityConditionUpdated: "{device} condition updated",
+    activityNoteAdded: "Added a note to {device}",
+    activityMaintenance: "Logged maintenance on {device}",
+    activityPoweredOn: "Powered on {device}",
+    activityAcquired: "Acquired {device}",
+    subtitleMovedForSale: "Moved to For Sale",
+    subtitlePendingSale: "Status changed to Pending Sale",
+    subtitleSaleCompleted: "Sale completed",
+    subtitleDonated: "Status changed to Donated",
+    subtitleRepairReturn: "Repair return logged",
+    subtitleLoaned: "Status changed to Loaned",
+    subtitleBackInCollection: "Back in collection",
+    subtitleLastPowerOn: "Last power-on date updated",
+    subtitleNewAddition: "New addition to collection",
+    needsAttention: "Needs Attention",
+    inRepair: "In Repair",
+    highPriority: "HIGH PRIORITY",
+    pramBatteryPending: "PRAM Battery Pending",
+    unknownCondition: "Unknown Condition",
+    allGood: "Everything looks good",
+    addNewEntry: "Add New Collection Entry",
+    collectionHealth: "Collection Health",
+    noImages: "{n} devices with no images",
+    noNotes: "{n} devices with no notes or logs",
+    missingSpecs: "{n} devices with missing specs",
   },
   home: {
     search: "Search...",
