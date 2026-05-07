@@ -3,6 +3,7 @@
 import { useQuery } from '@apollo/client';
 import gql from 'graphql-tag';
 import Link from 'next/link';
+import { useAuth } from '../../../lib/auth-context';
 import { useT } from '../../../i18n/context';
 
 const DASHBOARD_QUERY = gql`
@@ -157,10 +158,11 @@ function activityContent(entry: ActivityEntry): { title: string; subtitle: strin
 
 export default function DashboardPage() {
   const t = useT();
+  const { isAuthenticated } = useAuth();
   const { data, loading } = useQuery(DASHBOARD_QUERY, { fetchPolicy: 'cache-and-network' });
 
   const dashboard = data?.dashboard;
-  const financial = dashboard?.financialSnapshot;
+  const financial = isAuthenticated ? dashboard?.financialSnapshot : null;
   const activity: ActivityEntry[] = dashboard?.recentActivity ?? [];
   const needs = dashboard?.needsAttention;
   const health = dashboard?.collectionHealth;

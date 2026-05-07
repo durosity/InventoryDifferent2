@@ -907,17 +907,23 @@ export const resolvers = {
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
             // Last 50 activity entries with device name + thumbnail image
-            const recentActivity = await (context.prisma as any).activityLog.findMany({
-                take: 50,
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    device: {
-                        include: {
-                            images: { where: { isThumbnail: true }, take: 1 },
+            // Wrapped in try/catch so a pending migration doesn't crash the whole dashboard
+            let rawActivity: any[] = [];
+            try {
+                rawActivity = await (context.prisma as any).activityLog.findMany({
+                    take: 50,
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                        device: {
+                            include: {
+                                images: { where: { isThumbnail: true }, take: 1 },
+                            },
                         },
                     },
-                },
-            });
+                });
+            } catch {
+                // ActivityLog table may not exist yet (migration pending); return empty feed
+            }
 
             // Financial snapshot — auth-gated; returns null when not authenticated
             let financialSnapshot = null;
@@ -987,7 +993,7 @@ export const resolvers = {
             ]);
 
             return {
-                recentActivity: recentActivity.map((entry: any) => ({
+                recentActivity: rawActivity.map((entry: any) => ({
                     ...entry,
                     metadata: entry.metadata != null ? JSON.stringify(entry.metadata) : null,
                     createdAt: entry.createdAt.toISOString(),
