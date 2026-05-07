@@ -968,8 +968,9 @@ export const resolvers = {
                     include: deviceInclude,
                 }),
                 context.prisma.device.findMany({
-                    where: { deleted: false, isPramBatteryRemoved: false },
+                    where: { deleted: false, isPramBatteryRemoved: false, status: { notIn: ['SOLD', 'DONATED', 'RETURNED'] as any } },
                     include: deviceInclude,
+                    orderBy: [{ releaseYear: 'asc' }, { dateAcquired: 'asc' }],
                 }),
                 context.prisma.device.findMany({
                     where: { deleted: false, functionalStatus: 'UNKNOWN' as any },
