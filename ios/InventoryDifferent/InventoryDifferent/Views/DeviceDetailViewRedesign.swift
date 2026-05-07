@@ -418,7 +418,10 @@ struct DeviceDetailRedesignView: View {
             ZStack {
                 if let thumb = heroThumb {
                     Image(uiImage: thumb)
-                        .resizable().scaledToFill()
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
                 } else {
                     Rectangle().fill(Color.gray.opacity(0.15))
                         .overlay {
@@ -429,13 +432,16 @@ struct DeviceDetailRedesignView: View {
                 }
                 if let full = heroFull {
                     Image(uiImage: full)
-                        .resizable().scaledToFill()
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
                         .opacity(heroFullOpacity)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipped()
-            .task(id: device.id) { await loadHeroImages() }
+            .task(id: images.first(where: { $0.isThumbnail })?.id ?? images.first?.id ?? -1) { await loadHeroImages() }
 
             // Gradient overlay — transparent top → black/65% bottom
             LinearGradient(
@@ -1639,7 +1645,13 @@ struct DeviceDetailRedesignView: View {
         heroFull = nil
         heroFullOpacity = 0
 
-        guard let img = device.thumbnailImage(for: colorScheme) else { return }
+        // Derive thumbnail from the live images state (stays in sync with DevicePhotosChildView)
+        let mode = colorScheme == .dark ? "DARK" : "LIGHT"
+        let img = images.first(where: { $0.isThumbnail && $0.thumbnailMode == mode })
+            ?? images.first(where: { $0.isThumbnail && ($0.thumbnailMode == "BOTH" || $0.thumbnailMode == nil) })
+            ?? images.first(where: { $0.isThumbnail })
+            ?? images.first
+        guard let img else { return }
 
         // Stage 1 — cached 320px thumbnail (memory/disk, typically instant)
         if let thumbURL = APIService.shared.imageURL(for: img.thumbnailPath ?? img.path) {

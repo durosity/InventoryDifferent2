@@ -26,6 +26,8 @@ export const releaseNotes: ReleaseEntry[] = [
       'Dashboard collection health metrics now exclude sold, donated, and returned devices from counts; missing-specs count also excludes accessories',
       'iOS: thumbnail change from the device detail view now immediately updates the device list (was only partially invalidating cache and not refreshing the list store)',
       'iOS: manage photos overlay buttons now have proper 44pt touch targets and a darkened overlay background for visibility',
+      'iOS: device detail hero image now updates immediately when thumbnail is changed from the Photos tab',
+      'iOS: wide aspect ratio thumbnail images no longer cause layout overflow on the device detail page',
     ],
   },
   {
