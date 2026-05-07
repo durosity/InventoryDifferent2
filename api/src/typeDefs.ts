@@ -518,6 +518,49 @@ export const typeDefs = gql`
     sortOrder: Int
   }
 
+  enum ActivityType {
+    STATUS_CHANGED
+    FUNCTIONAL_STATUS_CHANGED
+    NOTE_ADDED
+    MAINTENANCE_LOGGED
+    POWERED_ON
+    DEVICE_ACQUIRED
+  }
+
+  type ActivityLogEntry {
+    id: Int!
+    device: Device!
+    type: ActivityType!
+    metadata: String
+    createdAt: String!
+  }
+
+  type FinancialSnapshot {
+    spentThisMonth: Float!
+    revenueThisMonth: Float!
+    netThisMonth: Float!
+    collectionValue: Float!
+  }
+
+  type NeedsAttention {
+    inRepair: [Device!]!
+    pramBatteryPending: [Device!]!
+    unknownFunctionalStatus: [Device!]!
+  }
+
+  type CollectionHealth {
+    noImages: Int!
+    noNotes: Int!
+    missingSpecs: Int!
+  }
+
+  type DashboardData {
+    recentActivity: [ActivityLogEntry!]!
+    financialSnapshot: FinancialSnapshot
+    needsAttention: NeedsAttention!
+    collectionHealth: CollectionHealth!
+  }
+
   type Query {
     devices(where: DeviceWhereInput): [Device!]!
     device(where: DeviceWhereInput): Device
@@ -543,6 +586,7 @@ export const typeDefs = gql`
     showcaseQuotes: [ShowcaseQuote!]!
     showcaseAllQuotes: [ShowcaseQuote!]!
     showcaseAllJourneys: [ShowcaseJourney!]!
+    dashboard: DashboardData!
   }
 
   input DeviceCreateInput {
