@@ -7,9 +7,10 @@ import { useT } from "../i18n/context";
 import { useAuth } from "../lib/auth-context";
 
 const MAIN_NAV = [
-  { key: 'devices' as const,    href: '/',           icon: 'devices' },
-  { key: 'financials' as const, href: '/financials', icon: 'payments' },
-  { key: 'wishlist' as const,   href: '/wishlist',   icon: 'auto_awesome_motion' },
+  { key: 'devices' as const,    href: '/',            icon: 'devices' },
+  { key: 'dashboard' as const,  href: '/dashboard',   icon: 'dashboard' },
+  { key: 'financials' as const, href: '/financials',  icon: 'payments' },
+  { key: 'wishlist' as const,   href: '/wishlist',    icon: 'auto_awesome_motion' },
 ];
 
 type MoreItem = { key: string; href: string; icon: string };
