@@ -24,6 +24,8 @@ export const releaseNotes: ReleaseEntry[] = [
       'iOS: thumbnail not refreshing on the device list after setting or replacing a thumbnail — now invalidates the full image cache and updates the list store immediately',
       'iOS: clearing the Additional Name field and saving no longer leaves the old value — empty field now sends null to the API',
       'Dashboard collection health metrics now exclude sold, donated, and returned devices from counts; missing-specs count also excludes accessories',
+      'iOS: thumbnail change from the device detail view now immediately updates the device list (was only partially invalidating cache and not refreshing the list store)',
+      'iOS: manage photos overlay buttons now have proper 44pt touch targets and a darkened overlay background for visibility',
     ],
   },
   {

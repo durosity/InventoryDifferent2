@@ -1913,12 +1913,12 @@ struct DeviceDetailRedesignView: View {
 
     private func setThumbnail(_ image: DeviceImage, mode: String) async {
         do {
-            let existingURLs: [URL] = images
-                .filter { $0.isThumbnail && $0.id != image.id }
+            let urlsToInvalidate: [URL] = images
                 .compactMap { APIService.shared.imageURL(for: $0.thumbnailPath ?? $0.path) }
             _ = try await DeviceService.shared.updateImage(id: image.id, isThumbnail: true, thumbnailMode: mode)
-            for url in existingURLs { await ImageCacheService.shared.removeImage(for: url) }
+            for url in urlsToInvalidate { await ImageCacheService.shared.removeImage(for: url) }
             await refreshDevice()
+            await deviceStore.refreshDevice(id: deviceId)
         } catch { print("setThumbnail: \(error)") }
     }
 
@@ -2235,8 +2235,8 @@ struct DevicePhotosChildView: View {
             }
 
             if isImageManagementMode {
-                VStack(spacing: 0) {
-                    HStack(spacing: 0) {
+                VStack {
+                    HStack {
                         Button {
                             if !image.isThumbnail {
                                 if images.contains(where: { $0.isThumbnail }) {
@@ -2247,48 +2247,46 @@ struct DevicePhotosChildView: View {
                                 }
                             }
                         } label: {
-                            Color.clear.overlay(alignment: .topLeading) {
-                                Image(systemName: "photo.fill")
-                                    .font(.system(size: 16)).foregroundColor(.white)
-                                    .padding(6)
-                                    .background(image.isThumbnail ? Color.blue : Color.gray.opacity(0.6))
-                                    .clipShape(Circle()).padding(8)
-                            }
+                            Image(systemName: "photo.fill")
+                                .font(.system(size: 16)).foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                                .background(image.isThumbnail ? Color.blue : Color.black.opacity(0.55))
+                                .clipShape(Circle())
                         }
+                        Spacer()
                         Button {
                             imageToDelete = image
                             showDeleteImageAlert = true
                         } label: {
-                            Color.clear.overlay(alignment: .topTrailing) {
-                                Image(systemName: "trash.fill")
-                                    .font(.system(size: 16)).foregroundColor(.white)
-                                    .padding(6)
-                                    .background(Color.red.opacity(0.8))
-                                    .clipShape(Circle()).padding(8)
-                            }
+                            Image(systemName: "trash.fill")
+                                .font(.system(size: 16)).foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                                .background(Color.red.opacity(0.85))
+                                .clipShape(Circle())
                         }
                     }
-                    HStack(spacing: 0) {
+                    Spacer()
+                    HStack {
                         Button { Task { await setListingImage(image) } } label: {
-                            Color.clear.overlay(alignment: .bottomLeading) {
-                                Image(systemName: "storefront.fill")
-                                    .font(.system(size: 16)).foregroundColor(.white)
-                                    .padding(6)
-                                    .background(image.isListingImage ? Color.orange : Color.gray.opacity(0.6))
-                                    .clipShape(Circle()).padding(8)
-                            }
+                            Image(systemName: "storefront.fill")
+                                .font(.system(size: 16)).foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                                .background(image.isListingImage ? Color.orange : Color.black.opacity(0.55))
+                                .clipShape(Circle())
                         }
+                        Spacer()
                         Button { Task { await toggleShopImage(image) } } label: {
-                            Color.clear.overlay(alignment: .bottomTrailing) {
-                                Image(systemName: "bag.fill")
-                                    .font(.system(size: 16)).foregroundColor(.white)
-                                    .padding(6)
-                                    .background(image.isShopImage ? Color.green : Color.gray.opacity(0.6))
-                                    .clipShape(Circle()).padding(8)
-                            }
+                            Image(systemName: "bag.fill")
+                                .font(.system(size: 16)).foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                                .background(image.isShopImage ? Color.green : Color.black.opacity(0.55))
+                                .clipShape(Circle())
                         }
                     }
                 }
+                .padding(8)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black.opacity(0.25))
             } else {
                 VStack {
                     HStack {
