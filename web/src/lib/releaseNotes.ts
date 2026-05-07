@@ -27,7 +27,8 @@ export const releaseNotes: ReleaseEntry[] = [
       'iOS: thumbnail change from the device detail view now immediately updates the device list (was only partially invalidating cache and not refreshing the list store)',
       'iOS: manage photos overlay buttons now have proper 44pt touch targets and a darkened overlay background for visibility',
       'iOS: device detail hero image now updates immediately when thumbnail is changed from the Photos tab',
-      'iOS: wide aspect ratio thumbnail images no longer cause layout overflow on the device detail page',
+      'iOS: wide/landscape thumbnail images no longer cause layout overflow on the device detail page or grid tiles — switched from ZStack to Color.clear + overlay pattern to give images a bounded layout size',
+      'iOS: device list thumbnail now reliably updates after a thumbnail change — switched from single-device refresh to full list reload',
     ],
   },
   {

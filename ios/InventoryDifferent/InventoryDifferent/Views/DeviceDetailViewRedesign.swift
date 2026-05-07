@@ -413,73 +413,74 @@ struct DeviceDetailRedesignView: View {
             return parts.joined(separator: " • ")
         }()
 
-        return ZStack(alignment: .bottom) {
-            // Background image — cached thumb first, full-res fades in on top
-            ZStack {
-                if let thumb = heroThumb {
-                    Image(uiImage: thumb)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .clipped()
-                } else {
-                    Rectangle().fill(Color.gray.opacity(0.15))
-                        .overlay {
-                            Image(systemName: "desktopcomputer")
-                                .font(.system(size: 48))
-                                .foregroundColor(.gray.opacity(0.4))
-                        }
-                }
-                if let full = heroFull {
-                    Image(uiImage: full)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .clipped()
-                        .opacity(heroFullOpacity)
+        // Color.clear provides the definitive bounded size for all overlays.
+        // This prevents scaledToFill images from inflating the layout past the screen edge.
+        return Color.clear
+            .frame(maxWidth: .infinity)
+            .aspectRatio(4 / 3, contentMode: .fit)
+            .overlay {
+                // Background image — cached thumb first, full-res fades in on top
+                ZStack {
+                    if let thumb = heroThumb {
+                        Image(uiImage: thumb)
+                            .resizable()
+                            .scaledToFill()
+                            .clipped()
+                    } else {
+                        Rectangle().fill(Color.gray.opacity(0.15))
+                            .overlay {
+                                Image(systemName: "desktopcomputer")
+                                    .font(.system(size: 48))
+                                    .foregroundColor(.gray.opacity(0.4))
+                            }
+                    }
+                    if let full = heroFull {
+                        Image(uiImage: full)
+                            .resizable()
+                            .scaledToFill()
+                            .opacity(heroFullOpacity)
+                            .clipped()
+                    }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
+            .overlay(alignment: .bottom) {
+                // Gradient overlay — transparent top → black/65% bottom
+                LinearGradient(
+                    stops: [
+                        .init(color: .clear, location: 0.3),
+                        .init(color: .black.opacity(0.65), location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .overlay(alignment: .bottom) {
+                // Text overlay at bottom-left
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(categoryYear)
+                        .font(.system(size: 11, weight: .bold))
+                        .textCase(.uppercase)
+                        .tracking(2.5)
+                        .foregroundColor(.white.opacity(0.8))
+                    Text(device.name)
+                        .font(.system(size: 28, weight: .black))
+                        .tracking(-0.5)
+                        .foregroundColor(.white)
+                        .lineLimit(2)
+                    if let addlName = device.additionalName, !addlName.isEmpty {
+                        Text(addlName)
+                            .font(.system(size: 15, weight: .semibold))
+                            .tracking(-0.2)
+                            .foregroundColor(.white.opacity(0.85))
+                            .lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 20))
             .task(id: images.first(where: { $0.isThumbnail })?.id ?? images.first?.id ?? -1) { await loadHeroImages() }
-
-            // Gradient overlay — transparent top → black/65% bottom
-            LinearGradient(
-                stops: [
-                    .init(color: .clear, location: 0.3),
-                    .init(color: .black.opacity(0.65), location: 1.0)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-
-            // Text overlay at bottom-left
-            VStack(alignment: .leading, spacing: 3) {
-                Text(categoryYear)
-                    .font(.system(size: 11, weight: .bold))
-                    .textCase(.uppercase)
-                    .tracking(2.5)
-                    .foregroundColor(.white.opacity(0.8))
-                Text(device.name)
-                    .font(.system(size: 28, weight: .black))
-                    .tracking(-0.5)
-                    .foregroundColor(.white)
-                    .lineLimit(2)
-                if let addlName = device.additionalName, !addlName.isEmpty {
-                    Text(addlName)
-                        .font(.system(size: 15, weight: .semibold))
-                        .tracking(-0.2)
-                        .foregroundColor(.white.opacity(0.85))
-                        .lineLimit(1)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
-        }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(4 / 3, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
     private var statusChip: some View {
@@ -1930,7 +1931,7 @@ struct DeviceDetailRedesignView: View {
             _ = try await DeviceService.shared.updateImage(id: image.id, isThumbnail: true, thumbnailMode: mode)
             for url in urlsToInvalidate { await ImageCacheService.shared.removeImage(for: url) }
             await refreshDevice()
-            await deviceStore.refreshDevice(id: deviceId)
+            await deviceStore.loadDevices()
         } catch { print("setThumbnail: \(error)") }
     }
 
@@ -2340,7 +2341,7 @@ struct DevicePhotosChildView: View {
             if let updated = try? await DeviceService.shared.fetchDevice(id: deviceId) {
                 images = updated.images
             }
-            await deviceStore.refreshDevice(id: deviceId)
+            await deviceStore.loadDevices()
         } catch { print("setThumbnail: \(error)") }
     }
 

@@ -16,35 +16,33 @@ struct DeviceGridItemView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Thumbnail area
-            ZStack(alignment: .topLeading) {
-                CachedThumbnailImage(url: thumbnailURL)
-                    .aspectRatio(1, contentMode: .fill)
-                    .clipped()
-
-                // Favorite star — top left
-                if device.isFavorite {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.yellow)
-                        .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 1)
+            // Thumbnail area — Color.clear anchors the 1:1 size so scaledToFill
+            // images never inflate the layout past the tile boundary.
+            Color.clear
+                .aspectRatio(1, contentMode: .fit)
+                .overlay { CachedThumbnailImage(url: thumbnailURL) }
+                .overlay(alignment: .topLeading) {
+                    if device.isFavorite {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.yellow)
+                            .shadow(color: .black.opacity(0.4), radius: 2, x: 0, y: 1)
+                            .padding(6)
+                    }
+                }
+                .overlay(alignment: .topTrailing) {
+                    StatusBadge(status: device.status)
                         .padding(6)
                 }
-
-                // Status badge — top right
-                StatusBadge(status: device.status)
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(6)
-            }
-            .overlay(alignment: .bottom) {
-                // Status indicator icons — centered along the bottom of the thumbnail
-                StatusIndicatorsRow(device: device)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background((colorScheme == .dark ? Color.black : Color.white).opacity(0.82))
-                    .clipShape(Capsule())
-                    .padding(.bottom, 6)
-            }
+                .overlay(alignment: .bottom) {
+                    StatusIndicatorsRow(device: device)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background((colorScheme == .dark ? Color.black : Color.white).opacity(0.82))
+                        .clipShape(Capsule())
+                        .padding(.bottom, 6)
+                }
+                .clipped()
 
             // Text area
             VStack(alignment: .leading, spacing: 2) {
