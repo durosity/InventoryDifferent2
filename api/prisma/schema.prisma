@@ -80,6 +80,7 @@ model Device {
   showcaseDevices     ShowcaseDevice[]
   relationsFrom       DeviceRelationship[] @relation("RelationFrom")
   relationsTo         DeviceRelationship[] @relation("RelationTo")
+  activityLogs        ActivityLog[]
 }
 
 model DeviceRelationship {
@@ -323,6 +324,24 @@ enum ThumbnailMode {
   BOTH
   LIGHT
   DARK
+}
+
+enum ActivityType {
+  STATUS_CHANGED
+  FUNCTIONAL_STATUS_CHANGED
+  NOTE_ADDED
+  MAINTENANCE_LOGGED
+  POWERED_ON
+  DEVICE_ACQUIRED
+}
+
+model ActivityLog {
+  id        Int          @id @default(autoincrement())
+  deviceId  Int
+  device    Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  type      ActivityType
+  metadata  Json?
+  createdAt DateTime     @default(now())
 }
 
 model ShowcaseJourney {
