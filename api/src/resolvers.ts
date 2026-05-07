@@ -1222,6 +1222,19 @@ export const resolvers = {
                 },
                 include: DEVICE_INCLUDE,
             });
+            // Activity log: acquisition event
+            if (input.dateAcquired) {
+                await (context.prisma as any).activityLog.create({
+                    data: {
+                        deviceId: device.id,
+                        type: 'DEVICE_ACQUIRED',
+                        metadata: {
+                            whereAcquired: input.whereAcquired ?? null,
+                            priceAcquired: input.priceAcquired != null ? Number(input.priceAcquired) : null,
+                        },
+                    },
+                });
+            }
             return mapCustomFieldValues(device);
         },
         updateDevice: async (_parent: any, args: { input: any }, context: Context) => {
@@ -1231,6 +1244,11 @@ export const resolvers = {
             const cleanData = Object.fromEntries(
                 Object.entries(data).filter(([_, v]) => v !== undefined)
             );
+            // Read current state before update so we can detect what changed
+            const existingDevice = await context.prisma.device.findUnique({
+                where: { id },
+                select: { status: true, functionalStatus: true, lastPowerOnDate: true },
+            });
             const device = await context.prisma.device.update({
                 where: { id },
                 data: cleanData,
@@ -1248,6 +1266,51 @@ export const resolvers = {
                 if (newValue !== lastValue) {
                     await context.prisma.valueSnapshot.create({
                         data: { deviceId: device.id, estimatedValue: device.estimatedValue },
+                    });
+                }
+            }
+
+            // Activity logging — compare old vs new values
+            if (existingDevice) {
+                const activityEntries: Array<{ type: string; metadata: object }> = [];
+
+                if (cleanData.status !== undefined && cleanData.status !== existingDevice.status) {
+                    const meta: Record<string, any> = { from: existingDevice.status, to: cleanData.status };
+                    if (['FOR_SALE', 'PENDING_SALE'].includes(String(cleanData.status)) && cleanData.listPrice != null) {
+                        meta.listPrice = Number(cleanData.listPrice);
+                    }
+                    if (['SOLD', 'RETURNED'].includes(String(cleanData.status)) && cleanData.soldPrice != null) {
+                        meta.soldPrice = Number(cleanData.soldPrice);
+                    }
+                    activityEntries.push({ type: 'STATUS_CHANGED', metadata: meta });
+                }
+
+                if (cleanData.functionalStatus !== undefined && cleanData.functionalStatus !== existingDevice.functionalStatus) {
+                    activityEntries.push({
+                        type: 'FUNCTIONAL_STATUS_CHANGED',
+                        metadata: { from: existingDevice.functionalStatus, to: cleanData.functionalStatus },
+                    });
+                }
+
+                if (cleanData.lastPowerOnDate !== undefined) {
+                    const oldDate = existingDevice.lastPowerOnDate?.toISOString().split('T')[0];
+                    const newDate = typeof cleanData.lastPowerOnDate === 'string'
+                        ? cleanData.lastPowerOnDate.split('T')[0]
+                        : cleanData.lastPowerOnDate instanceof Date
+                        ? cleanData.lastPowerOnDate.toISOString().split('T')[0]
+                        : null;
+                    if (newDate && newDate !== oldDate) {
+                        activityEntries.push({ type: 'POWERED_ON', metadata: { date: newDate } });
+                    }
+                }
+
+                for (const entry of activityEntries) {
+                    await (context.prisma as any).activityLog.create({
+                        data: {
+                            deviceId: id,
+                            type: entry.type,
+                            metadata: entry.metadata,
+                        },
                     });
                 }
             }
@@ -1474,7 +1537,7 @@ export const resolvers = {
         createMaintenanceTask: async (_parent: any, args: { input: any }, context: Context) => {
             requireAuth(context);
             const { deviceId, label, dateCompleted, notes, cost } = args.input;
-            return context.prisma.maintenanceTask.create({
+            const newTask = await context.prisma.maintenanceTask.create({
                 data: {
                     deviceId,
                     label,
@@ -1483,6 +1546,17 @@ export const resolvers = {
                     cost: cost != null ? cost : null,
                 },
             });
+            await (context.prisma as any).activityLog.create({
+                data: {
+                    deviceId: newTask.deviceId,
+                    type: 'MAINTENANCE_LOGGED',
+                    metadata: {
+                        label: newTask.label,
+                        cost: newTask.cost != null ? Number(newTask.cost) : null,
+                    },
+                },
+            });
+            return newTask;
         },
         updateMaintenanceTask: async (_parent: any, args: { input: any }, context: Context) => {
             requireAuth(context);
@@ -1507,13 +1581,24 @@ export const resolvers = {
         createNote: async (_parent: any, args: { input: any }, context: Context) => {
             requireAuth(context);
             const { deviceId, content, date } = args.input;
-            return context.prisma.note.create({
+            const newNote = await context.prisma.note.create({
                 data: {
                     deviceId,
                     content,
                     date: new Date(date),
                 },
             });
+            await (context.prisma as any).activityLog.create({
+                data: {
+                    deviceId: newNote.deviceId,
+                    type: 'NOTE_ADDED',
+                    metadata: {
+                        noteId: newNote.id,
+                        preview: newNote.content.slice(0, 80),
+                    },
+                },
+            });
+            return newNote;
         },
         updateNote: async (_parent: any, args: { input: any }, context: Context) => {
             requireAuth(context);
