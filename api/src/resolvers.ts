@@ -977,13 +977,14 @@ export const resolvers = {
                 }),
             ]);
 
-            // Collection Health — counts of devices missing key data
+            // Collection Health — counts of devices missing key data (exclude devices no longer in collection)
+            const inCollectionFilter = { deleted: false, status: { notIn: ['SOLD', 'DONATED', 'RETURNED'] as any } };
             const [noImages, noNotes, missingSpecs] = await Promise.all([
-                context.prisma.device.count({ where: { deleted: false, images: { none: {} } } }),
-                context.prisma.device.count({ where: { deleted: false, notes: { none: {} } } }),
+                context.prisma.device.count({ where: { ...inCollectionFilter, images: { none: {} } } }),
+                context.prisma.device.count({ where: { ...inCollectionFilter, notes: { none: {} } } }),
                 context.prisma.device.count({
                     where: {
-                        deleted: false,
+                        ...inCollectionFilter,
                         AND: [
                             { OR: [{ cpu: null }, { cpu: '' }] },
                             { OR: [{ ram: null }, { ram: '' }] },
