@@ -197,6 +197,7 @@ export async function generateVideoThumbnail(videoPath: string): Promise<{ thumb
         ]);
 
         await sharp(tempPngPath)
+            .resize({ width: 320, height: 320, fit: 'inside', withoutEnlargement: true })
             .webp({ quality: 70 })
             .toFile(thumbDiskPath);
 
