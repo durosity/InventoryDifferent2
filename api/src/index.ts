@@ -144,11 +144,14 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo',
+    ];
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'));
+        cb(new Error('Invalid file type. Only JPEG, PNG, GIF, WebP, MP4, MOV, WebM, and AVI are allowed.'));
     }
 };
 
@@ -156,7 +159,7 @@ const upload = multer({
     storage,
     fileFilter,
     limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB limit
+        fileSize: 2 * 1024 * 1024 * 1024, // 2GB limit
     }
 });
 
