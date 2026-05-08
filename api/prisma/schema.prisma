@@ -157,7 +157,7 @@ model Image {
   id          Int      @id @default(autoincrement())
   deviceId    Int
   device      Device   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
-  
+
   path        String
   thumbnailPath String?
   dateTaken   DateTime @default(now())
@@ -166,6 +166,8 @@ model Image {
   isThumbnail Boolean  @default(false)
   thumbnailMode ThumbnailMode @default(BOTH)
   isListingImage Boolean @default(false)
+  mediaType     MediaType @default(IMAGE)
+  duration      Int?
 }
 
 model Note {
@@ -324,6 +326,11 @@ enum ThumbnailMode {
   BOTH
   LIGHT
   DARK
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
 }
 
 enum ActivityType {
