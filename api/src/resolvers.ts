@@ -6,6 +6,10 @@ import type { Context } from './index';
 const exifr: any = require('exifr');
 const sharp: any = require('sharp');
 
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+const execFileAsync = promisify(execFile);
+
 // Compute time-decay popularity scores for devices based on page views from the last 14 days.
 // Score per view = exp(-λ * daysAgo) where λ = ln(2)/7, giving a half-life of 7 days.
 async function computePopularityScores(prisma: PrismaClient, deviceIds?: number[]): Promise<Map<number, number>> {
@@ -162,6 +166,57 @@ export async function generateThumbnailForUpload(imagePath: string) {
         return thumbPath;
     } catch (_err) {
         return null;
+    }
+}
+
+export async function generateVideoThumbnail(videoPath: string): Promise<{ thumbnailPath: string | null; duration: number | null }> {
+    try {
+        if (typeof videoPath !== 'string' || !videoPath.startsWith('/uploads/')) return { thumbnailPath: null, duration: null };
+
+        const relative = videoPath.replace('/uploads/', '');
+        const sourceFilePath = path.join('/app/uploads', relative);
+        if (!sourceFilePath.startsWith('/app/uploads') || !fs.existsSync(sourceFilePath)) return { thumbnailPath: null, duration: null };
+
+        const dir = path.posix.dirname(videoPath);
+        const base = path.posix.basename(videoPath, path.posix.extname(videoPath));
+        const thumbDir = `${dir}/thumbs`;
+        const thumbPath = `${thumbDir}/${base}.webp`;
+
+        const thumbDiskDir = path.join('/app/uploads', thumbDir.replace('/uploads/', ''));
+        fs.mkdirSync(thumbDiskDir, { recursive: true });
+        const thumbDiskPath = path.join('/app/uploads', thumbPath.replace('/uploads/', ''));
+        const tempPngPath = `${thumbDiskPath}.tmp.png`;
+
+        // Extract frame at 1 second as PNG, then convert to WebP via sharp
+        await execFileAsync('ffmpeg', [
+            '-ss', '00:00:01',
+            '-i', sourceFilePath,
+            '-vframes', '1',
+            '-vf', 'scale=320:320:force_original_aspect_ratio=decrease',
+            '-y', tempPngPath,
+        ]);
+
+        await sharp(tempPngPath)
+            .webp({ quality: 70 })
+            .toFile(thumbDiskPath);
+
+        try { fs.unlinkSync(tempPngPath); } catch {}
+
+        // Get duration via ffprobe (bundled with ffmpeg)
+        const { stdout } = await execFileAsync('ffprobe', [
+            '-v', 'quiet',
+            '-print_format', 'json',
+            '-show_format',
+            sourceFilePath,
+        ]);
+        const probeData = JSON.parse(stdout);
+        const duration = probeData.format?.duration
+            ? Math.round(parseFloat(probeData.format.duration))
+            : null;
+
+        return { thumbnailPath: thumbPath, duration };
+    } catch (_err) {
+        return { thumbnailPath: null, duration: null };
     }
 }
 
@@ -1376,8 +1431,13 @@ export const resolvers = {
             requireAuth(context);
             const { deviceId, path: imagePath, caption, isThumbnail, isShopImage } = args.input;
 
-            // If this is set as thumbnail, unset other thumbnails for this device
-            if (isThumbnail) {
+            // Derive mediaType from file extension
+            const videoExts = new Set(['.mp4', '.mov', '.webm', '.avi', '.m4v']);
+            const fileExt = path.posix.extname(imagePath).toLowerCase();
+            const mediaType: 'IMAGE' | 'VIDEO' = videoExts.has(fileExt) ? 'VIDEO' : 'IMAGE';
+
+            // If this is an image being set as thumbnail, unset other thumbnails
+            if (mediaType === 'IMAGE' && isThumbnail) {
                 await context.prisma.image.updateMany({
                     where: { deviceId, isThumbnail: true },
                     data: { isThumbnail: false },
@@ -1385,7 +1445,7 @@ export const resolvers = {
             }
 
             let dateTaken: Date | undefined;
-            if (typeof imagePath === 'string' && imagePath.startsWith('/uploads/')) {
+            if (mediaType === 'IMAGE' && typeof imagePath === 'string' && imagePath.startsWith('/uploads/')) {
                 const relative = imagePath.replace('/uploads/', '');
                 const filePath = path.join('/app/uploads', relative);
                 if (filePath.startsWith('/app/uploads') && fs.existsSync(filePath)) {
@@ -1394,13 +1454,21 @@ export const resolvers = {
                 }
             }
 
-            const thumbnailPath = await generateThumbnailForUpload(imagePath);
+            let thumbnailPath: string | null = null;
+            let duration: number | null = null;
+            if (mediaType === 'VIDEO') {
+                const result = await generateVideoThumbnail(imagePath);
+                thumbnailPath = result.thumbnailPath;
+                duration = result.duration;
+            } else {
+                thumbnailPath = await generateThumbnailForUpload(imagePath);
+            }
 
-            // Check if this is the first image for the device - if so, make it the thumbnail
-            const existingImages = await context.prisma.image.count({
-                where: { deviceId },
+            // First IMAGE (not video) auto-becomes the device thumbnail
+            const existingImageCount = await (context.prisma as any).image.count({
+                where: { deviceId, mediaType: 'IMAGE' },
             });
-            const shouldBeThumbnail = isThumbnail || existingImages === 0;
+            const shouldBeThumbnail = mediaType === 'IMAGE' && (isThumbnail || existingImageCount === 0);
 
             return (context.prisma as any).image.create({
                 data: {
@@ -1411,7 +1479,9 @@ export const resolvers = {
                     caption: caption || null,
                     isThumbnail: shouldBeThumbnail,
                     thumbnailMode: 'BOTH',
-                    isShopImage: isShopImage || false,
+                    isShopImage: (isShopImage && mediaType === 'IMAGE') || false,
+                    mediaType,
+                    ...(duration !== null ? { duration } : {}),
                 },
             });
         },
