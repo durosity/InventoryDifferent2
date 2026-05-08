@@ -32,6 +32,8 @@ interface Image {
     thumbnailMode?: string | null;
     isShopImage: boolean;
     isListingImage: boolean;
+    mediaType?: string | null;
+    duration?: number | null;
 }
 
 interface ImageGalleryProps {
@@ -42,8 +44,15 @@ interface ImageGalleryProps {
 export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
     const [thumbnailChoiceId, setThumbnailChoiceId] = useState<number | null>(null);
+    const [playingVideoId, setPlayingVideoId] = useState<number | null>(null);
     const [deleteImage, { loading: deleting }] = useMutation(DELETE_IMAGE);
     const [updateImage, { loading: updating }] = useMutation(UPDATE_IMAGE);
+
+    const formatDuration = (seconds: number): string => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
     const hasExistingThumbnail = images.some(i => i.isThumbnail);
 
@@ -137,6 +146,28 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                             className="w-full h-full object-cover"
                         />
 
+                        {/* Video play overlay */}
+                        {image.mediaType === 'VIDEO' && (
+                            <>
+                                <button
+                                    onClick={() => setPlayingVideoId(image.id)}
+                                    className="absolute inset-0 flex items-center justify-center"
+                                    title="Play video"
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                                            <path d="M8 5v14l11-7z" />
+                                        </svg>
+                                    </div>
+                                </button>
+                                {image.duration != null && (
+                                    <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-black/70 text-white text-[10px] font-mono rounded pointer-events-none">
+                                        {formatDuration(image.duration)}
+                                    </div>
+                                )}
+                            </>
+                        )}
+
                         {/* Thumbnail badge */}
                         {thumbLabel && (
                             <div className={`absolute top-1 left-1 px-1.5 py-0.5 text-white text-[10px] font-medium rounded ${
@@ -165,20 +196,22 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                             <div className="w-full h-full grid grid-cols-2 grid-rows-2">
                                 {/* Top-left: Thumbnail (grid/image icon) */}
                                 <div className="flex items-start justify-start">
-                                    <button
-                                        onClick={() => handleThumbnailClick(image.id, image.isThumbnail)}
-                                        disabled={updating || image.isThumbnail}
-                                        className={`p-1.5 rounded-full transition-colors ${
-                                            image.isThumbnail
-                                                ? "bg-blue-600/90 text-white"
-                                                : "bg-white/90 text-gray-700 hover:bg-white"
-                                        }`}
-                                        title={image.isThumbnail ? "Current thumbnail" : "Set as thumbnail"}
-                                    >
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </button>
+                                    {image.mediaType !== 'VIDEO' && (
+                                        <button
+                                            onClick={() => handleThumbnailClick(image.id, image.isThumbnail)}
+                                            disabled={updating || image.isThumbnail}
+                                            className={`p-1.5 rounded-full transition-colors ${
+                                                image.isThumbnail
+                                                    ? "bg-blue-600/90 text-white"
+                                                    : "bg-white/90 text-gray-700 hover:bg-white"
+                                            }`}
+                                            title={image.isThumbnail ? "Current thumbnail" : "Set as thumbnail"}
+                                        >
+                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
 
                                 {/* Top-right: Delete */}
@@ -196,43 +229,47 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
 
                                 {/* Bottom-left: Listing image (storefront icon) */}
                                 <div className="flex items-end justify-start">
-                                    <button
-                                        onClick={() => handleSetListingImage(image.id)}
-                                        disabled={updating || image.isListingImage}
-                                        className={`p-1.5 rounded-full transition-colors ${
-                                            image.isListingImage
-                                                ? "bg-orange-500/90 text-white"
-                                                : "bg-white/90 text-orange-600 hover:bg-white"
-                                        }`}
-                                        title={image.isListingImage ? "Current listing image" : "Set as listing image"}
-                                    >
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h18v4H3V3zM4 7v13a1 1 0 001 1h14a1 1 0 001-1V7M10 12h4" />
-                                        </svg>
-                                    </button>
+                                    {image.mediaType !== 'VIDEO' && (
+                                        <button
+                                            onClick={() => handleSetListingImage(image.id)}
+                                            disabled={updating || image.isListingImage}
+                                            className={`p-1.5 rounded-full transition-colors ${
+                                                image.isListingImage
+                                                    ? "bg-orange-500/90 text-white"
+                                                    : "bg-white/90 text-orange-600 hover:bg-white"
+                                            }`}
+                                            title={image.isListingImage ? "Current listing image" : "Set as listing image"}
+                                        >
+                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h18v4H3V3zM4 7v13a1 1 0 001 1h14a1 1 0 001-1V7M10 12h4" />
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
 
                                 {/* Bottom-right: Shop image toggle */}
                                 <div className="flex items-end justify-end">
-                                    <button
-                                        onClick={() => handleToggleShopImage(image.id, !image.isShopImage)}
-                                        disabled={updating}
-                                        className={`p-1.5 rounded-full transition-colors ${
-                                            image.isShopImage
-                                                ? "bg-emerald-600/90 text-white hover:bg-emerald-600"
-                                                : "bg-white/90 text-gray-700 hover:bg-white"
-                                        }`}
-                                        title={image.isShopImage ? "Remove from shop" : "Add to shop"}
-                                    >
-                                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M16 11V7a4 4 0 00-8 0v4M5 11h14l-1 10H6L5 11z"
-                                            />
-                                        </svg>
-                                    </button>
+                                    {image.mediaType !== 'VIDEO' && (
+                                        <button
+                                            onClick={() => handleToggleShopImage(image.id, !image.isShopImage)}
+                                            disabled={updating}
+                                            className={`p-1.5 rounded-full transition-colors ${
+                                                image.isShopImage
+                                                    ? "bg-emerald-600/90 text-white hover:bg-emerald-600"
+                                                    : "bg-white/90 text-gray-700 hover:bg-white"
+                                            }`}
+                                            title={image.isShopImage ? "Remove from shop" : "Add to shop"}
+                                        >
+                                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M16 11V7a4 4 0 00-8 0v4M5 11h14l-1 10H6L5 11z"
+                                                />
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -295,6 +332,27 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                     </div>
                 );
             })}
+
+            {/* Inline video player modal */}
+            {playingVideoId !== null && (() => {
+                const vid = images.find(i => i.id === playingVideoId);
+                if (!vid) return null;
+                return (
+                    <div
+                        className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+                        onClick={() => setPlayingVideoId(null)}
+                    >
+                        <video
+                            src={`${API_BASE_URL}${vid.path}`}
+                            poster={vid.thumbnailPath ? `${API_BASE_URL}${vid.thumbnailPath}` : undefined}
+                            controls
+                            autoPlay
+                            className="max-w-[90vw] max-h-[80vh] rounded-lg"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </div>
+                );
+})()}
         </div>
     );
 }
