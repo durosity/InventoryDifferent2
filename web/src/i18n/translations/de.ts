@@ -402,6 +402,8 @@ export const de: Translations = {
       legendListing: "Anzeigenbild",
       legendShop: "Shop-Bild",
       noPhotosYet: "Noch keine Fotos",
+      uploadTitle: "Fotos und Videos",
+      uploadSizeError: "Datei zu groß (max. 2 GB)",
     },
     generateImages: {
       pageTitle: "KI-Produktbilder",

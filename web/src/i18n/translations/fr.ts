@@ -402,6 +402,8 @@ export const fr: Translations = {
       legendListing: "Image d'annonce",
       legendShop: "Image boutique",
       noPhotosYet: "Pas encore de photos",
+      uploadTitle: "Photos et vidéos",
+      uploadSizeError: "Fichier trop volumineux (max. 2 Go)",
     },
     generateImages: {
       pageTitle: "Images produit IA",

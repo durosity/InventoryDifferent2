@@ -393,6 +393,8 @@ export type Translations = {
       legendListing: string;
       legendShop: string;
       noPhotosYet: string;
+      uploadTitle: string;
+      uploadSizeError: string;
     };
     generateImages: {
       pageTitle: string;
@@ -1361,6 +1363,8 @@ export const en: Translations = {
       legendListing: "Listing image",
       legendShop: "Shop image",
       noPhotosYet: "No photos yet",
+      uploadTitle: "Photos & Videos",
+      uploadSizeError: "File too large (2 GB max)",
     },
     generateImages: {
       pageTitle: "AI Product Images",
