@@ -170,7 +170,7 @@ struct ImageUploadView: View {
         uploadProgress = 0
 
         do {
-            let uploaded = try await DeviceService.shared.uploadImage(deviceId: deviceId, imageData: data)
+            let uploaded = try await DeviceService.shared.uploadImage(deviceId: deviceId, mediaData: data)
             uploadProgress = 1.0
             isUploading = false
             onUpload([uploaded])
@@ -192,7 +192,7 @@ struct ImageUploadView: View {
         for (index, item) in selectedItems.enumerated() {
             do {
                 if let data = try await item.loadTransferable(type: Data.self) {
-                    let uploadedImage = try await DeviceService.shared.uploadImage(deviceId: deviceId, imageData: data)
+                    let uploadedImage = try await DeviceService.shared.uploadImage(deviceId: deviceId, mediaData: data)
                     uploadedImages.append(uploadedImage)
                     uploadProgress = Double(index + 1) / Double(totalItems)
                 }

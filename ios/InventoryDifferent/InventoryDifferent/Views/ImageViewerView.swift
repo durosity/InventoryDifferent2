@@ -5,7 +5,21 @@
 //  Created by Michael Wottle on 2/3/26.
 //
 
+import AVKit
 import SwiftUI
+
+private struct VideoPlayerContainerView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let controller = AVPlayerViewController()
+        controller.player = AVPlayer(url: url)
+        controller.player?.play()
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {}
+}
 
 struct ImageViewerView: View {
     let images: [DeviceImage]
@@ -26,8 +40,14 @@ struct ImageViewerView: View {
             
             TabView(selection: $currentIndex) {
                 ForEach(Array(images.enumerated()), id: \.element.id) { index, image in
-                    ZoomableImageView(imageURL: APIService.shared.imageURL(for: image.path))
-                        .tag(index)
+                    if image.mediaType == "VIDEO",
+                       let videoURL = APIService.shared.imageURL(for: image.path) {
+                        VideoPlayerContainerView(url: videoURL)
+                            .tag(index)
+                    } else {
+                        ZoomableImageView(imageURL: APIService.shared.imageURL(for: image.path))
+                            .tag(index)
+                    }
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .always))

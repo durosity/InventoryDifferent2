@@ -669,7 +669,7 @@ class DeviceService {
         return response.deleteImage
     }
     
-    func uploadImage(deviceId: Int, imageData: Data) async throws -> DeviceImage {
+    func uploadImage(deviceId: Int, mediaData: Data, filename: String = "image.jpg", mimeType: String = "image/jpeg") async throws -> DeviceImage {
         // Step 1: Upload file to /upload endpoint
         let boundary = UUID().uuidString
         var uploadRequest = URLRequest(url: URL(string: "\(api.getBaseURL())/upload?deviceId=\(deviceId)")!)
@@ -683,27 +683,27 @@ class DeviceService {
 
         var body = Data()
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"image.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-        body.append(imageData)
+        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        body.append(mediaData)
         body.append("\r\n".data(using: .utf8)!)
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        
+
         uploadRequest.httpBody = body
-        
+
         let (uploadData, uploadResponse) = try await URLSession.shared.data(for: uploadRequest)
-        
+
         guard let httpResponse = uploadResponse as? HTTPURLResponse,
               (200...299).contains(httpResponse.statusCode) else {
             throw NSError(domain: "DeviceService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to upload file"])
         }
-        
+
         struct FileUploadResponse: Codable {
             let path: String
         }
-        
+
         let fileResponse = try JSONDecoder().decode(FileUploadResponse.self, from: uploadData)
-        
+
         // Step 2: Create image record via GraphQL
         let mutation = """
         mutation CreateImage($input: ImageCreateInput!) {
@@ -715,7 +715,10 @@ class DeviceService {
                 caption
                 isShopImage
                 isThumbnail
+                thumbnailMode
                 isListingImage
+                mediaType
+                duration
             }
         }
         """
