@@ -39,7 +39,6 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
 
     const handleFileSelect = (files: File[]) => {
         const validFiles: File[] = [];
-        const newPreviews: string[] = [];
 
         for (const file of files) {
             const isImage = file.type.startsWith('image/');
@@ -55,24 +54,35 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
             }
 
             validFiles.push(file);
-
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const result = e.target?.result as string;
-                    setPreviews(prev => [...prev, result]);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                // Video: use empty string as placeholder (keeps index alignment)
-                setPreviews(prev => [...prev, '']);
-            }
         }
 
-        if (validFiles.length > 0) {
-            setError(null);
-            setSelectedFiles(prev => [...prev, ...validFiles]);
-        }
+        if (validFiles.length === 0) return;
+
+        // Pre-allocate slots synchronously so indexes stay aligned regardless of
+        // when FileReader callbacks fire (async ordering is non-deterministic).
+        const newPreviews: string[] = new Array(validFiles.length).fill('');
+        setError(null);
+        setSelectedFiles(prev => [...prev, ...validFiles]);
+        setPreviews(prev => {
+            const base = [...prev, ...newPreviews];
+            // Kick off FileReader for each image after we know the base offset
+            const baseOffset = prev.length;
+            validFiles.forEach((file, i) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const result = e.target?.result as string;
+                        setPreviews(current => {
+                            const updated = [...current];
+                            updated[baseOffset + i] = result;
+                            return updated;
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            return base;
+        });
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,7 +223,7 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
                             />
                         </svg>
                         <p className="text-gray-600 dark:text-gray-400 mb-2">
-                            Drop an image here or click to select
+                            Drop a photo or video here, or click to select
                         </p>
                         <p className="text-sm text-gray-400 dark:text-gray-500">
                             JPEG, PNG, GIF, WebP, MP4, MOV, WebM up to 2 GB
@@ -248,7 +258,7 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
                                     <button
                                         onClick={() => removeFile(index)}
                                         className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                                        title="Remove image"
+                                        title="Remove"
                                     >
                                         <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -268,7 +278,7 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
                                 Clear all
                             </button>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {selectedFiles.length} image{selectedFiles.length !== 1 ? 's' : ''} selected
+                                {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''} selected
                             </p>
                         </div>
                     </div>
@@ -284,7 +294,7 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
                         disabled={selectedFiles.length === 0 || uploading}
                         className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                        {uploading ? `Uploading ${selectedFiles.length} image${selectedFiles.length !== 1 ? 's' : ''}...` : `Upload ${selectedFiles.length} Image${selectedFiles.length !== 1 ? 's' : ''}`}
+                        {uploading ? `Uploading ${selectedFiles.length} file${selectedFiles.length !== 1 ? 's' : ''}...` : `Upload ${selectedFiles.length} File${selectedFiles.length !== 1 ? 's' : ''}`}
                     </button>
                     <button
                         onClick={onClose}
