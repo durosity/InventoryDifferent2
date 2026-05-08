@@ -188,20 +188,21 @@ export async function generateVideoThumbnail(videoPath: string): Promise<{ thumb
         const tempPngPath = `${thumbDiskPath}.tmp.png`;
 
         // Extract frame at 1 second as PNG, then convert to WebP via sharp
-        await execFileAsync('ffmpeg', [
-            '-ss', '00:00:01',
-            '-i', sourceFilePath,
-            '-vframes', '1',
-            '-vf', 'scale=320:320:force_original_aspect_ratio=decrease',
-            '-y', tempPngPath,
-        ]);
+        try {
+            await execFileAsync('ffmpeg', [
+                '-ss', '00:00:01',
+                '-i', sourceFilePath,
+                '-vframes', '1',
+                '-y', tempPngPath,
+            ]);
 
-        await sharp(tempPngPath)
-            .resize({ width: 320, height: 320, fit: 'inside', withoutEnlargement: true })
-            .webp({ quality: 70 })
-            .toFile(thumbDiskPath);
-
-        try { fs.unlinkSync(tempPngPath); } catch {}
+            await sharp(tempPngPath)
+                .resize({ width: 320, height: 320, fit: 'inside', withoutEnlargement: true })
+                .webp({ quality: 70 })
+                .toFile(thumbDiskPath);
+        } finally {
+            try { fs.unlinkSync(tempPngPath); } catch {}
+        }
 
         // Get duration via ffprobe (bundled with ffmpeg)
         const { stdout } = await execFileAsync('ffprobe', [
