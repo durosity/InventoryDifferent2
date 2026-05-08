@@ -73,6 +73,7 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
                     reader.onload = (e) => {
                         const result = e.target?.result as string;
                         setPreviews(current => {
+                            if (baseOffset + i >= current.length) return current;
                             const updated = [...current];
                             updated[baseOffset + i] = result;
                             return updated;
