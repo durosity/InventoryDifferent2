@@ -211,7 +211,9 @@ struct ImageManagementView: View {
             isShopImage: false,
             isThumbnail: false,
             thumbnailMode: nil,
-            isListingImage: false
+            isListingImage: false,
+            mediaType: "IMAGE",
+            duration: nil
         ),
         onUpdate: { _ in },
         onDelete: {}

@@ -155,7 +155,9 @@ extension Collection {
                 isShopImage: false,
                 isThumbnail: true,
                 thumbnailMode: "BOTH",
-                isListingImage: false
+                isListingImage: false,
+                mediaType: "IMAGE",
+                duration: nil
             ),
             allImages: []
         )

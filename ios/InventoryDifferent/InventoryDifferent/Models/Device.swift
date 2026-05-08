@@ -184,6 +184,8 @@ struct DeviceImage: Codable, Identifiable {
     let isThumbnail: Bool
     let thumbnailMode: String?
     let isListingImage: Bool
+    let mediaType: String     // "IMAGE" or "VIDEO"
+    let duration: Int?
 }
 
 struct DeviceThumbnail: Codable, Identifiable, Hashable {

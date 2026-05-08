@@ -307,7 +307,8 @@ struct DeviceDetailRedesignView: View {
                             id: img.id, path: img.path, thumbnailPath: img.thumbnailPath,
                             dateTaken: img.dateTaken, caption: img.caption,
                             isShopImage: img.isShopImage, isThumbnail: false,
-                            thumbnailMode: img.thumbnailMode, isListingImage: img.isListingImage
+                            thumbnailMode: img.thumbnailMode, isListingImage: img.isListingImage,
+                            mediaType: img.mediaType, duration: img.duration
                         )
                     }
                 }
@@ -2198,7 +2199,8 @@ struct DevicePhotosChildView: View {
                             id: img.id, path: img.path, thumbnailPath: img.thumbnailPath,
                             dateTaken: img.dateTaken, caption: img.caption,
                             isShopImage: img.isShopImage, isThumbnail: false,
-                            thumbnailMode: img.thumbnailMode, isListingImage: img.isListingImage
+                            thumbnailMode: img.thumbnailMode, isListingImage: img.isListingImage,
+                            mediaType: img.mediaType, duration: img.duration
                         )
                     }
                 }
