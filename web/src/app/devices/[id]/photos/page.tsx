@@ -28,6 +28,8 @@ const GET_DEVICE_PHOTOS = gql`
         thumbnailMode
         isShopImage
         isListingImage
+        mediaType
+        duration
       }
     }
   }
