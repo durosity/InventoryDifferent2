@@ -45,6 +45,11 @@ export const typeDefs = gql`
     DARK
   }
 
+  enum MediaType {
+    IMAGE
+    VIDEO
+  }
+
   enum TransactionType {
     ACQUISITION
     SALE
@@ -159,6 +164,8 @@ export const typeDefs = gql`
     isThumbnail: Boolean!
     thumbnailMode: ThumbnailMode!
     isListingImage: Boolean!
+    mediaType: MediaType!
+    duration: Int
   }
 
   type Note {
