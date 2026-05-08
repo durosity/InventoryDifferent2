@@ -12,12 +12,14 @@ struct ImageManagementView: View {
     let onUpdate: (DeviceImage) -> Void
     let onDelete: () -> Void
     @Environment(\.dismiss) private var dismiss
-    
+    @EnvironmentObject var lm: LocalizationManager
+
     @State private var isUpdating = false
     @State private var showDeleteConfirmation = false
     @State private var error: String?
-    
+
     var body: some View {
+        let t = lm.t
         NavigationStack {
             VStack(spacing: 0) {
                 AsyncImage(url: APIService.shared.imageURL(for: image.thumbnailPath ?? image.path)) { phase in
@@ -44,11 +46,11 @@ struct ImageManagementView: View {
                 }
                 .frame(maxHeight: 300)
                 .background(Color.black)
-                
+
                 ScrollView {
                     VStack(spacing: 16) {
                         VStack(spacing: 12) {
-                            Text("Image Settings")
+                            Text(t.imageManagement.imageSettings)
                                 .font(.headline)
                                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -61,7 +63,7 @@ struct ImageManagementView: View {
                                     HStack {
                                         Image(systemName: image.isThumbnail ? "checkmark.circle.fill" : "circle")
                                             .foregroundColor(image.isThumbnail ? .blue : .secondary)
-                                        Text("Set as Thumbnail")
+                                        Text(t.imageManagement.setThumbnail)
                                         Spacer()
                                         Image(systemName: "photo")
                                     }
@@ -80,7 +82,7 @@ struct ImageManagementView: View {
                                     HStack {
                                         Image(systemName: image.isShopImage ? "checkmark.circle.fill" : "circle")
                                             .foregroundColor(image.isShopImage ? .green : .secondary)
-                                        Text(image.isShopImage ? "Remove from Shop" : "Add to Shop")
+                                        Text(image.isShopImage ? t.imageManagement.removeFromShop : t.imageManagement.addToShop)
                                         Spacer()
                                         Image(systemName: "bag")
                                     }
@@ -99,7 +101,7 @@ struct ImageManagementView: View {
                                     HStack {
                                         Image(systemName: image.isListingImage ? "checkmark.circle.fill" : "circle")
                                             .foregroundColor(image.isListingImage ? .orange : .secondary)
-                                        Text("Set as Listing Image")
+                                        Text(t.imageManagement.setListingImage)
                                         Spacer()
                                         Image(systemName: "storefront")
                                     }
@@ -127,16 +129,16 @@ struct ImageManagementView: View {
                             }
                         }
                         .padding()
-                        
+
                         Divider()
-                        
+
                         VStack(spacing: 12) {
                             Button {
                                 showDeleteConfirmation = true
                             } label: {
                                 HStack {
                                     Image(systemName: "trash")
-                                    Text("Delete Image")
+                                    Text(t.imageManagement.deleteImage)
                                 }
                                 .foregroundColor(.red)
                                 .frame(maxWidth: .infinity)
@@ -145,22 +147,22 @@ struct ImageManagementView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                             }
                             .disabled(isUpdating)
-                            
+
                             if showDeleteConfirmation {
                                 VStack(spacing: 12) {
-                                    Text("Delete this image?")
+                                    Text(t.imageManagement.deleteTitle)
                                         .font(.headline)
-                                    Text("This action cannot be undone.")
+                                    Text(t.imageManagement.deleteMessage)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
-                                    
+
                                     HStack(spacing: 12) {
-                                        Button("Cancel") {
+                                        Button(t.common.cancel) {
                                             showDeleteConfirmation = false
                                         }
                                         .buttonStyle(.bordered)
-                                        
-                                        Button("Delete") {
+
+                                        Button(t.common.delete) {
                                             onDelete()
                                             dismiss()
                                         }
@@ -175,7 +177,7 @@ struct ImageManagementView: View {
                             }
                         }
                         .padding()
-                        
+
                         if let error = error {
                             Text(error)
                                 .foregroundColor(.red)
@@ -185,11 +187,11 @@ struct ImageManagementView: View {
                     }
                 }
             }
-            .navigationTitle("Manage Image")
+            .navigationTitle(t.imageManagement.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
+                    Button(t.imageManagement.done) {
                         dismiss()
                     }
                 }

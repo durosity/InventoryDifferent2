@@ -209,6 +209,8 @@ struct ImageUploadView: View {
                             deviceId: deviceId, mediaData: data, filename: filename, mimeType: mimeType
                         )
                         uploadedImages.append(uploadedImage)
+                    } else {
+                        errorMessage = "Failed to load video — it may not be available on this device."
                     }
                 } else {
                     if let data = try await item.loadTransferable(type: Data.self) {
