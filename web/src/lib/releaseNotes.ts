@@ -16,6 +16,7 @@ export const releaseNotes: ReleaseEntry[] = [
       'Settings page (/settings) — configure the AI image generation prompt and model (gpt-image-1.5 or gpt-image-2)',
       'Added "Unknown" as a fourth functional status (gray question mark icon); new devices default to Unknown instead of Fully Working',
       'Dashboard page (/dashboard) — unified recent activity feed (acquisitions, status changes, maintenance, notes, power-on events), auth-gated financial snapshot, needs-attention alerts (in repair, PRAM battery pending, unknown condition), and collection health metrics (no images, no notes, missing CPU/RAM specs)',
+      'Video uploads — attach short clips to devices alongside photos; ffmpeg generates a thumbnail frame and duration badge; inline player on web, AVPlayer on iOS',
     ],
     changed: [
       'LOANED status color changed from sky blue to violet (lilac) on web and iOS — distinguishes it from IN_REPAIR (teal) and FOR_SALE (blue)',
