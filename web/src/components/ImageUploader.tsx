@@ -5,6 +5,7 @@ import gql from "graphql-tag";
 import { useState, useRef } from "react";
 import { API_BASE_URL } from "../lib/config";
 import { useAuth } from "../lib/auth-context";
+import { useT } from "../i18n/context";
 
 const CREATE_IMAGE = gql`
   mutation CreateImage($input: ImageCreateInput!) {
@@ -32,6 +33,7 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
     const [dragOver, setDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { getAccessToken } = useAuth();
+    const t = useT();
 
     const [createImage] = useMutation(CREATE_IMAGE);
 
@@ -40,25 +42,31 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
         const newPreviews: string[] = [];
 
         for (const file of files) {
-            if (!file.type.startsWith('image/')) {
-                setError('Please select only image files');
+            const isImage = file.type.startsWith('image/');
+            const isVideo = file.type.startsWith('video/');
+            if (!isImage && !isVideo) {
+                setError('Please select only image or video files');
                 return;
             }
 
-            if (file.size > 10 * 1024 * 1024) {
-                setError('File size must be less than 10MB');
+            if (file.size > 2 * 1024 * 1024 * 1024) {
+                setError(t.pages.photosPage.uploadSizeError);
                 return;
             }
 
             validFiles.push(file);
 
-            // Create preview for this file
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const result = e.target?.result as string;
-                setPreviews(prev => [...prev, result]);
-            };
-            reader.readAsDataURL(file);
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const result = e.target?.result as string;
+                    setPreviews(prev => [...prev, result]);
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // Video: use empty string as placeholder (keeps index alignment)
+                setPreviews(prev => [...prev, '']);
+            }
         }
 
         if (validFiles.length > 0) {
@@ -165,7 +173,7 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl max-w-lg w-full p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        Upload Photos
+                        {t.pages.photosPage.uploadTitle}
                     </h2>
                     <button
                         onClick={onClose}
@@ -208,12 +216,12 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
                             Drop an image here or click to select
                         </p>
                         <p className="text-sm text-gray-400 dark:text-gray-500">
-                            JPEG, PNG, GIF, WebP up to 10MB
+                            JPEG, PNG, GIF, WebP, MP4, MOV, WebM up to 2 GB
                         </p>
                         <input
                             ref={fileInputRef}
                             type="file"
-                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            accept="image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime,video/webm,video/x-msvideo"
                             multiple
                             onChange={handleInputChange}
                             className="hidden"
@@ -224,11 +232,19 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
                         <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
                             {previews.map((preview, index) => (
                                 <div key={index} className="relative aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                                    <img
-                                        src={preview}
-                                        alt={`Preview ${index + 1}`}
-                                        className="w-full h-full object-cover"
-                                    />
+                                    {preview ? (
+                                        <img
+                                            src={preview}
+                                            alt={`Preview ${index + 1}`}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-400">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    )}
                                     <button
                                         onClick={() => removeFile(index)}
                                         className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
