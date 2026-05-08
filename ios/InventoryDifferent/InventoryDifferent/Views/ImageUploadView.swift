@@ -8,6 +8,7 @@
 import SwiftUI
 import PhotosUI
 import UIKit
+import UniformTypeIdentifiers
 
 // MARK: - Camera Picker
 
@@ -52,6 +53,12 @@ struct CameraPickerView: UIViewControllerRepresentable {
 // MARK: - Image Upload View
 
 struct ImageUploadView: View {
+    private struct VideoFile: Transferable {
+        let url: URL
+        static var transferRepresentation: some TransferRepresentation {
+            FileRepresentation(contentType: .movie) { SentTransferredFile($0.url) } importing: { VideoFile(url: $0.file) }
+        }
+    }
     let deviceId: Int
     let onUpload: ([DeviceImage]) -> Void
 
@@ -103,7 +110,7 @@ struct ImageUploadView: View {
                         PhotosPicker(
                             selection: $selectedItems,
                             maxSelectionCount: 10,
-                            matching: .images
+                            matching: .any(of: [.images, .videos])
                         ) {
                             VStack(spacing: 12) {
                                 Image(systemName: "photo.on.rectangle.angled")
@@ -191,11 +198,25 @@ struct ImageUploadView: View {
 
         for (index, item) in selectedItems.enumerated() {
             do {
-                if let data = try await item.loadTransferable(type: Data.self) {
-                    let uploadedImage = try await DeviceService.shared.uploadImage(deviceId: deviceId, mediaData: data)
-                    uploadedImages.append(uploadedImage)
-                    uploadProgress = Double(index + 1) / Double(totalItems)
+                let isVideo = item.supportedContentTypes.contains { $0.conforms(to: .audiovisualContent) }
+                if isVideo {
+                    if let file = try await item.loadTransferable(type: VideoFile.self) {
+                        let data = try Data(contentsOf: file.url)
+                        let ext = file.url.pathExtension.lowercased()
+                        let mimeType = ext == "mov" ? "video/quicktime" : "video/mp4"
+                        let filename = "video.\(ext.isEmpty ? "mp4" : ext)"
+                        let uploadedImage = try await DeviceService.shared.uploadImage(
+                            deviceId: deviceId, mediaData: data, filename: filename, mimeType: mimeType
+                        )
+                        uploadedImages.append(uploadedImage)
+                    }
+                } else {
+                    if let data = try await item.loadTransferable(type: Data.self) {
+                        let uploadedImage = try await DeviceService.shared.uploadImage(deviceId: deviceId, mediaData: data)
+                        uploadedImages.append(uploadedImage)
+                    }
                 }
+                uploadProgress = Double(index + 1) / Double(totalItems)
             } catch {
                 errorMessage = "Failed to upload some images: \(error.localizedDescription)"
                 print("Failed to upload image: \(error)")

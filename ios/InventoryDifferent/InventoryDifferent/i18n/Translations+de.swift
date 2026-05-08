@@ -510,7 +510,7 @@ extension Translations {
             takePhoto: "Foto aufnehmen",
             takePhotoHint: "Foto aufnehmen, ohne es in der Bibliothek zu speichern",
             chooseFromLibrary: "Aus Bibliothek wählen",
-            chooseFromLibraryHint: "Bis zu 10 Fotos auswählen",
+            chooseFromLibraryHint: "Bis zu 10 Fotos oder Videos auswählen",
             uploadPhotosFmt: "%d Foto(s) hochladen"
         ),
         generateImage: .init(

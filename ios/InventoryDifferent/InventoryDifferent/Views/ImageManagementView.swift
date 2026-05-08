@@ -20,7 +20,7 @@ struct ImageManagementView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                AsyncImage(url: APIService.shared.imageURL(for: image.path)) { phase in
+                AsyncImage(url: APIService.shared.imageURL(for: image.thumbnailPath ?? image.path)) { phase in
                     switch phase {
                     case .empty:
                         Rectangle()
@@ -51,63 +51,80 @@ struct ImageManagementView: View {
                             Text("Image Settings")
                                 .font(.headline)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            Button {
-                                Task {
-                                    await updateImage(isThumbnail: true)
+
+                            if image.mediaType != "VIDEO" {
+                                Button {
+                                    Task {
+                                        await updateImage(isThumbnail: true)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Image(systemName: image.isThumbnail ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(image.isThumbnail ? .blue : .secondary)
+                                        Text("Set as Thumbnail")
+                                        Spacer()
+                                        Image(systemName: "photo")
+                                    }
+                                    .foregroundColor(.primary)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
                                 }
-                            } label: {
+                                .disabled(isUpdating || image.isThumbnail)
+
+                                Button {
+                                    Task {
+                                        await updateImage(isShopImage: !image.isShopImage)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Image(systemName: image.isShopImage ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(image.isShopImage ? .green : .secondary)
+                                        Text(image.isShopImage ? "Remove from Shop" : "Add to Shop")
+                                        Spacer()
+                                        Image(systemName: "bag")
+                                    }
+                                    .foregroundColor(.primary)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .disabled(isUpdating)
+
+                                Button {
+                                    Task {
+                                        await updateImage(isListingImage: true)
+                                    }
+                                } label: {
+                                    HStack {
+                                        Image(systemName: image.isListingImage ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(image.isListingImage ? .orange : .secondary)
+                                        Text("Set as Listing Image")
+                                        Spacer()
+                                        Image(systemName: "storefront")
+                                    }
+                                    .foregroundColor(.primary)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .disabled(isUpdating || image.isListingImage)
+                            }
+
+                            if image.mediaType == "VIDEO", let secs = image.duration {
+                                let mins = secs / 60
+                                let remaining = secs % 60
                                 HStack {
-                                    Image(systemName: image.isThumbnail ? "checkmark.circle.fill" : "circle")
-                                        .foregroundColor(image.isThumbnail ? .blue : .secondary)
-                                    Text("Set as Thumbnail")
+                                    Image(systemName: "clock")
+                                        .foregroundColor(.secondary)
+                                    Text(String(format: "%d:%02d", mins, remaining))
+                                        .foregroundColor(.secondary)
                                     Spacer()
-                                    Image(systemName: "photo")
                                 }
-                                .foregroundColor(.primary)
                                 .padding()
                                 .background(Color(.systemGray6))
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                             }
-                            .disabled(isUpdating || image.isThumbnail)
-                            
-                            Button {
-                                Task {
-                                    await updateImage(isShopImage: !image.isShopImage)
-                                }
-                            } label: {
-                                HStack {
-                                    Image(systemName: image.isShopImage ? "checkmark.circle.fill" : "circle")
-                                        .foregroundColor(image.isShopImage ? .green : .secondary)
-                                    Text(image.isShopImage ? "Remove from Shop" : "Add to Shop")
-                                    Spacer()
-                                    Image(systemName: "bag")
-                                }
-                                .foregroundColor(.primary)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
-                            .disabled(isUpdating)
-                            
-                            Button {
-                                Task {
-                                    await updateImage(isListingImage: true)
-                                }
-                            } label: {
-                                HStack {
-                                    Image(systemName: image.isListingImage ? "checkmark.circle.fill" : "circle")
-                                        .foregroundColor(image.isListingImage ? .orange : .secondary)
-                                    Text("Set as Listing Image")
-                                    Spacer()
-                                    Image(systemName: "storefront")
-                                }
-                                .foregroundColor(.primary)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
-                            .disabled(isUpdating || image.isListingImage)
                         }
                         .padding()
                         
