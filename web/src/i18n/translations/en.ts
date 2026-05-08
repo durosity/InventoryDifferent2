@@ -395,6 +395,7 @@ export type Translations = {
       noPhotosYet: string;
       uploadTitle: string;
       uploadSizeError: string;
+      uploadTypeError: string;
     };
     generateImages: {
       pageTitle: string;
@@ -1365,6 +1366,7 @@ export const en: Translations = {
       noPhotosYet: "No photos yet",
       uploadTitle: "Photos & Videos",
       uploadSizeError: "File too large (2 GB max)",
+      uploadTypeError: "Please select only image or video files",
     },
     generateImages: {
       pageTitle: "AI Product Images",

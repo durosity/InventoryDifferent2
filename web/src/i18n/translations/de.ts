@@ -404,6 +404,7 @@ export const de: Translations = {
       noPhotosYet: "Noch keine Fotos",
       uploadTitle: "Fotos und Videos",
       uploadSizeError: "Datei zu groß (max. 2 GB)",
+      uploadTypeError: "Bitte nur Bild- oder Videodateien auswählen",
     },
     generateImages: {
       pageTitle: "KI-Produktbilder",

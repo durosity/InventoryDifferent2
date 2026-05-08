@@ -404,6 +404,7 @@ export const es: Translations = {
       noPhotosYet: "Aún no hay fotos",
       uploadTitle: "Fotos y vídeos",
       uploadSizeError: "Archivo demasiado grande (máx. 2 GB)",
+      uploadTypeError: "Por favor, selecciona solo imágenes o vídeos",
     },
     generateImages: {
       pageTitle: "Imágenes de producto IA",

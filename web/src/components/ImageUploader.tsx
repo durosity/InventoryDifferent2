@@ -45,7 +45,7 @@ export function ImageUploader({ deviceId, onUploadComplete, onClose }: ImageUplo
             const isImage = file.type.startsWith('image/');
             const isVideo = file.type.startsWith('video/');
             if (!isImage && !isVideo) {
-                setError('Please select only image or video files');
+                setError(t.pages.photosPage.uploadTypeError);
                 return;
             }
 
