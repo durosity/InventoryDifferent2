@@ -184,6 +184,8 @@ class DeviceService {
                     isThumbnail
                     thumbnailMode
                     isListingImage
+                    mediaType
+                    duration
                 }
                 notes {
                     id
@@ -275,6 +277,8 @@ class DeviceService {
                     isThumbnail
                     thumbnailMode
                     isListingImage
+                    mediaType
+                    duration
                 }
                 notes {
                     id
@@ -549,6 +553,8 @@ class DeviceService {
                     isThumbnail
                     thumbnailMode
                     isListingImage
+                    mediaType
+                    duration
                 }
                 notes {
                     id
@@ -623,6 +629,8 @@ class DeviceService {
                 isThumbnail
                 thumbnailMode
                 isListingImage
+                mediaType
+                duration
             }
         }
         """
@@ -923,6 +931,8 @@ class DeviceService {
                     isThumbnail
                     thumbnailMode
                     isListingImage
+                    mediaType
+                    duration
                 }
                 notes {
                     id
@@ -1082,6 +1092,8 @@ class DeviceService {
                     isThumbnail
                     thumbnailMode
                     isListingImage
+                    mediaType
+                    duration
                 }
                 notes {
                     id
