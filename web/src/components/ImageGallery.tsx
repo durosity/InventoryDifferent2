@@ -49,8 +49,12 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
     const [updateImage, { loading: updating }] = useMutation(UPDATE_IMAGE);
 
     const formatDuration = (seconds: number): string => {
-        const mins = Math.floor(seconds / 60);
+        const hrs  = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
         const secs = seconds % 60;
+        if (hrs > 0) {
+            return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
@@ -60,6 +64,7 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
         try {
             await deleteImage({ variables: { id } });
             setDeleteConfirmId(null);
+            if (playingVideoId === id) setPlayingVideoId(null);
             onImagesChanged();
         } catch (err) {
             console.error('Error deleting image:', err);
@@ -179,7 +184,7 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                             </div>
                         )}
 
-                        {image.isShopImage && (
+                        {image.isShopImage && image.mediaType !== 'VIDEO' && (
                             <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-emerald-600 text-white text-[10px] font-medium rounded">
                                 Shop
                             </div>
