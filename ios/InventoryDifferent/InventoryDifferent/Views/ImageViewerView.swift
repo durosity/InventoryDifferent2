@@ -10,15 +10,21 @@ import SwiftUI
 
 private struct VideoPlayerContainerView: UIViewControllerRepresentable {
     let url: URL
+    let isActive: Bool
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
         let controller = AVPlayerViewController()
         controller.player = AVPlayer(url: url)
-        controller.player?.play()
         return controller
     }
 
-    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {
+        if isActive {
+            uiViewController.player?.play()
+        } else {
+            uiViewController.player?.pause()
+        }
+    }
 }
 
 struct ImageViewerView: View {
@@ -42,7 +48,7 @@ struct ImageViewerView: View {
                 ForEach(Array(images.enumerated()), id: \.element.id) { index, image in
                     if image.mediaType == "VIDEO",
                        let videoURL = APIService.shared.imageURL(for: image.path) {
-                        VideoPlayerContainerView(url: videoURL)
+                        VideoPlayerContainerView(url: videoURL, isActive: index == currentIndex)
                             .tag(index)
                     } else {
                         ZoomableImageView(imageURL: APIService.shared.imageURL(for: image.path))
