@@ -166,7 +166,7 @@ export default function ListNewPage() {
 
   const { loading, error, data } = useQuery(GET_DEVICES, {
     variables: { where: { deleted: { equals: false } } },
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'cache-first',
   });
   const { data: categoriesData } = useQuery(GET_CATEGORIES);
 
@@ -294,7 +294,7 @@ export default function ListNewPage() {
     setBarcodeSupported(typeof BarcodeDetectorCtor === 'function' && !!navigator?.mediaDevices?.getUserMedia);
   }, []);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <>
         <NavBar />

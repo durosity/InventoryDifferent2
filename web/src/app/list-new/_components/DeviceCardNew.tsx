@@ -1,7 +1,7 @@
 'use client';
 
+import { memo, useRef, useLayoutEffect } from "react";
 import Link from "next/link";
-import { useRef, useLayoutEffect } from "react";
 import { API_BASE_URL } from "../../../lib/config";
 import { useIsDarkMode } from "../../../lib/useIsDarkMode";
 import { pickThumbnail } from "../../../lib/pickThumbnail";
@@ -135,7 +135,7 @@ function buildIconRow(device: DeviceCardNewProps['device']): IconSpec[] {
   return icons;
 }
 
-export function DeviceCardNew({ device }: DeviceCardNewProps) {
+export const DeviceCardNew = memo(function DeviceCardNew({ device }: DeviceCardNewProps) {
   const isDark = useIsDarkMode();
   const t = useT();
   const thumbImage = pickThumbnail(device.images, isDark);
@@ -244,4 +244,4 @@ export function DeviceCardNew({ device }: DeviceCardNewProps) {
       </div>
     </Link>
   );
-}
+});

@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from "react";
 import Link from 'next/link';
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "../../../lib/config";
@@ -123,7 +124,7 @@ function SortIcon({ col, sortColumn, sortDirection }: { col: string; sortColumn:
   return <span className="material-symbols-outlined text-[13px] text-primary dark:text-[#adc6ff]">{sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>;
 }
 
-function DeviceRow({ device }: { device: Device }) {
+const DeviceRow = memo(function DeviceRow({ device }: { device: Device }) {
   const router = useRouter();
   const isDark = useIsDarkMode();
   const t = useT();
@@ -230,9 +231,9 @@ function DeviceRow({ device }: { device: Device }) {
       </td>
     </tr>
   );
-}
+});
 
-export function DeviceTableNew({ devices, sortColumn, sortDirection, onSortChange }: DeviceTableNewProps) {
+export const DeviceTableNew = memo(function DeviceTableNew({ devices, sortColumn, sortDirection, onSortChange }: DeviceTableNewProps) {
   const t = useT();
 
   const handleSort = (col: string) => {
@@ -301,4 +302,4 @@ export function DeviceTableNew({ devices, sortColumn, sortDirection, onSortChang
       </table>
     </div>
   );
-}
+});

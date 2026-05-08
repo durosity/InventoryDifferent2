@@ -619,7 +619,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
         try {
             let deviceId: number;
             if (mode === "create") {
-                const result = await createDevice({ variables: { input } });
+                const result = await createDevice({ variables: { input }, refetchQueries: ['GetDevicesNew'] });
                 deviceId = result.data.createDevice.id;
             } else {
                 await updateDevice({ variables: { input: { ...input, id: device!.id } } });
