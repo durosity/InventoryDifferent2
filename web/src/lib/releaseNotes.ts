@@ -1,4 +1,4 @@
-export const APP_VERSION = '2.6.0';
+export const APP_VERSION = '2.7.0';
 
 export interface ReleaseEntry {
   version: string;
@@ -12,6 +12,13 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
+    added: [],
+    changed: [],
+    fixed: [],
+  },
+  {
+    version: '2.7.0',
+    date: '2026-05-09',
     added: [
       'Settings page (/settings) — configure the AI image generation prompt and model (gpt-image-1.5 or gpt-image-2)',
       'Added "Unknown" as a fourth functional status (gray question mark icon); new devices default to Unknown instead of Fully Working',

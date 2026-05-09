@@ -4,6 +4,10 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+---
+
+## [2.7.0] — 2026-05-09
+
 ### Added
 - Added "Unknown" as a fourth functional status (gray question mark icon); new devices default to Unknown instead of Fully Working
 - Dashboard page (`/dashboard`) — unified activity feed tracking acquisitions, status changes, maintenance, notes, and power-on events; auth-gated financial snapshot (spent/revenue/net/collection value this month); needs-attention alerts (in repair, PRAM battery pending, unknown functional status); collection health metrics (devices with no images, no notes, missing CPU/RAM specs)
