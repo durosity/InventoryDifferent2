@@ -8,6 +8,7 @@ All notable changes to InventoryDifferent will be documented here.
 - Added "Unknown" as a fourth functional status (gray question mark icon); new devices default to Unknown instead of Fully Working
 - Dashboard page (`/dashboard`) — unified activity feed tracking acquisitions, status changes, maintenance, notes, and power-on events; auth-gated financial snapshot (spent/revenue/net/collection value this month); needs-attention alerts (in repair, PRAM battery pending, unknown functional status); collection health metrics (devices with no images, no notes, missing CPU/RAM specs)
 - Video uploads: attach short clips to devices alongside photos; thumbnail frame extracted via ffmpeg; inline player on web, AVPlayer on iOS
+- Video thumbnail generation is now async — uploads return immediately and the thumbnail appears after ffmpeg finishes in the background (fixes Cloudflare 524 timeouts on large videos)
 
 ---
 

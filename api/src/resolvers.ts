@@ -1456,21 +1456,47 @@ export const resolvers = {
                 }
             }
 
-            let thumbnailPath: string | null = null;
-            let duration: number | null = null;
-            if (mediaType === 'VIDEO') {
-                const result = await generateVideoThumbnail(imagePath);
-                thumbnailPath = result.thumbnailPath;
-                duration = result.duration;
-            } else {
-                thumbnailPath = await generateThumbnailForUpload(imagePath);
-            }
-
             // First IMAGE (not video) auto-becomes the device thumbnail
             const existingImageCount = await (context.prisma as any).image.count({
                 where: { deviceId, mediaType: 'IMAGE' },
             });
             const shouldBeThumbnail = mediaType === 'IMAGE' && (isThumbnail || existingImageCount === 0);
+
+            if (mediaType === 'VIDEO') {
+                // Create the record immediately so the client isn't blocked by ffmpeg.
+                // Thumbnail and duration are written back asynchronously once ffmpeg finishes.
+                const image = await (context.prisma as any).image.create({
+                    data: {
+                        deviceId,
+                        path: imagePath,
+                        ...(dateTaken ? { dateTaken } : {}),
+                        caption: caption || null,
+                        isThumbnail: false,
+                        thumbnailMode: 'BOTH',
+                        isShopImage: false,
+                        mediaType,
+                    },
+                });
+
+                setImmediate(async () => {
+                    try {
+                        const { thumbnailPath, duration } = await generateVideoThumbnail(imagePath);
+                        await (context.prisma as any).image.update({
+                            where: { id: image.id },
+                            data: {
+                                ...(thumbnailPath ? { thumbnailPath } : {}),
+                                ...(duration !== null ? { duration } : {}),
+                            },
+                        });
+                    } catch (err) {
+                        console.error(`Background thumbnail generation failed for image ${image.id}:`, err);
+                    }
+                });
+
+                return image;
+            }
+
+            const thumbnailPath = await generateThumbnailForUpload(imagePath);
 
             return (context.prisma as any).image.create({
                 data: {
@@ -1483,7 +1509,6 @@ export const resolvers = {
                     thumbnailMode: 'BOTH',
                     isShopImage: (isShopImage && mediaType === 'IMAGE') || false,
                     mediaType,
-                    ...(duration !== null ? { duration } : {}),
                 },
             });
         },
