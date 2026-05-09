@@ -71,6 +71,8 @@ const GET_DEVICE = gql`
         thumbnailMode
         isShopImage
         isListingImage
+        mediaType
+        duration
       }
       notes {
         id
@@ -1924,8 +1926,22 @@ export default function DeviceDetailNew() {
                   <div className="grid grid-cols-4 gap-2">
                     {tiles.map((tile, i) => {
                       if (tile.type === 'photo') return (
-                        <div key={tile.img.id} onClick={() => { const idx = navImages.findIndex((ni: any) => ni.id === tile.img.id); openLightbox(idx >= 0 ? idx : 0); }} className="aspect-square bg-surface-container-low rounded-lg overflow-hidden group cursor-pointer">
+                        <div key={tile.img.id} onClick={() => { const idx = navImages.findIndex((ni: any) => ni.id === tile.img.id); openLightbox(idx >= 0 ? idx : 0); }} className="relative aspect-square bg-surface-container-low rounded-lg overflow-hidden group cursor-pointer">
                           <img src={`${API_BASE_URL}${tile.img.thumbnailPath || tile.img.path}`} alt={tile.img.caption || ''} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-300" />
+                          {tile.img.mediaType === 'VIDEO' && (
+                            <>
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="w-8 h-8 rounded-full bg-black/60 flex items-center justify-center">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                                </div>
+                              </div>
+                              {tile.img.duration != null && (
+                                <div className="absolute bottom-1 right-1 px-1 py-0.5 bg-black/70 text-white text-[9px] font-mono rounded pointer-events-none">
+                                  {Math.floor(tile.img.duration / 60)}:{String(tile.img.duration % 60).padStart(2, '0')}
+                                </div>
+                              )}
+                            </>
+                          )}
                         </div>
                       );
                       if (tile.type === 'overflow') return (
@@ -2344,21 +2360,33 @@ export default function DeviceDetailNew() {
             </button>
           )}
 
-          {/* Image */}
-          <div className="w-full h-full flex items-center justify-center overflow-hidden pointer-events-none px-16">
-            <img
-              src={`${API_BASE_URL}${navImages[selectedImage]?.path}`}
-              alt={navImages[selectedImage]?.caption || device.name}
-              draggable={false}
-              style={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                objectFit: 'contain',
-                transform: `scale(${lightboxZoom}) translate(${lightboxPan.x / lightboxZoom}px, ${lightboxPan.y / lightboxZoom}px)`,
-                transition: isPanning ? 'none' : 'transform 0.15s ease',
-                userSelect: 'none',
-              }}
-            />
+          {/* Image or Video */}
+          <div className="w-full h-full flex items-center justify-center overflow-hidden px-16" style={{ pointerEvents: navImages[selectedImage]?.mediaType === 'VIDEO' ? 'auto' : 'none' }}>
+            {navImages[selectedImage]?.mediaType === 'VIDEO' ? (
+              <video
+                key={navImages[selectedImage]?.id}
+                src={`${API_BASE_URL}${navImages[selectedImage]?.path}`}
+                poster={navImages[selectedImage]?.thumbnailPath ? `${API_BASE_URL}${navImages[selectedImage]?.thumbnailPath}` : undefined}
+                controls
+                autoPlay
+                style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: '8px' }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <img
+                src={`${API_BASE_URL}${navImages[selectedImage]?.path}`}
+                alt={navImages[selectedImage]?.caption || device.name}
+                draggable={false}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                  transform: `scale(${lightboxZoom}) translate(${lightboxPan.x / lightboxZoom}px, ${lightboxPan.y / lightboxZoom}px)`,
+                  transition: isPanning ? 'none' : 'transform 0.15s ease',
+                  userSelect: 'none',
+                }}
+              />
+            )}
           </div>
 
           {/* Next */}

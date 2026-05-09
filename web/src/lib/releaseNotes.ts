@@ -19,6 +19,7 @@ export const releaseNotes: ReleaseEntry[] = [
       'Video uploads — attach short clips to devices alongside photos; ffmpeg generates a thumbnail frame and duration badge; inline player on web, AVPlayer on iOS',
       'Video thumbnail generation is now async — uploads return immediately and the thumbnail appears after ffmpeg finishes in the background (fixes Cloudflare 524 timeouts on large videos)',
       'Device photos page: click any thumbnail to view it full-size in a lightbox; navigate between images and videos with prev/next arrows or keyboard arrow keys',
+      'Device detail page: video thumbnails now show the play button overlay and duration badge; lightbox now plays videos with full media controls instead of showing a broken image',
     ],
     changed: [
       'LOANED status color changed from sky blue to violet (lilac) on web and iOS — distinguishes it from IN_REPAIR (teal) and FOR_SALE (blue)',

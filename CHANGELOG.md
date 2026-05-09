@@ -10,6 +10,7 @@ All notable changes to InventoryDifferent will be documented here.
 - Video uploads: attach short clips to devices alongside photos; thumbnail frame extracted via ffmpeg; inline player on web, AVPlayer on iOS
 - Video thumbnail generation is now async — uploads return immediately and the thumbnail appears after ffmpeg finishes in the background (fixes Cloudflare 524 timeouts on large videos)
 - Device photos page: click any thumbnail to view it full-size in a lightbox; navigate between images and videos with prev/next arrows or keyboard arrow keys
+- Device detail page: video thumbnails now show play button overlay and duration badge; lightbox renders videos with full media controls
 
 ---
 
