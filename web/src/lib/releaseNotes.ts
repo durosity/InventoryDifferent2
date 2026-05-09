@@ -18,6 +18,7 @@ export const releaseNotes: ReleaseEntry[] = [
       'Dashboard page (/dashboard) — unified recent activity feed (acquisitions, status changes, maintenance, notes, power-on events), auth-gated financial snapshot, needs-attention alerts (in repair, PRAM battery pending, unknown condition), and collection health metrics (no images, no notes, missing CPU/RAM specs)',
       'Video uploads — attach short clips to devices alongside photos; ffmpeg generates a thumbnail frame and duration badge; inline player on web, AVPlayer on iOS',
       'Video thumbnail generation is now async — uploads return immediately and the thumbnail appears after ffmpeg finishes in the background (fixes Cloudflare 524 timeouts on large videos)',
+      'Device photos page: click any thumbnail to view it full-size in a lightbox; navigate between images and videos with prev/next arrows or keyboard arrow keys',
     ],
     changed: [
       'LOANED status color changed from sky blue to violet (lilac) on web and iOS — distinguishes it from IN_REPAIR (teal) and FOR_SALE (blue)',

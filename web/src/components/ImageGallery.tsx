@@ -2,7 +2,7 @@
 
 import { useMutation } from "@apollo/client";
 import gql from "graphql-tag";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { API_BASE_URL } from "../lib/config";
 
 const DELETE_IMAGE = gql`
@@ -44,9 +44,25 @@ interface ImageGalleryProps {
 export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
     const [thumbnailChoiceId, setThumbnailChoiceId] = useState<number | null>(null);
-    const [playingVideoId, setPlayingVideoId] = useState<number | null>(null);
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
     const [deleteImage, { loading: deleting }] = useMutation(DELETE_IMAGE);
     const [updateImage, { loading: updating }] = useMutation(UPDATE_IMAGE);
+
+    const openLightbox = (index: number) => setLightboxIndex(index);
+    const closeLightbox = () => setLightboxIndex(null);
+    const navLightbox = (delta: number) =>
+        setLightboxIndex(prev => prev === null ? null : (prev + delta + images.length) % images.length);
+
+    useEffect(() => {
+        if (lightboxIndex === null) return;
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft') navLightbox(-1);
+            if (e.key === 'ArrowRight') navLightbox(1);
+            if (e.key === 'Escape') closeLightbox();
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [lightboxIndex, images.length]);
 
     const formatDuration = (seconds: number): string => {
         const hrs  = Math.floor(seconds / 3600);
@@ -64,7 +80,6 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
         try {
             await deleteImage({ variables: { id } });
             setDeleteConfirmId(null);
-            if (playingVideoId === id) setPlayingVideoId(null);
             onImagesChanged();
         } catch (err) {
             console.error('Error deleting image:', err);
@@ -76,7 +91,6 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
         if (hasExistingThumbnail) {
             setThumbnailChoiceId(id);
         } else {
-            // No existing thumbnail — set as BOTH directly
             applyThumbnailMode(id, 'BOTH');
         }
     };
@@ -138,12 +152,13 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
 
     return (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-            {images.map((image) => {
+            {images.map((image, index) => {
                 const thumbLabel = getThumbnailBadgeLabel(image);
                 return (
                     <div
                         key={image.id}
-                        className="relative group aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden"
+                        className="relative group aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-pointer"
+                        onClick={() => openLightbox(index)}
                     >
                         <img
                             src={`${API_BASE_URL}${image.thumbnailPath || image.path}`}
@@ -155,7 +170,7 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                         {image.mediaType === 'VIDEO' && (
                             <>
                                 <button
-                                    onClick={() => setPlayingVideoId(image.id)}
+                                    onClick={(e) => { e.stopPropagation(); openLightbox(index); }}
                                     className="absolute inset-0 flex items-center justify-center"
                                     title="Play video"
                                 >
@@ -203,7 +218,7 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                                 <div className="flex items-start justify-start">
                                     {image.mediaType !== 'VIDEO' && (
                                         <button
-                                            onClick={() => handleThumbnailClick(image.id, image.isThumbnail)}
+                                            onClick={(e) => { e.stopPropagation(); handleThumbnailClick(image.id, image.isThumbnail); }}
                                             disabled={updating || image.isThumbnail}
                                             className={`p-1.5 rounded-full transition-colors ${
                                                 image.isThumbnail
@@ -222,7 +237,7 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                                 {/* Top-right: Delete */}
                                 <div className="flex items-start justify-end">
                                     <button
-                                        onClick={() => setDeleteConfirmId(image.id)}
+                                        onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(image.id); }}
                                         className="p-1.5 bg-white/90 rounded-full text-red-600 hover:bg-white transition-colors"
                                         title="Delete image"
                                     >
@@ -236,7 +251,7 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                                 <div className="flex items-end justify-start">
                                     {image.mediaType !== 'VIDEO' && (
                                         <button
-                                            onClick={() => handleSetListingImage(image.id)}
+                                            onClick={(e) => { e.stopPropagation(); handleSetListingImage(image.id); }}
                                             disabled={updating || image.isListingImage}
                                             className={`p-1.5 rounded-full transition-colors ${
                                                 image.isListingImage
@@ -256,7 +271,7 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                                 <div className="flex items-end justify-end">
                                     {image.mediaType !== 'VIDEO' && (
                                         <button
-                                            onClick={() => handleToggleShopImage(image.id, !image.isShopImage)}
+                                            onClick={(e) => { e.stopPropagation(); handleToggleShopImage(image.id, !image.isShopImage); }}
                                             disabled={updating}
                                             className={`p-1.5 rounded-full transition-colors ${
                                                 image.isShopImage
@@ -284,28 +299,28 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                             <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center p-2 gap-1.5">
                                 <p className="text-white text-[10px] font-medium text-center mb-0.5">Set thumbnail as:</p>
                                 <button
-                                    onClick={() => applyThumbnailMode(image.id, 'BOTH')}
+                                    onClick={(e) => { e.stopPropagation(); applyThumbnailMode(image.id, 'BOTH'); }}
                                     disabled={updating}
                                     className="w-full px-2 py-1 bg-blue-600 text-white text-[10px] font-medium rounded hover:bg-blue-700 disabled:opacity-50"
                                 >
                                     Replace
                                 </button>
                                 <button
-                                    onClick={() => applyThumbnailMode(image.id, 'LIGHT')}
+                                    onClick={(e) => { e.stopPropagation(); applyThumbnailMode(image.id, 'LIGHT'); }}
                                     disabled={updating}
                                     className="w-full px-2 py-1 bg-sky-500 text-white text-[10px] font-medium rounded hover:bg-sky-600 disabled:opacity-50"
                                 >
                                     Light Mode
                                 </button>
                                 <button
-                                    onClick={() => applyThumbnailMode(image.id, 'DARK')}
+                                    onClick={(e) => { e.stopPropagation(); applyThumbnailMode(image.id, 'DARK'); }}
                                     disabled={updating}
                                     className="w-full px-2 py-1 bg-indigo-600 text-white text-[10px] font-medium rounded hover:bg-indigo-700 disabled:opacity-50"
                                 >
                                     Dark Mode
                                 </button>
                                 <button
-                                    onClick={() => setThumbnailChoiceId(null)}
+                                    onClick={(e) => { e.stopPropagation(); setThumbnailChoiceId(null); }}
                                     className="w-full px-2 py-1 bg-white/20 text-white text-[10px] rounded hover:bg-white/30"
                                 >
                                     Cancel
@@ -319,14 +334,14 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                                 <p className="text-white text-sm text-center mb-3">Delete this photo?</p>
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => handleDelete(image.id)}
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(image.id); }}
                                         disabled={deleting}
                                         className="px-3 py-1.5 bg-red-600 text-white text-sm rounded hover:bg-red-700 disabled:opacity-50"
                                     >
                                         {deleting ? 'Deleting...' : 'Delete'}
                                     </button>
                                     <button
-                                        onClick={() => setDeleteConfirmId(null)}
+                                        onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(null); }}
                                         className="px-3 py-1.5 bg-white text-gray-700 text-sm rounded hover:bg-gray-100"
                                     >
                                         Cancel
@@ -338,26 +353,79 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                 );
             })}
 
-            {/* Inline video player modal */}
-            {playingVideoId !== null && (() => {
-                const vid = images.find(i => i.id === playingVideoId);
-                if (!vid) return null;
+            {/* Lightbox overlay */}
+            {lightboxIndex !== null && (() => {
+                const image = images[lightboxIndex];
                 return (
                     <div
-                        className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
-                        onClick={() => setPlayingVideoId(null)}
+                        className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+                        onClick={closeLightbox}
                     >
-                        <video
-                            src={`${API_BASE_URL}${vid.path}`}
-                            poster={vid.thumbnailPath ? `${API_BASE_URL}${vid.thumbnailPath}` : undefined}
-                            controls
-                            autoPlay
-                            className="max-w-[90vw] max-h-[80vh] rounded-lg"
+                        {/* Close button */}
+                        <button
+                            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
+                            title="Close"
+                        >
+                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                            </svg>
+                        </button>
+
+                        {/* Counter */}
+                        <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/60 text-sm font-mono pointer-events-none">
+                            {lightboxIndex + 1} / {images.length}
+                        </div>
+
+                        {/* Prev arrow */}
+                        <button
+                            className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); navLightbox(-1); }}
+                            title="Previous"
+                        >
+                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                            </svg>
+                        </button>
+
+                        {/* Next arrow */}
+                        <button
+                            className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); navLightbox(1); }}
+                            title="Next"
+                        >
+                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+                            </svg>
+                        </button>
+
+                        {/* Media + caption — stopPropagation so clicking media doesn't close */}
+                        <div
+                            className="flex flex-col items-center gap-3"
                             onClick={(e) => e.stopPropagation()}
-                        />
+                        >
+                            {image.mediaType === 'VIDEO' ? (
+                                <video
+                                    src={`${API_BASE_URL}${image.path}`}
+                                    poster={image.thumbnailPath ? `${API_BASE_URL}${image.thumbnailPath}` : undefined}
+                                    controls
+                                    autoPlay
+                                    className="max-w-[90vw] max-h-[80vh] rounded-lg"
+                                />
+                            ) : (
+                                <img
+                                    src={`${API_BASE_URL}${image.path}`}
+                                    alt={image.caption || 'Device image'}
+                                    className="max-w-[90vw] max-h-[80vh] object-contain rounded-lg"
+                                />
+                            )}
+                            {image.caption && (
+                                <p className="text-white/55 text-sm italic text-center">{image.caption}</p>
+                            )}
+                        </div>
                     </div>
                 );
-})()}
+            })()}
         </div>
     );
 }
