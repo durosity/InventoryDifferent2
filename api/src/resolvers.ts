@@ -1683,6 +1683,31 @@ export const resolvers = {
 
             return true;
         },
+        deleteOrphanedFiles: async (_parent: any, args: { paths: string[] }, context: Context) => {
+            requireAuth(context);
+            const fsModule = await import('fs');
+            const pathModule = await import('path');
+
+            let deleted = 0;
+            for (const urlPath of args.paths) {
+                // Path traversal guard — only allow /uploads/devices/ paths
+                if (!urlPath.startsWith('/uploads/devices/')) {
+                    continue;
+                }
+                const diskPath = pathModule.join('/app/uploads', urlPath.replace('/uploads/', ''));
+                // Ensure resolved path stays within /app/uploads
+                if (!diskPath.startsWith('/app/uploads/')) {
+                    continue;
+                }
+                try {
+                    fsModule.unlinkSync(diskPath);
+                    deleted++;
+                } catch {
+                    // File already gone or unreadable — skip silently
+                }
+            }
+            return deleted;
+        },
         createMaintenanceTask: async (_parent: any, args: { input: any }, context: Context) => {
             requireAuth(context);
             const { deviceId, label, dateCompleted, notes, cost } = args.input;
