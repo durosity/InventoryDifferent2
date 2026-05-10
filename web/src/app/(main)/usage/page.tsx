@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery } from "@apollo/client";
+import { useQuery, useLazyQuery, useMutation } from "@apollo/client";
 import gql from "graphql-tag";
+import { useState } from "react";
 import { LoadingPanel } from "../../../components/LoadingPanel";
 import { useT } from "../../../i18n/context";
 
@@ -20,6 +21,21 @@ const GET_SYSTEM_USAGE = gql`
   }
 `;
 
+const GET_ORPHANED_FILES = gql`
+  query GetOrphanedFiles {
+    orphanedFiles {
+      path
+      sizeBytes
+    }
+  }
+`;
+
+const DELETE_ORPHANED_FILES = gql`
+  mutation DeleteOrphanedFiles($paths: [String!]!) {
+    deleteOrphanedFiles(paths: $paths)
+  }
+`;
+
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 Bytes";
   const k = 1024;
@@ -31,6 +47,68 @@ function formatBytes(bytes: number): string {
 export default function UsagePage() {
   const t = useT();
   const { loading, error, data } = useQuery(GET_SYSTEM_USAGE);
+
+  // Orphaned files state
+  type OrphanedFile = { path: string; sizeBytes: number };
+  const [scanState, setScanState] = useState<"idle" | "loading" | "done">("idle");
+  const [orphans, setOrphans] = useState<OrphanedFile[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmingPath, setConfirmingPath] = useState<string | null>(null);
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+
+  const [scanOrphans] = useLazyQuery(GET_ORPHANED_FILES, {
+    fetchPolicy: "network-only",
+    onCompleted: (d) => {
+      setOrphans(d.orphanedFiles ?? []);
+      setSelected(new Set());
+      setScanState("done");
+    },
+    onError: () => setScanState("idle"),
+  });
+
+  const [deleteOrphanedFiles, { loading: deleting }] = useMutation(DELETE_ORPHANED_FILES);
+
+  function handleScan() {
+    setScanState("loading");
+    setOrphans([]);
+    setSelected(new Set());
+    scanOrphans();
+  }
+
+  function toggleSelect(path: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(path) ? next.delete(path) : next.add(path);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelected((prev) =>
+      prev.size === orphans.length ? new Set() : new Set(orphans.map((o) => o.path))
+    );
+  }
+
+  async function handleDeleteSingle(path: string) {
+    if (confirmingPath !== path) {
+      setConfirmingPath(path);
+      return;
+    }
+    setConfirmingPath(null);
+    await deleteOrphanedFiles({ variables: { paths: [path] } });
+    setOrphans((prev) => prev.filter((o) => o.path !== path));
+    setSelected((prev) => { const next = new Set(prev); next.delete(path); return next; });
+  }
+
+  async function handleDeleteBulk() {
+    const paths = Array.from(selected);
+    setShowBulkConfirm(false);
+    await deleteOrphanedFiles({ variables: { paths } });
+    setOrphans((prev) => prev.filter((o) => !selected.has(o.path)));
+    setSelected(new Set());
+  }
+
+  const orphanTotalBytes = orphans.reduce((sum, o) => sum + o.sizeBytes, 0);
 
   if (loading) {
     return (
@@ -124,6 +202,131 @@ export default function UsagePage() {
             </div>
           </div>
         </section>
+
+        {/* Orphaned Files Section */}
+        <section className="rounded border border-[var(--border)] bg-[var(--card)] p-6 card-retro">
+          <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">{t.pages.usage.orphanedFiles}</h2>
+
+          {scanState === "idle" && (
+            <button
+              onClick={handleScan}
+              className="rounded border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+            >
+              {t.pages.usage.scanButton}
+            </button>
+          )}
+
+          {scanState === "loading" && (
+            <div className="text-sm text-[var(--muted-foreground)]">Scanning…</div>
+          )}
+
+          {scanState === "done" && orphans.length === 0 && (
+            <div className="space-y-3">
+              <div className="text-sm text-green-600 dark:text-green-400">{t.pages.usage.noOrphansFound}</div>
+              <button
+                onClick={handleScan}
+                className="rounded border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+              >
+                {t.pages.usage.scanAgainButton}
+              </button>
+            </div>
+          )}
+
+          {scanState === "done" && orphans.length > 0 && (
+            <div className="space-y-4">
+              {/* Summary bar */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <label className="flex items-center gap-2 text-sm text-[var(--foreground)] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selected.size === orphans.length}
+                    onChange={toggleAll}
+                    className="cursor-pointer"
+                  />
+                  {t.pages.usage.selectAll}
+                </label>
+                <span className="text-sm text-[var(--muted-foreground)]">
+                  {orphans.length} {t.pages.usage.orphansSummary} · {formatBytes(orphanTotalBytes)}
+                </span>
+                <button
+                  onClick={() => setShowBulkConfirm(true)}
+                  disabled={selected.size === 0 || deleting}
+                  className="rounded border border-red-400 px-3 py-1 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors ml-auto"
+                >
+                  {t.pages.usage.deleteSelected} ({selected.size})
+                </button>
+              </div>
+
+              {/* File list */}
+              <div className="divide-y divide-[var(--border)] rounded border border-[var(--border)]">
+                {orphans.map((orphan) => (
+                  <div key={orphan.path} className="flex items-center gap-3 px-4 py-3 bg-[var(--background)]">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(orphan.path)}
+                      onChange={() => toggleSelect(orphan.path)}
+                      className="cursor-pointer flex-shrink-0"
+                    />
+                    <span className="flex-1 min-w-0 truncate text-sm font-mono text-[var(--foreground)]">
+                      {orphan.path.replace("/uploads/", "")}
+                    </span>
+                    <span className="flex-shrink-0 text-xs text-[var(--muted-foreground)] tabular-nums">
+                      {formatBytes(orphan.sizeBytes)}
+                    </span>
+                    <button
+                      onClick={() => handleDeleteSingle(orphan.path)}
+                      disabled={deleting}
+                      className={`flex-shrink-0 rounded border px-3 py-1 text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                        confirmingPath === orphan.path
+                          ? "border-red-500 bg-red-500 text-white hover:bg-red-600"
+                          : "border-[var(--border)] text-[var(--muted-foreground)] hover:border-red-400 hover:text-red-600"
+                      }`}
+                    >
+                      {confirmingPath === orphan.path
+                        ? t.pages.usage.confirmDeleteSingle
+                        : "×"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={handleScan}
+                className="rounded border border-[var(--border)] bg-[var(--background)] px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+              >
+                {t.pages.usage.scanAgainButton}
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* Bulk delete confirmation modal */}
+        {showBulkConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="rounded border border-[var(--border)] bg-[var(--card)] p-6 shadow-xl max-w-sm w-full mx-4">
+              <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
+                {t.pages.usage.confirmDeleteBulkTitle}
+              </h3>
+              <p className="text-sm text-[var(--muted-foreground)] mb-6">
+                {selected.size} {t.pages.usage.orphansSummary}. {t.pages.usage.confirmDeleteBulkBody}
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowBulkConfirm(false)}
+                  className="rounded border border-[var(--border)] px-4 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteBulk}
+                  className="rounded border border-red-500 bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600 transition-colors"
+                >
+                  {t.pages.usage.deleteSelected}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
