@@ -258,6 +258,11 @@ export const typeDefs = gql`
     totalStorageBytes: Float!
   }
 
+  type OrphanedFile {
+    path: String!
+    sizeBytes: Float!
+  }
+
   type ValueSnapshot {
     id: Int!
     deviceId: Int!
@@ -579,6 +584,7 @@ export const typeDefs = gql`
     financialOverview: FinancialOverview!
     financialTransactions: [FinancialTransaction!]!
     systemUsage: SystemUsage!
+    orphanedFiles: [OrphanedFile!]!
     maintenanceTaskLabels: [String!]!
     customFields: [CustomField!]!
     collectionStats: CollectionStats!
@@ -873,5 +879,6 @@ export const typeDefs = gql`
     removeShowcaseDevice(id: ID!): Boolean!
     upsertShowcaseQuote(input: ShowcaseQuoteInput!): ShowcaseQuote!
     deleteShowcaseQuote(id: ID!): Boolean!
+    deleteOrphanedFiles(paths: [String!]!): Int!
   }
 `;
