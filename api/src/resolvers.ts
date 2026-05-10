@@ -672,6 +672,49 @@ export const resolvers = {
                 totalStorageBytes,
             };
         },
+        orphanedFiles: async (_parent: any, _args: any, context: Context) => {
+            requireAuth(context);
+            const fs = await import('fs');
+            const pathModule = await import('path');
+
+            // Collect all DB-referenced paths into a Set
+            const images = await context.prisma.image.findMany({
+                select: { path: true, thumbnailPath: true },
+            });
+            const referencedPaths = new Set<string>();
+            for (const img of images) {
+                if (img.path) referencedPaths.add(img.path);
+                if ((img as any).thumbnailPath) referencedPaths.add((img as any).thumbnailPath);
+            }
+
+            // Recursively walk /app/uploads/devices/
+            const uploadsRoot = '/app/uploads/devices';
+            const results: { path: string; sizeBytes: number }[] = [];
+
+            function walkDir(dir: string) {
+                if (!fs.existsSync(dir)) return;
+                for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                    const fullPath = pathModule.join(dir, entry.name);
+                    if (entry.isDirectory()) {
+                        walkDir(fullPath);
+                    } else if (entry.isFile()) {
+                        // Convert disk path back to URL-style /uploads/... path
+                        const urlPath = fullPath.replace('/app/uploads', '/uploads');
+                        if (!referencedPaths.has(urlPath)) {
+                            try {
+                                const stats = fs.statSync(fullPath);
+                                results.push({ path: urlPath, sizeBytes: stats.size });
+                            } catch {
+                                // Skip unreadable files
+                            }
+                        }
+                    }
+                }
+            }
+
+            walkDir(uploadsRoot);
+            return results;
+        },
         timelineEvents: async (_parent: any, _args: any, context: Context) => {
             return (context.prisma as any).timelineEvent.findMany({
                 orderBy: [{ year: 'asc' }, { sortOrder: 'asc' }],
