@@ -4,6 +4,9 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+### Added
+- Usage page: scan for orphaned files (files on disk not referenced by any image record) and delete them individually or in bulk
+
 ---
 
 ## [2.7.0] — 2026-05-09

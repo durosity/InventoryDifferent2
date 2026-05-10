@@ -12,7 +12,9 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
-    added: [],
+    added: [
+      'Usage page: scan for orphaned files (files on disk not referenced by any image record) and delete them individually or in bulk',
+    ],
     changed: [],
     fixed: [],
   },
