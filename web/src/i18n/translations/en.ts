@@ -486,6 +486,16 @@ export type Translations = {
       tags: string;
       totalImageStorage: string;
       bytes: string;
+      orphanedFiles: string;
+      scanButton: string;
+      scanAgainButton: string;
+      noOrphansFound: string;
+      orphansSummary: string;
+      deleteSelected: string;
+      selectAll: string;
+      confirmDeleteSingle: string;
+      confirmDeleteBulkTitle: string;
+      confirmDeleteBulkBody: string;
     };
     trash: {
       title: string;
@@ -1457,6 +1467,16 @@ export const en: Translations = {
       tags: "Tags",
       totalImageStorage: "Total Image Storage",
       bytes: "bytes",
+      orphanedFiles: "Orphaned Files",
+      scanButton: "Scan for Orphaned Files",
+      scanAgainButton: "Scan Again",
+      noOrphansFound: "No orphaned files found.",
+      orphansSummary: "orphaned files",
+      deleteSelected: "Delete Selected",
+      selectAll: "Select All",
+      confirmDeleteSingle: "Confirm?",
+      confirmDeleteBulkTitle: "Delete files?",
+      confirmDeleteBulkBody: "This cannot be undone.",
     },
     trash: {
       title: "Trash",
