@@ -678,13 +678,27 @@ export const resolvers = {
             const pathModule = await import('path');
 
             // Collect all DB-referenced paths into a Set
-            const images = await context.prisma.image.findMany({
-                select: { path: true, thumbnailPath: true },
-            });
+            const [images, showcaseConfig, showcaseJourneys] = await Promise.all([
+                context.prisma.image.findMany({ select: { path: true, thumbnailPath: true } }),
+                (context.prisma as any).showcaseConfig.findUnique({
+                    where: { id: 'singleton' },
+                    select: { heroImagePath: true },
+                }),
+                (context.prisma as any).showcaseJourney.findMany({
+                    select: { coverImagePath: true },
+                }),
+            ]);
             const referencedPaths = new Set<string>();
             for (const img of images) {
                 if (img.path) referencedPaths.add(img.path);
                 if ((img as any).thumbnailPath) referencedPaths.add((img as any).thumbnailPath);
+            }
+            // Showcase images are stored as relative paths (no /uploads/ prefix) — normalise to match
+            if (showcaseConfig?.heroImagePath) {
+                referencedPaths.add(`/uploads/${showcaseConfig.heroImagePath}`);
+            }
+            for (const j of showcaseJourneys) {
+                if (j.coverImagePath) referencedPaths.add(`/uploads/${j.coverImagePath}`);
             }
 
             // Recursively walk /app/uploads/devices/
@@ -1946,6 +1960,22 @@ export const resolvers = {
             if (args.input.timelineCuratorNote != null) data.timelineCuratorNote = args.input.timelineCuratorNote;
             if (args.input.narrativeStatement != null) data.narrativeStatement = args.input.narrativeStatement;
             if (args.input.collectionOverview != null) data.collectionOverview = args.input.collectionOverview;
+
+            // Delete old hero image file if it's being replaced
+            if (args.input.heroImagePath !== undefined) {
+                const current = await (context.prisma as any).showcaseConfig.findUnique({
+                    where: { id: 'singleton' },
+                    select: { heroImagePath: true },
+                });
+                const oldPath = current?.heroImagePath;
+                if (oldPath && oldPath !== args.input.heroImagePath) {
+                    const diskPath = path.join('/app/uploads', oldPath);
+                    if (diskPath.startsWith('/app/uploads/') && fs.existsSync(diskPath)) {
+                        try { fs.unlinkSync(diskPath); } catch { /* ignore */ }
+                    }
+                }
+            }
+
             return (context.prisma as any).showcaseConfig.upsert({
                 where: { id: 'singleton' },
                 update: data,
@@ -1984,7 +2014,21 @@ export const resolvers = {
             if (args.input.title !== undefined) data.title = args.input.title;
             if (args.input.slug !== undefined) data.slug = args.input.slug;
             if (args.input.description !== undefined) data.description = args.input.description;
-            if (args.input.coverImagePath !== undefined) data.coverImagePath = args.input.coverImagePath;
+            if (args.input.coverImagePath !== undefined) {
+                data.coverImagePath = args.input.coverImagePath;
+                // Delete old cover image file if it's being replaced
+                const current = await (context.prisma as any).showcaseJourney.findUnique({
+                    where: { id: args.id },
+                    select: { coverImagePath: true },
+                });
+                const oldPath = current?.coverImagePath;
+                if (oldPath && oldPath !== args.input.coverImagePath) {
+                    const diskPath = path.join('/app/uploads', oldPath);
+                    if (diskPath.startsWith('/app/uploads/') && fs.existsSync(diskPath)) {
+                        try { fs.unlinkSync(diskPath); } catch { /* ignore */ }
+                    }
+                }
+            }
             if (args.input.sortOrder !== undefined) data.sortOrder = args.input.sortOrder;
             if (args.input.volumeNumber !== undefined) data.volumeNumber = args.input.volumeNumber;
             if (args.input.published !== undefined) {
