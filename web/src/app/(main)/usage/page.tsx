@@ -5,6 +5,7 @@ import gql from "graphql-tag";
 import { useState } from "react";
 import { LoadingPanel } from "../../../components/LoadingPanel";
 import { useT } from "../../../i18n/context";
+import { useAuth } from "../../../lib/auth-context";
 
 const GET_SYSTEM_USAGE = gql`
   query GetSystemUsage {
@@ -46,6 +47,7 @@ function formatBytes(bytes: number): string {
 
 export default function UsagePage() {
   const t = useT();
+  const { isAuthenticated } = useAuth();
   const { loading, error, data } = useQuery(GET_SYSTEM_USAGE);
 
   // Orphaned files state
@@ -203,8 +205,8 @@ export default function UsagePage() {
           </div>
         </section>
 
-        {/* Orphaned Files Section */}
-        <section className="rounded border border-[var(--border)] bg-[var(--card)] p-6 card-retro">
+        {/* Orphaned Files Section — auth-gated */}
+        {isAuthenticated && <><section className="rounded border border-[var(--border)] bg-[var(--card)] p-6 card-retro">
           <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">{t.pages.usage.orphanedFiles}</h2>
 
           {scanState === "idle" && (
@@ -326,7 +328,7 @@ export default function UsagePage() {
               </div>
             </div>
           </div>
-        )}
+        )}</>}
       </div>
     </div>
   );
