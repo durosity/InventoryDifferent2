@@ -536,7 +536,7 @@
         {
           "title": "MCP server calls GraphQL API",
           "desc": "MCP server sends the appropriate GraphQL query or mutation to /graphql using a service JWT. Results serialised and returned as tool output.",
-          "packages": ["p-mcp"],
+          "packages": ["p-mcp", "p-api", "p-db"],
           "edges": ["e-mcp-api", "e-api-db"]
         },
         {
