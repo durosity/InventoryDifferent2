@@ -452,3 +452,35 @@ Potential future features, roughly prioritized. These have not been started — 
 - **Multi-user / roles**: expand auth beyond single-password to named users with viewer vs. editor roles.
 - **Public collection page**: a read-only view of the entire collection (not just for-sale items) for sharing with other collectors.
 - **Mobile barcode add**: from the iOS barcode scanner, if no match is found, pre-fill a new device form using the barcode to look up make/model from an external database (e.g., Open Library / Barcode Lookup API).
+
+---
+
+## App Flow Reference
+
+`docs/architecture/flows.json` is the authoritative source for how data moves between packages in this app. **Read it before implementing any feature that touches more than one package.**
+
+### When to update `flows.json`
+
+- **Adding a new user-facing action**: add a new entry to the `flows` array with accurate `steps`, `packages`, and `edges` references.
+- **Changing how a feature works** (new endpoint, new package involved, changed data path): update the relevant flow's steps to match the new implementation.
+- **Removing a feature**: remove its flow entry.
+
+Updates to `flows.json` must be made in the same commit as the code change — never leave them for later.
+
+### Viewing the diagram
+
+```bash
+cd docs/architecture && python3 -m http.server
+```
+
+Then open `http://localhost:8000/flows.html` in a browser. Click a flow in the right panel to highlight the packages and edges involved. Click individual steps to trace the exact path.
+
+### JSON schema reference
+
+| Key | Purpose |
+|-----|---------|
+| `packages[].id` | Unique identifier used in edge `from`/`to` and step `packages` arrays |
+| `packages[].tier` | Layout tier: `client` \| `middleware` \| `api` \| `storage` |
+| `edges[].id` | Unique identifier used in step `edges` arrays |
+| `flows[].steps[].packages` | Package IDs active during this step (highlighted on diagram) |
+| `flows[].steps[].edges` | Edge IDs active during this step (glowing arrows on diagram) |
