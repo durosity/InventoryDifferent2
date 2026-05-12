@@ -1,0 +1,647 @@
+{
+  "packages": [
+    { "id": "p-web",        "name": "Web",          "sub": "Next.js admin",             "tier": "client" },
+    { "id": "p-ios",        "name": "iOS",          "sub": "SwiftUI",                   "tier": "client" },
+    { "id": "p-storefront", "name": "Storefront",   "sub": "Next.js shop",              "tier": "client" },
+    { "id": "p-showcase",   "name": "Showcase",     "sub": "The Archive",               "tier": "client" },
+    { "id": "p-mcp",        "name": "MCP Server",   "sub": "AI tools / stdio",          "tier": "middleware" },
+    { "id": "p-api",        "name": "GraphQL API",  "sub": "Express · Apollo · Prisma", "tier": "api" },
+    { "id": "p-db",         "name": "PostgreSQL",   "sub": "Prisma ORM",                "tier": "storage" },
+    { "id": "p-uploads",    "name": "/uploads",     "sub": "file storage",              "tier": "storage" }
+  ],
+  "edges": [
+    { "id": "e-web-api",      "from": "p-web",        "to": "p-api",     "label": "GraphQL / REST" },
+    { "id": "e-ios-api",      "from": "p-ios",        "to": "p-api",     "label": "GraphQL / REST" },
+    { "id": "e-store-api",    "from": "p-storefront", "to": "p-api",     "label": "GraphQL" },
+    { "id": "e-showcase-api", "from": "p-showcase",   "to": "p-api",     "label": "GraphQL" },
+    { "id": "e-mcp-api",      "from": "p-mcp",        "to": "p-api",     "label": "GraphQL" },
+    { "id": "e-api-db",       "from": "p-api",        "to": "p-db",      "label": "Prisma ORM" },
+    { "id": "e-api-uploads",  "from": "p-api",        "to": "p-uploads", "label": "fs / sharp / ffmpeg" }
+  ],
+  "flows": [
+    {
+      "id": "create-device",
+      "icon": "📦",
+      "name": "Create Device",
+      "path": "Web / iOS → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "User submits create form",
+          "desc": "Apollo Client fires the createDevice GraphQL mutation with a DeviceCreateInput payload. JWT in Authorization header.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        },
+        {
+          "title": "Resolver validates & writes",
+          "desc": "createDevice resolver in resolvers.ts calls requireAuth(), then prisma.device.create() with DEVICE_INCLUDE.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Activity log written",
+          "desc": "If dateAcquired is set, a DEVICE_ACQUIRED ActivityLog row is inserted. This powers the dashboard activity feed.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Device returned to client",
+          "desc": "Full Device object (with relations) returned. Apollo Client writes it to its normalised cache; UI re-renders.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        }
+      ]
+    },
+    {
+      "id": "edit-device",
+      "icon": "✏️",
+      "name": "Edit Device",
+      "path": "Web / iOS → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "User saves changes",
+          "desc": "Apollo Client fires updateDevice mutation with a DeviceUpdateInput. Only changed fields are sent.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        },
+        {
+          "title": "Resolver reads current state",
+          "desc": "updateDevice resolver reads the existing device (status, functionalStatus, lastPowerOnDate) before applying the update — needed to detect what changed for activity logging.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "DB row updated",
+          "desc": "prisma.device.update() writes the clean data. Undefined fields are stripped so they don't overwrite existing values with null.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Value snapshot created (conditional)",
+          "desc": "If estimatedValue changed, a ValueSnapshot row is inserted — but only if the value differs from the last snapshot. Powers the per-device value history chart.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Activity log entries written",
+          "desc": "STATUS_CHANGED, FUNCTIONAL_STATUS_CHANGED, or POWERED_ON entries are inserted for each detected change. Powers the dashboard feed.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        }
+      ]
+    },
+    {
+      "id": "delete-device",
+      "icon": "🗑",
+      "name": "Delete Device (soft)",
+      "path": "Web / iOS → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "User clicks Delete",
+          "desc": "deleteDevice(id) mutation fired from web Trash page or iOS device detail.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        },
+        {
+          "title": "Resolver sets deleted flag",
+          "desc": "prisma.device.update({ data: { deleted: true } }) — device is hidden from all queries but not removed from DB.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        }
+      ]
+    },
+    {
+      "id": "restore-device",
+      "icon": "♻️",
+      "name": "Restore Device",
+      "path": "Web → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "User clicks Restore in Trash",
+          "desc": "restoreDevice(id) mutation fired from the /trash admin page.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        },
+        {
+          "title": "Resolver clears deleted flag",
+          "desc": "prisma.device.update({ data: { deleted: false } }). Full device object returned.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        }
+      ]
+    },
+    {
+      "id": "permanently-delete-device",
+      "icon": "💥",
+      "name": "Permanently Delete Device",
+      "path": "Web → API → PostgreSQL + /uploads",
+      "steps": [
+        {
+          "title": "User confirms permanent deletion",
+          "desc": "permanentlyDeleteDevice(id) mutation fired from the /trash admin page after confirmation dialog.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        },
+        {
+          "title": "API collects image paths",
+          "desc": "Resolver fetches device with { include: { images: true } } to get all file paths before deletion.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "DB cascade delete",
+          "desc": "prisma.device.delete() removes the row; Prisma cascades to images, notes, maintenanceTasks, tags, customFieldValues.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Upload files deleted from disk",
+          "desc": "Resolver loops over image paths and calls fs.unlinkSync() on each. The device's upload directory is then removed.",
+          "packages": ["p-api"],
+          "edges": ["e-api-uploads"]
+        }
+      ]
+    },
+    {
+      "id": "add-photo",
+      "icon": "📷",
+      "name": "Add Photo",
+      "path": "Web / iOS → REST /upload → /uploads → createImage → PostgreSQL",
+      "steps": [
+        {
+          "title": "Client selects image file",
+          "desc": "Web: file input triggers. iOS: PHPickerViewController presents photo library. Image is held in memory ready to POST.",
+          "packages": ["p-web", "p-ios"],
+          "edges": []
+        },
+        {
+          "title": "POST /upload (multipart/form-data)",
+          "desc": "Client POSTs to /upload?deviceId=X. This is a REST endpoint — not GraphQL — handled by multer (2 GB limit). JWT required.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        },
+        {
+          "title": "File saved to /uploads",
+          "desc": "multer writes the file to /uploads/devices/{deviceId}/{uuid}.ext on disk. The path is returned in the JSON response.",
+          "packages": ["p-api"],
+          "edges": ["e-api-uploads"]
+        },
+        {
+          "title": "createImage mutation fired",
+          "desc": "Client passes the returned path to createImage GraphQL mutation. Resolver calls generateThumbnailForUpload() — sharp generates a 320×320 WebP thumbnail and saves it alongside the original.",
+          "packages": ["p-api"],
+          "edges": ["e-api-uploads"]
+        },
+        {
+          "title": "Image row saved to DB",
+          "desc": "prisma.image.create() writes path, thumbnailPath, dateTaken (from EXIF), isThumbnail, and deviceId. First IMAGE auto-becomes the device thumbnail.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        }
+      ]
+    },
+    {
+      "id": "upload-video",
+      "icon": "🎥",
+      "name": "Upload Video",
+      "path": "Web / iOS → REST /upload → /uploads → createImage (async thumb) → PostgreSQL",
+      "steps": [
+        {
+          "title": "Client selects video file",
+          "desc": "Web: file input with video/* accept. iOS: PHPickerViewController with video media type.",
+          "packages": ["p-web", "p-ios"],
+          "edges": []
+        },
+        {
+          "title": "POST /upload",
+          "desc": "Client POSTs the video to /upload?deviceId=X. multer accepts mp4/mov/webm/avi up to 2 GB.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        },
+        {
+          "title": "File saved to /uploads",
+          "desc": "multer writes the video to /uploads/devices/{deviceId}/{uuid}.mp4 (or original ext). Path returned to client.",
+          "packages": ["p-api"],
+          "edges": ["e-api-uploads"]
+        },
+        {
+          "title": "createImage mutation — DB row created immediately",
+          "desc": "Resolver creates the image record instantly (mediaType: VIDEO, no thumbnailPath yet) so the client isn't blocked by ffmpeg processing.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Async: ffmpeg generates thumbnail",
+          "desc": "setImmediate() runs generateVideoThumbnail() in the background: ffmpeg extracts frame at 1s, sharp converts to 320×320 WebP, ffprobe reads duration. The image row is updated when done.",
+          "packages": ["p-api"],
+          "edges": ["e-api-uploads", "e-api-db"]
+        }
+      ]
+    },
+    {
+      "id": "delete-image",
+      "icon": "🗑",
+      "name": "Delete Image / Video",
+      "path": "Web / iOS → API → PostgreSQL + /uploads",
+      "steps": [
+        {
+          "title": "User clicks Delete on image",
+          "desc": "deleteImage(id) mutation fired from web device detail Photos tab or iOS Images tab.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        },
+        {
+          "title": "Resolver fetches paths then deletes DB row",
+          "desc": "deleteImage resolver reads the image record to get path and thumbnailPath, then calls prisma.image.delete().",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Files removed from disk",
+          "desc": "fs.unlinkSync() called on both the original file and the WebP thumbnail (if it exists).",
+          "packages": ["p-api"],
+          "edges": ["e-api-uploads"]
+        }
+      ]
+    },
+    {
+      "id": "add-note",
+      "icon": "📝",
+      "name": "Add Note",
+      "path": "Web / iOS / MCP → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "Note submitted",
+          "desc": "createNote(input) mutation fired from web device detail, iOS Notes tab, or MCP add_note tool.",
+          "packages": ["p-web", "p-ios", "p-mcp"],
+          "edges": ["e-web-api", "e-ios-api", "e-mcp-api"]
+        },
+        {
+          "title": "Resolver writes note",
+          "desc": "createNote resolver calls prisma.note.create() with content, date (auto-timestamped), and deviceId.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        }
+      ]
+    },
+    {
+      "id": "add-maintenance-task",
+      "icon": "🔧",
+      "name": "Add Maintenance Task",
+      "path": "Web / iOS / MCP → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "Task submitted",
+          "desc": "createMaintenanceTask(input) mutation fired from web, iOS, or MCP add_maintenance_task tool. Input includes label, dateCompleted, notes, optional cost.",
+          "packages": ["p-web", "p-ios", "p-mcp"],
+          "edges": ["e-web-api", "e-ios-api", "e-mcp-api"]
+        },
+        {
+          "title": "Resolver writes task",
+          "desc": "prisma.maintenanceTask.create(). The cost field rolls up into totalMaintenanceCost on the financials page.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        }
+      ]
+    },
+    {
+      "id": "login",
+      "icon": "🔐",
+      "name": "Login",
+      "path": "Web / iOS → REST /auth/login → API",
+      "steps": [
+        {
+          "title": "User submits password",
+          "desc": "Client POSTs { password } to /auth/login. This is a REST endpoint — not GraphQL.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        },
+        {
+          "title": "API validates password",
+          "desc": "Express route compares against AUTH_PASSWORD env var using bcrypt. If AUTH_PASSWORD is not set, auth is disabled entirely.",
+          "packages": ["p-api"],
+          "edges": []
+        },
+        {
+          "title": "JWT tokens issued",
+          "desc": "API returns { accessToken (1h), refreshToken (7d) } signed with JWT_SECRET. Client stores tokens and attaches accessToken as Authorization: Bearer header on subsequent requests.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        }
+      ]
+    },
+    {
+      "id": "token-refresh",
+      "icon": "🔄",
+      "name": "Token Refresh",
+      "path": "Web / iOS → REST /auth/refresh → API",
+      "steps": [
+        {
+          "title": "Client detects expiring access token",
+          "desc": "Before the 1-hour access token expires, client POSTs { refreshToken } to /auth/refresh.",
+          "packages": ["p-web", "p-ios"],
+          "edges": ["e-web-api", "e-ios-api"]
+        },
+        {
+          "title": "API issues new access token",
+          "desc": "Express verifies the refresh token against JWT_SECRET and returns a new { accessToken }. Refresh token is not rotated.",
+          "packages": ["p-api"],
+          "edges": []
+        }
+      ]
+    },
+    {
+      "id": "bulk-import",
+      "icon": "📥",
+      "name": "Bulk Import (ZIP)",
+      "path": "Web → REST /import → API (async) → PostgreSQL + /uploads",
+      "steps": [
+        {
+          "title": "User uploads ZIP file",
+          "desc": "Backup page POSTs ZIP to /import (2 GB limit via multer diskStorage to /tmp/imports). Server returns { jobId } immediately — processing is async.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        },
+        {
+          "title": "API extracts and validates",
+          "desc": "ZIP is unpacked; manifest JSON parsed; device records validated. Errors are collected (fail-collect, not fail-fast) so partial imports succeed.",
+          "packages": ["p-api"],
+          "edges": []
+        },
+        {
+          "title": "Images written to /uploads",
+          "desc": "Each bundled image extracted to /uploads/devices/{id}/. sharp generates a 320×320 WebP thumbnail per image.",
+          "packages": ["p-api"],
+          "edges": ["e-api-uploads"]
+        },
+        {
+          "title": "Devices upserted to DB",
+          "desc": "prisma.device.upsert() called per device. Images inserted via prisma.image.createMany().",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Client polls for progress",
+          "desc": "Web polls GET /import/progress/:jobId. On completion, result includes { imported, skipped, errors }. Progress bar advances in real-time.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        }
+      ]
+    },
+    {
+      "id": "bulk-export",
+      "icon": "📤",
+      "name": "Bulk Export (ZIP)",
+      "path": "Web → REST /export/start → API (async) → Web download",
+      "steps": [
+        {
+          "title": "User initiates export",
+          "desc": "Backup page POSTs { deviceIds } to /export/start. Server returns { jobId } immediately.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        },
+        {
+          "title": "API builds ZIP asynchronously",
+          "desc": "API reads device rows and image files from disk, bundles them into a ZIP with a manifest JSON. Progress tracked in exportJobs Map.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db", "e-api-uploads"]
+        },
+        {
+          "title": "Client polls progress",
+          "desc": "Web polls GET /export/progress/:jobId until status = 'done'.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        },
+        {
+          "title": "Client downloads ZIP",
+          "desc": "Browser navigates to GET /export/download/:jobId which streams the assembled ZIP file.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        }
+      ]
+    },
+    {
+      "id": "create-journey",
+      "icon": "🗺",
+      "name": "Create Journey",
+      "path": "Showcase → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "Admin fills journey form",
+          "desc": "JourneyEditor.tsx in showcase/src/components/admin/ fires the createJourney mutation with { title, slug, description, published, sortOrder }.",
+          "packages": ["p-showcase"],
+          "edges": ["e-showcase-api"]
+        },
+        {
+          "title": "Resolver creates journey",
+          "desc": "createJourney resolver calls prisma.showcaseJourney.create(). Returns the new journey with its id.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Admin list cache invalidated",
+          "desc": "createJourney mutation has refetchQueries: [GET_ALL_SHOWCASE_JOURNEYS_ADMIN] so the journey list page reflects the new entry immediately without a page refresh.",
+          "packages": ["p-showcase"],
+          "edges": ["e-showcase-api"]
+        },
+        {
+          "title": "Editor navigates to edit page",
+          "desc": "On success, router.push('/admin/journeys/{id}') takes the admin to the full editor where chapters and devices can be added.",
+          "packages": ["p-showcase"],
+          "edges": []
+        }
+      ]
+    },
+    {
+      "id": "edit-journey",
+      "icon": "✏️",
+      "name": "Edit Journey (chapters & devices)",
+      "path": "Showcase → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "Editor loads journey data",
+          "desc": "GET_ALL_JOURNEYS_FOR_EDIT query fetches chapters and their showcase devices via Apollo. Cache-first, network if stale.",
+          "packages": ["p-showcase"],
+          "edges": ["e-showcase-api"]
+        },
+        {
+          "title": "Chapter title/description auto-saves on blur",
+          "desc": "ChapterCard.tsx fires upsertChapter mutation on input blur. Creates a new chapter if no id yet; updates if id exists.",
+          "packages": ["p-showcase"],
+          "edges": ["e-showcase-api"]
+        },
+        {
+          "title": "Resolver upserts chapter",
+          "desc": "prisma.showcaseChapter.upsert() keyed on id. sortOrder changes from reorder buttons are also persisted here.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Device added to chapter",
+          "desc": "DeviceSearchModal fires upsertShowcaseDevice mutation with { chapterId, deviceId, sortOrder, isFeatured }.",
+          "packages": ["p-showcase"],
+          "edges": ["e-showcase-api"]
+        },
+        {
+          "title": "ShowcaseDevice row created",
+          "desc": "prisma.showcaseDevice.upsert() links the inventory Device to the chapter. curatorNote and isFeatured can be edited inline.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        }
+      ]
+    },
+    {
+      "id": "showcase-export-import",
+      "icon": "📦",
+      "name": "Showcase Export / Import",
+      "path": "Web → REST /showcase/export|import → API → PostgreSQL + /uploads",
+      "steps": [
+        {
+          "title": "Admin triggers export or import",
+          "desc": "GET /showcase/export streams a ZIP. POST /showcase/import receives a ZIP (up to 2 GB). Both endpoints require auth.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        },
+        {
+          "title": "Export: ZIP built from DB + uploads",
+          "desc": "API reads all journeys, chapters, and showcase devices from DB. Active showcase images are bundled into the ZIP.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db", "e-api-uploads"]
+        },
+        {
+          "title": "Import: ZIP extracted, DB upserted",
+          "desc": "Import unpacks ZIP, parses manifest, upserts journeys/chapters/devices by slug. Images written to /uploads. Missing inventory devices are silently skipped.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db", "e-api-uploads"]
+        }
+      ]
+    },
+    {
+      "id": "ai-query",
+      "icon": "🤖",
+      "name": "AI Query (Chat)",
+      "path": "iOS / Web → OpenAI → MCP Server → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "User types or speaks a question",
+          "desc": "iOS ChatView (SFSpeechRecognizer for voice input) or web CollectionChat sends the message to OpenAI with the MCP tool list attached.",
+          "packages": ["p-web", "p-ios"],
+          "edges": []
+        },
+        {
+          "title": "OpenAI selects an MCP tool",
+          "desc": "The model chooses from: list_all_devices, search_devices, get_device_details, get_financial_summary, list_devices, update_device, add_note, add_maintenance_task.",
+          "packages": ["p-mcp"],
+          "edges": []
+        },
+        {
+          "title": "MCP server calls GraphQL API",
+          "desc": "MCP server sends the appropriate GraphQL query or mutation to /graphql using a service JWT. Results serialised and returned as tool output.",
+          "packages": ["p-mcp"],
+          "edges": ["e-mcp-api", "e-api-db"]
+        },
+        {
+          "title": "OpenAI composes response",
+          "desc": "Tool result fed back to OpenAI; model writes a natural-language reply. iOS streams text via AVSpeechSynthesizer if voice mode is on.",
+          "packages": ["p-web", "p-ios"],
+          "edges": []
+        }
+      ]
+    },
+    {
+      "id": "storefront-browse",
+      "icon": "🛍",
+      "name": "Storefront Browse",
+      "path": "Storefront → API → PostgreSQL",
+      "steps": [
+        {
+          "title": "Next.js SSR page loads",
+          "desc": "Storefront server-side fetches devices({ where: { status: FOR_SALE } }) via GraphQL. No auth token — storefront is fully public.",
+          "packages": ["p-storefront"],
+          "edges": ["e-store-api"]
+        },
+        {
+          "title": "API filters devices",
+          "desc": "devices resolver queries DB with status filter. Auth-sensitive fields (priceAcquired, notes, whereAcquired) are excluded from the response for unauthenticated requests.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "HTML rendered and served",
+          "desc": "Next.js renders the product grid to HTML. Umami analytics events fire in the browser when the user searches, filters, or sorts.",
+          "packages": ["p-storefront"],
+          "edges": []
+        }
+      ]
+    },
+    {
+      "id": "orphaned-file-scan",
+      "icon": "🔍",
+      "name": "Orphaned File Scan & Delete",
+      "path": "Web → API → /uploads + PostgreSQL",
+      "steps": [
+        {
+          "title": "Admin opens Usage page",
+          "desc": "orphanedFiles query fires lazily when the user opens the orphaned files section on /usage. Returns files on disk not referenced by any Image record.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        },
+        {
+          "title": "API scans /uploads against DB",
+          "desc": "Resolver walks /uploads directory tree and compares each file path against all Image.path and Image.thumbnailPath values in DB. Unreferenced paths returned as [OrphanedFile].",
+          "packages": ["p-api"],
+          "edges": ["e-api-db", "e-api-uploads"]
+        },
+        {
+          "title": "Admin deletes selected files",
+          "desc": "deleteOrphanedFiles(paths) mutation called with selected paths. Resolver validates each path is inside /uploads before deletion.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        },
+        {
+          "title": "Files removed from disk",
+          "desc": "API calls fs.unlinkSync() on each validated path. Returns count of deleted files. No DB changes needed — these files had no DB record.",
+          "packages": ["p-api"],
+          "edges": ["e-api-uploads"]
+        }
+      ]
+    },
+    {
+      "id": "generate-ai-image",
+      "icon": "🎨",
+      "name": "Generate AI Image",
+      "path": "Web → REST /generate-image → API → OpenAI → /uploads → PostgreSQL",
+      "steps": [
+        {
+          "title": "Admin triggers generation",
+          "desc": "Web POSTs to /generate-image with { deviceId, prompt, model, sourceImageId? }. Returns { jobId } immediately.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        },
+        {
+          "title": "API calls OpenAI",
+          "desc": "If sourceImageId provided, the source image is converted to PNG and sent as an edit request. Otherwise a new generation is requested. Model is configurable (gpt-image-1.5 or gpt-image-2).",
+          "packages": ["p-api"],
+          "edges": []
+        },
+        {
+          "title": "Generated image saved to /uploads",
+          "desc": "OpenAI returns base64 image data. API decodes and writes to /uploads/devices/{deviceId}/{uuid}.png.",
+          "packages": ["p-api"],
+          "edges": ["e-api-uploads"]
+        },
+        {
+          "title": "Image record created in DB",
+          "desc": "createImage called internally; thumbnailPath generated via sharp. Showcase flag set if this is a showcase image.",
+          "packages": ["p-api"],
+          "edges": ["e-api-db"]
+        },
+        {
+          "title": "Client polls for completion",
+          "desc": "Web polls GET /generate-image/status/:jobId. On completion, the new image appears in the device's photo gallery.",
+          "packages": ["p-web"],
+          "edges": ["e-web-api"]
+        }
+      ]
+    }
+  ]
+}
