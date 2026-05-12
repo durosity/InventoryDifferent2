@@ -7,6 +7,9 @@ All notable changes to InventoryDifferent will be documented here.
 ### Added
 - Usage page: scan for orphaned files (files on disk not referenced by any image record) and delete them individually or in bulk
 
+### Fixed
+- Showcase admin: new journey now appears in the journeys list immediately after creation without requiring a page refresh
+
 ---
 
 ## [2.7.0] — 2026-05-09

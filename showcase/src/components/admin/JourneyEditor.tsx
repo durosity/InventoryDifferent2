@@ -13,6 +13,7 @@ import {
   REMOVE_SHOWCASE_DEVICE,
   SEARCH_DEVICES_FOR_SHOWCASE,
   GET_ALL_JOURNEYS_FOR_EDIT,
+  GET_ALL_SHOWCASE_JOURNEYS_ADMIN,
 } from '@/lib/queries';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -639,7 +640,9 @@ export default function JourneyEditor({ journey }: JourneyEditorProps) {
     }));
   });
 
-  const [createJourney] = useMutation(CREATE_JOURNEY);
+  const [createJourney] = useMutation(CREATE_JOURNEY, {
+    refetchQueries: [{ query: GET_ALL_SHOWCASE_JOURNEYS_ADMIN }],
+  });
   const [updateJourney] = useMutation(UPDATE_JOURNEY, {
     refetchQueries: [{ query: GET_ALL_JOURNEYS_FOR_EDIT }],
   });

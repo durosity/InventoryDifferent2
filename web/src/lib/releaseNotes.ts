@@ -16,7 +16,9 @@ export const releaseNotes: ReleaseEntry[] = [
       'Usage page: scan for orphaned files (files on disk not referenced by any image record) and delete them individually or in bulk',
     ],
     changed: [],
-    fixed: [],
+    fixed: [
+      'Showcase admin: new journey now appears in the journeys list immediately after creation without requiring a page refresh',
+    ],
   },
   {
     version: '2.7.0',
