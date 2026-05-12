@@ -728,8 +728,14 @@ function buildStepRow(step, i, total) {
   row.appendChild(num);
   row.appendChild(body);
 
+  row.addEventListener('mouseenter', function() {
+    if (activeStep !== i) applyDiagramState(selectedFlow, i);
+  });
+  row.addEventListener('mouseleave', function() {
+    applyDiagramState(selectedFlow, activeStep);
+  });
   row.addEventListener('click', function() {
-    activeStep = parseInt(row.getAttribute('data-step-index'), 10);
+    activeStep = i;
     document.querySelectorAll('.step-row').forEach(function(r) {
       if (parseInt(r.getAttribute('data-step-index'), 10) === activeStep) r.classList.add('active');
       else r.classList.remove('active');
