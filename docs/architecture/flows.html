@@ -507,6 +507,22 @@ function applyDiagramState(flow, stepIdx) {
 
   if (!flow) return;
 
+  // Build a lookup from edge id → {from, to} for quick endpoint resolution
+  var edgeMap = {};
+  DATA.edges.forEach(function(e) { edgeMap[e.id] = e; });
+
+  // Expand a package id list to also include endpoints of the given edge ids
+  function expandWithEdgeEndpoints(pkgIds, edgeIds) {
+    var result = pkgIds.slice();
+    edgeIds.forEach(function(eid) {
+      var e = edgeMap[eid];
+      if (!e) return;
+      if (result.indexOf(e.from) < 0) result.push(e.from);
+      if (result.indexOf(e.to)   < 0) result.push(e.to);
+    });
+    return result;
+  }
+
   // Collect all packages and edges touched anywhere in this flow
   var allPkgIds  = [];
   var allEdgeIds = [];
@@ -514,6 +530,8 @@ function applyDiagramState(flow, stepIdx) {
     (s.packages || []).forEach(function(p) { if (allPkgIds.indexOf(p)  < 0) allPkgIds.push(p);  });
     (s.edges    || []).forEach(function(e) { if (allEdgeIds.indexOf(e) < 0) allEdgeIds.push(e); });
   });
+  // Any edge endpoint is implicitly part of the flow
+  allPkgIds = expandWithEdgeEndpoints(allPkgIds, allEdgeIds);
 
   // Active set — either current step or whole-flow preview
   var activePkgIds, activeEdgeIds;
@@ -524,6 +542,8 @@ function applyDiagramState(flow, stepIdx) {
     activePkgIds  = allPkgIds;
     activeEdgeIds = allEdgeIds;
   }
+  // Expand active packages to include edge endpoints
+  activePkgIds = expandWithEdgeEndpoints(activePkgIds, activeEdgeIds);
 
   // Apply package states
   DATA.packages.forEach(function(pkg) {
