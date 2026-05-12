@@ -205,6 +205,9 @@ body {
 }
 .step-row:hover { background: #161b27; }
 .step-row.active { background: #1a1f35; }
+.step-row.pkg-preview { background: #161b27; }
+.step-row.pkg-preview .step-num { border-color: #6366f1; background: #312e81; color: #c7d2fe; }
+.step-row.pkg-preview .step-title { color: #a5b4fc; }
 
 .step-connector {
   position: absolute;
@@ -272,12 +275,24 @@ var activeStep   = -1;
 var pkgEls       = {};
 var svgEl        = null;
 var badgeEl      = null;
+var edgeMap      = {};
+
+function expandWithEdgeEndpoints(pkgIds, edgeIds) {
+  var result = pkgIds.slice();
+  edgeIds.forEach(function(eid) {
+    var e = edgeMap[eid];
+    if (!e) return;
+    if (result.indexOf(e.from) < 0) result.push(e.from);
+    if (result.indexOf(e.to)   < 0) result.push(e.to);
+  });
+  return result;
+}
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 
 fetch('./flows.json')
   .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  .then(function(d) { DATA = d; renderApp(); })
+  .then(function(d) { DATA = d; DATA.edges.forEach(function(e) { edgeMap[e.id] = e; }); renderApp(); })
   .catch(renderError);
 
 function renderError(err) {
@@ -388,6 +403,12 @@ function buildDiagramWrap() {
       el.appendChild(sub);
       row.appendChild(el);
       pkgEls[pkg.id] = el;
+
+      el.addEventListener('mouseenter', function() { previewPackage(pkg.id); });
+      el.addEventListener('mouseleave', function() {
+        document.querySelectorAll('.step-row').forEach(function(r) { r.classList.remove('pkg-preview'); });
+        applyDiagramState(selectedFlow, activeStep);
+      });
     });
 
     diag.appendChild(row);
@@ -485,6 +506,76 @@ function drawEdges() {
   applyDiagramState(selectedFlow, activeStep);
 }
 
+// ── Package hover preview ─────────────────────────────────────────────────
+
+function previewPackage(pkgId) {
+  if (!selectedFlow) return;
+
+  // All edges/packages touched anywhere in this flow
+  var allEdgeIds = [];
+  var allPkgIds  = [];
+  selectedFlow.steps.forEach(function(s) {
+    (s.packages || []).forEach(function(p) { if (allPkgIds.indexOf(p)  < 0) allPkgIds.push(p);  });
+    (s.edges    || []).forEach(function(e) { if (allEdgeIds.indexOf(e) < 0) allEdgeIds.push(e); });
+  });
+  allPkgIds = expandWithEdgeEndpoints(allPkgIds, allEdgeIds);
+
+  // Flow edges that connect to the hovered package
+  var connectedEdgeIds = allEdgeIds.filter(function(eid) {
+    var e = edgeMap[eid];
+    return e && (e.from === pkgId || e.to === pkgId);
+  });
+
+  // Active packages: hovered package + edge endpoints
+  var activePkgIds = expandWithEdgeEndpoints([pkgId], connectedEdgeIds);
+
+  // Apply package states
+  DATA.packages.forEach(function(pkg) {
+    var el = pkgEls[pkg.id];
+    if (!el) return;
+    el.classList.remove('state-active', 'state-dim');
+    if (activePkgIds.indexOf(pkg.id) >= 0)  el.classList.add('state-active');
+    else if (allPkgIds.indexOf(pkg.id) < 0) el.classList.add('state-dim');
+  });
+
+  // Apply edge states
+  DATA.edges.forEach(function(edge) {
+    var el = document.getElementById('edge-' + edge.id);
+    if (!el) return;
+    var inFlow = allEdgeIds.indexOf(edge.id) >= 0;
+    var active = connectedEdgeIds.indexOf(edge.id) >= 0;
+    if (active) {
+      el.setAttribute('stroke', '#6366f1');
+      el.setAttribute('stroke-width', '2.5');
+      el.setAttribute('marker-end', 'url(#arr-active)');
+    } else if (inFlow) {
+      el.setAttribute('stroke', '#2d3748');
+      el.setAttribute('stroke-width', '1.5');
+      el.setAttribute('marker-end', 'url(#arr-default)');
+    } else {
+      el.setAttribute('stroke', '#1a2235');
+      el.setAttribute('marker-end', 'url(#arr-dim)');
+    }
+  });
+
+  badgeEl.style.display = 'none';
+
+  // Highlight sidebar steps that involve this package (directly or via edge)
+  document.querySelectorAll('.step-row').forEach(function(r) {
+    var idx  = parseInt(r.getAttribute('data-step-index'), 10);
+    var step = selectedFlow.steps[idx];
+    var match = step && (
+      (step.packages || []).indexOf(pkgId) >= 0 ||
+      (step.edges    || []).some(function(eid) {
+        var e = edgeMap[eid];
+        return e && (e.from === pkgId || e.to === pkgId);
+      })
+    );
+    if (match) r.classList.add('pkg-preview');
+    else        r.classList.remove('pkg-preview');
+  });
+}
+
 // ── Diagram state ─────────────────────────────────────────────────────────
 
 function applyDiagramState(flow, stepIdx) {
@@ -506,22 +597,6 @@ function applyDiagramState(flow, stepIdx) {
   badgeEl.style.display = 'none';
 
   if (!flow) return;
-
-  // Build a lookup from edge id → {from, to} for quick endpoint resolution
-  var edgeMap = {};
-  DATA.edges.forEach(function(e) { edgeMap[e.id] = e; });
-
-  // Expand a package id list to also include endpoints of the given edge ids
-  function expandWithEdgeEndpoints(pkgIds, edgeIds) {
-    var result = pkgIds.slice();
-    edgeIds.forEach(function(eid) {
-      var e = edgeMap[eid];
-      if (!e) return;
-      if (result.indexOf(e.from) < 0) result.push(e.from);
-      if (result.indexOf(e.to)   < 0) result.push(e.to);
-    });
-    return result;
-  }
 
   // Collect all packages and edges touched anywhere in this flow
   var allPkgIds  = [];
