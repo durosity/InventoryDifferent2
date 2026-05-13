@@ -47,7 +47,7 @@ describe('POST /auth/login', () => {
 
 describe('POST /auth/refresh', () => {
     it('returns new access token for valid refresh token', async () => {
-        const refreshToken = getRefreshToken();
+        const refreshToken = await getRefreshToken();
         const res = await request(app)
             .post('/auth/refresh')
             .send({ refreshToken });

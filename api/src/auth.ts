@@ -10,8 +10,10 @@ const REFRESH_TOKEN_EXPIRY = '90d';
 let jwtSecret: string | null = null;
 
 function getSecret(): string {
-    if (!jwtSecret) throw new Error('Auth not initialized — call initializeAuth() before starting the server.');
-    return jwtSecret;
+    if (jwtSecret) return jwtSecret;
+    // Allow tests (and direct JWT_SECRET env usage) to work without initializeAuth()
+    if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+    throw new Error('Auth not initialized — call initializeAuth() before starting the server.');
 }
 
 function hashToken(token: string): string {

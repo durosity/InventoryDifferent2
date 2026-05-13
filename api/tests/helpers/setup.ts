@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { storeRefreshToken } from '../../src/auth';
 
 const TEST_DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://postgres:testpass@localhost:5433/inventory_test';
 const JWT_SECRET = 'test-jwt-secret';
@@ -56,8 +57,10 @@ export function getAuthToken(): string {
     return jwt.sign({ type: 'access' }, JWT_SECRET, { expiresIn: '1h' });
 }
 
-export function getRefreshToken(): string {
-    return jwt.sign({ type: 'refresh' }, JWT_SECRET, { expiresIn: '7d' });
+export async function getRefreshToken(): Promise<string> {
+    const token = jwt.sign({ type: 'refresh' }, JWT_SECRET, { expiresIn: '90d' });
+    await storeRefreshToken(getTestPrismaClient(), token);
+    return token;
 }
 
 export async function disconnectPrisma(): Promise<void> {
