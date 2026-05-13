@@ -17,6 +17,9 @@ import {
     generateRefreshToken,
     verifyRefreshToken,
     isAuthConfigured,
+    initializeAuth,
+    storeRefreshToken,
+    consumeRefreshToken,
 } from './auth';
 import { authMiddleware, requireAuth } from './middleware/auth';
 
@@ -165,6 +168,7 @@ const upload = multer({
 
 export async function createApp(prismaOverride?: PrismaClient) {
     const prisma = prismaOverride || defaultPrisma;
+    await initializeAuth(prisma);
     const app = express();
 
     // CORS configuration
@@ -184,7 +188,7 @@ export async function createApp(prismaOverride?: PrismaClient) {
     // ============== AUTH ENDPOINTS ==============
 
     // Login endpoint
-    app.post('/auth/login', (req, res) => {
+    app.post('/auth/login', async (req, res) => {
         const { username, password } = req.body;
 
         if (!password) {
@@ -207,6 +211,7 @@ export async function createApp(prismaOverride?: PrismaClient) {
 
         const accessToken = generateAccessToken();
         const refreshToken = generateRefreshToken();
+        await storeRefreshToken(prisma, refreshToken);
 
         return res.json({
             accessToken,
@@ -216,25 +221,33 @@ export async function createApp(prismaOverride?: PrismaClient) {
     });
 
     // Refresh token endpoint
-    app.post('/auth/refresh', (req, res) => {
+    app.post('/auth/refresh', async (req, res) => {
         const { refreshToken } = req.body;
 
         if (!refreshToken) {
             return res.status(400).json({ error: 'Refresh token is required' });
         }
 
-        if (!verifyRefreshToken(refreshToken)) {
+        if (!verifyRefreshToken(refreshToken) || !await consumeRefreshToken(prisma, refreshToken)) {
             return res.status(401).json({ error: 'Invalid or expired refresh token' });
         }
 
         const accessToken = generateAccessToken();
         const newRefreshToken = generateRefreshToken();
+        await storeRefreshToken(prisma, newRefreshToken);
 
         return res.json({
             accessToken,
             refreshToken: newRefreshToken,
             expiresIn: 3600,
         });
+    });
+
+    // Logout — revoke the supplied refresh token so it cannot be used again
+    app.post('/auth/logout', async (req, res) => {
+        const { refreshToken } = req.body;
+        if (refreshToken) await consumeRefreshToken(prisma, refreshToken);
+        return res.json({ success: true });
     });
 
     // Auth status endpoint

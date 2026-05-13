@@ -14,9 +14,11 @@ export const releaseNotes: ReleaseEntry[] = [
     date: '',
     added: [
       'Usage page: scan for orphaned files (files on disk not referenced by any image record) and delete them individually or in bulk',
+      'Logout endpoint (/auth/logout) revokes the refresh token so a leaked token cannot be used to regain access',
     ],
     changed: [],
     fixed: [
+      'Sessions now survive API server restarts — JWT secret is persisted in the database rather than regenerated on each boot',
       'Showcase admin: new journey now appears in the journeys list immediately after creation without requiring a page refresh',
     ],
   },

@@ -1,27 +1,58 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { PrismaClient } from '@prisma/client';
 
 // Token expiry times
 const ACCESS_TOKEN_EXPIRY = '1h';
 const REFRESH_TOKEN_EXPIRY = '90d';
 
-// Get JWT secret from env or generate a random one (not recommended for production)
-function getJwtSecret(): string {
-    const secret = process.env.JWT_SECRET;
-    if (secret) return secret;
+let jwtSecret: string | null = null;
 
-    // Generate a random secret if not set (will invalidate tokens on restart)
-    console.warn('WARNING: JWT_SECRET not set. Generating random secret. Tokens will be invalidated on server restart.');
-    return crypto.randomBytes(32).toString('hex');
+function getSecret(): string {
+    if (!jwtSecret) throw new Error('Auth not initialized — call initializeAuth() before starting the server.');
+    return jwtSecret;
 }
 
-let jwtSecret: string | null = null;
-function getSecret(): string {
-    if (!jwtSecret) {
-        jwtSecret = getJwtSecret();
+function hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+// Load JWT secret from DB on startup; generate and persist it if none exists yet.
+// Must be called once before any token operations.
+export async function initializeAuth(prisma: PrismaClient): Promise<void> {
+    let config = await prisma.systemConfig.findUnique({ where: { key: 'jwt_secret' } });
+    if (!config) {
+        // Prefer an explicitly configured secret; fall back to a generated one.
+        const secret = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+        config = await prisma.systemConfig.create({ data: { key: 'jwt_secret', value: secret } });
+        console.log('JWT secret generated and persisted to database.');
     }
-    return jwtSecret;
+    jwtSecret = config.value;
+}
+
+// Store a refresh token hash in the DB. Cleans up any already-expired tokens.
+export async function storeRefreshToken(prisma: PrismaClient, token: string): Promise<void> {
+    const decoded = jwt.decode(token) as { exp?: number } | null;
+    const expiresAt = decoded?.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+
+    await prisma.refreshToken.deleteMany({ where: { expiresAt: { lt: new Date() } } });
+    await prisma.refreshToken.create({ data: { tokenHash: hashToken(token), expiresAt } });
+}
+
+// Validate a refresh token against the DB and delete it (single-use rotation).
+// Returns false if the token is not found, already used, or expired.
+export async function consumeRefreshToken(prisma: PrismaClient, token: string): Promise<boolean> {
+    const record = await prisma.refreshToken.findUnique({ where: { tokenHash: hashToken(token) } });
+    if (!record) return false;
+    await prisma.refreshToken.delete({ where: { tokenHash: hashToken(token) } });
+    if (record.expiresAt < new Date()) return false;
+    return true;
+}
+
+// Revoke all active refresh tokens (used by logout-all / credential change).
+export async function revokeAllRefreshTokens(prisma: PrismaClient): Promise<void> {
+    await prisma.refreshToken.deleteMany({});
 }
 
 // Get the admin username from environment.

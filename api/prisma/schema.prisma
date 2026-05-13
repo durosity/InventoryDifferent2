@@ -307,6 +307,19 @@ enum Condition {
   FOR_PARTS
 }
 
+model SystemConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
 enum Rarity {
   COMMON
   UNCOMMON

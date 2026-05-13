@@ -237,18 +237,28 @@ var DATA = {
       ]
     },
     {
-      id:'login', icon:'🔐', name:'Login', path:'Web / iOS → REST /auth/login → API',
+      id:'login', icon:'🔐', name:'Login', path:'Web / iOS → REST /auth/login → API → PostgreSQL',
       steps: [
         { title:'User submits password', desc:'Client POSTs { password } to /auth/login. This is a REST endpoint — not GraphQL.', packages:['p-web','p-ios'], edges:['e-web-api','e-ios-api'] },
-        { title:'API validates password', desc:'Express route compares against AUTH_PASSWORD env var using bcrypt. If AUTH_PASSWORD is not set, auth is disabled entirely.', packages:['p-api'], edges:[] },
-        { title:'JWT tokens issued', desc:'API returns { accessToken (1h), refreshToken (7d) } signed with JWT_SECRET. Client stores tokens and attaches accessToken as Authorization: Bearer header on subsequent requests.', packages:['p-web','p-ios'], edges:['e-web-api','e-ios-api'] }
+        { title:'API validates password', desc:'Express route compares against AUTH_PASSWORD env var. If AUTH_PASSWORD is not set, auth is disabled entirely.', packages:['p-api'], edges:[] },
+        { title:'Refresh token stored in DB', desc:'API hashes the refresh token (SHA-256) and writes the hash + expiry to the RefreshToken table. Expired tokens are pruned at this point.', packages:['p-api'], edges:['e-api-db'] },
+        { title:'JWT tokens returned to client', desc:'API returns { accessToken (1h), refreshToken (90d) }. Client stores both and attaches accessToken as Authorization: Bearer on subsequent requests.', packages:['p-web','p-ios'], edges:['e-web-api','e-ios-api'] }
       ]
     },
     {
-      id:'token-refresh', icon:'🔄', name:'Token Refresh', path:'Web / iOS → REST /auth/refresh → API',
+      id:'token-refresh', icon:'🔄', name:'Token Refresh', path:'Web / iOS → REST /auth/refresh → API → PostgreSQL',
       steps: [
         { title:'Client detects expiring access token', desc:'Before the 1-hour access token expires, client POSTs { refreshToken } to /auth/refresh.', packages:['p-web','p-ios'], edges:['e-web-api','e-ios-api'] },
-        { title:'API issues new access token', desc:'Express verifies the refresh token against JWT_SECRET and returns a new { accessToken }. Refresh token is not rotated.', packages:['p-api'], edges:[] }
+        { title:'JWT signature validated', desc:'API verifies the token signature with the persisted JWT secret (loaded from SystemConfig on startup).', packages:['p-api'], edges:[] },
+        { title:'Refresh token consumed from DB', desc:'API looks up the token hash in RefreshToken table. If not found or expired, request is rejected. Record is deleted (single-use rotation).', packages:['p-api'], edges:['e-api-db'] },
+        { title:'New tokens issued and stored', desc:'New accessToken and refreshToken generated. New refresh token hash written to DB. Both returned to client.', packages:['p-api','p-web','p-ios'], edges:['e-api-db','e-web-api','e-ios-api'] }
+      ]
+    },
+    {
+      id:'logout', icon:'🚪', name:'Logout', path:'Web / iOS → REST /auth/logout → API → PostgreSQL',
+      steps: [
+        { title:'Client calls /auth/logout', desc:'Client POSTs { refreshToken } to /auth/logout. Access token is discarded client-side.', packages:['p-web','p-ios'], edges:['e-web-api','e-ios-api'] },
+        { title:'Refresh token revoked in DB', desc:'API deletes the RefreshToken record matching the token hash. Any future attempt to use this token at /auth/refresh will be rejected.', packages:['p-api'], edges:['e-api-db'] }
       ]
     },
     {
