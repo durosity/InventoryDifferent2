@@ -209,15 +209,20 @@ export async function createApp(prismaOverride?: PrismaClient) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const accessToken = generateAccessToken();
-        const refreshToken = generateRefreshToken();
-        await storeRefreshToken(prisma, refreshToken);
+        try {
+            const accessToken = generateAccessToken();
+            const refreshToken = generateRefreshToken();
+            await storeRefreshToken(prisma, refreshToken);
 
-        return res.json({
-            accessToken,
-            refreshToken,
-            expiresIn: 3600, // 1 hour in seconds
-        });
+            return res.json({
+                accessToken,
+                refreshToken,
+                expiresIn: 3600, // 1 hour in seconds
+            });
+        } catch (err) {
+            console.error('Login error:', err);
+            return res.status(500).json({ error: 'Internal server error during login' });
+        }
     });
 
     // Refresh token endpoint
@@ -228,25 +233,30 @@ export async function createApp(prismaOverride?: PrismaClient) {
             return res.status(400).json({ error: 'Refresh token is required' });
         }
 
-        if (!verifyRefreshToken(refreshToken) || !await consumeRefreshToken(prisma, refreshToken)) {
-            return res.status(401).json({ error: 'Invalid or expired refresh token' });
+        try {
+            if (!verifyRefreshToken(refreshToken) || !await consumeRefreshToken(prisma, refreshToken)) {
+                return res.status(401).json({ error: 'Invalid or expired refresh token' });
+            }
+
+            const accessToken = generateAccessToken();
+            const newRefreshToken = generateRefreshToken();
+            await storeRefreshToken(prisma, newRefreshToken);
+
+            return res.json({
+                accessToken,
+                refreshToken: newRefreshToken,
+                expiresIn: 3600,
+            });
+        } catch (err) {
+            console.error('Token refresh error:', err);
+            return res.status(500).json({ error: 'Internal server error during token refresh' });
         }
-
-        const accessToken = generateAccessToken();
-        const newRefreshToken = generateRefreshToken();
-        await storeRefreshToken(prisma, newRefreshToken);
-
-        return res.json({
-            accessToken,
-            refreshToken: newRefreshToken,
-            expiresIn: 3600,
-        });
     });
 
     // Logout — revoke the supplied refresh token so it cannot be used again
     app.post('/auth/logout', async (req, res) => {
         const { refreshToken } = req.body;
-        if (refreshToken) await consumeRefreshToken(prisma, refreshToken);
+        if (refreshToken) await consumeRefreshToken(prisma, refreshToken).catch(() => {});
         return res.json({ success: true });
     });
 

@@ -22,11 +22,16 @@ function hashToken(token: string): string {
 
 // Load JWT secret from DB on startup; generate and persist it if none exists yet.
 // Must be called once before any token operations.
+// When JWT_SECRET env var is explicitly set it always wins — this keeps test environments
+// predictable (tokens signed by test helpers use the same secret the server uses).
 export async function initializeAuth(prisma: PrismaClient): Promise<void> {
+    if (process.env.JWT_SECRET) {
+        jwtSecret = process.env.JWT_SECRET;
+        return;
+    }
     let config = await prisma.systemConfig.findUnique({ where: { key: 'jwt_secret' } });
     if (!config) {
-        // Prefer an explicitly configured secret; fall back to a generated one.
-        const secret = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+        const secret = crypto.randomBytes(32).toString('hex');
         config = await prisma.systemConfig.create({ data: { key: 'jwt_secret', value: secret } });
         console.log('JWT secret generated and persisted to database.');
     }
@@ -108,6 +113,7 @@ export function verifyAdminPassword(password: string): boolean {
 // Token payload interface
 interface TokenPayload {
     type: 'access' | 'refresh';
+    jti?: string;
     iat?: number;
     exp?: number;
 }
@@ -120,10 +126,12 @@ export function generateAccessToken(): string {
     return jwt.sign(payload, getSecret(), { expiresIn: ACCESS_TOKEN_EXPIRY });
 }
 
-// Generate a refresh token
+// Generate a refresh token — includes a random jti so tokens generated within the same
+// second have distinct payloads and thus distinct hashes in the DB.
 export function generateRefreshToken(): string {
     const payload: TokenPayload = {
         type: 'refresh',
+        jti: crypto.randomBytes(16).toString('hex'),
     };
     return jwt.sign(payload, getSecret(), { expiresIn: REFRESH_TOKEN_EXPIRY });
 }
