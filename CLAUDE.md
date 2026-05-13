@@ -457,25 +457,23 @@ Potential future features, roughly prioritized. These have not been started — 
 
 ## App Flow Reference
 
-`docs/architecture/flows.json` is the authoritative source for how data moves between packages in this app. **Read it before implementing any feature that touches more than one package.**
+The `DATA` object at the top of `docs/architecture/flows.html` is the authoritative source for how data moves between packages in this app. **Read it before implementing any feature that touches more than one package.**
 
-### When to update `flows.json`
+The file is self-contained — open it directly in any browser (`file://` works, no server needed).
 
-- **Adding a new user-facing action**: add a new entry to the `flows` array with accurate `steps`, `packages`, and `edges` references.
+### When to update `flows.html`
+
+- **Adding a new user-facing action**: add a new entry to the `flows` array inside `DATA` with accurate `steps`, `packages`, and `edges` references.
 - **Changing how a feature works** (new endpoint, new package involved, changed data path): update the relevant flow's steps to match the new implementation.
 - **Removing a feature**: remove its flow entry.
 
-Updates to `flows.json` must be made in the same commit as the code change — never leave them for later.
+Updates to `flows.html` must be made in the same commit as the code change — never leave them for later.
 
 ### Viewing the diagram
 
-```bash
-cd docs/architecture && python3 -m http.server
-```
+Open `docs/architecture/flows.html` directly in a browser. No server required. Click a flow in the right panel to highlight the packages and edges involved. Click individual steps to trace the exact path.
 
-Then open `http://localhost:8000/flows.html` in a browser. Click a flow in the right panel to highlight the packages and edges involved. Click individual steps to trace the exact path.
-
-### JSON schema reference
+### Data schema reference
 
 | Key | Purpose |
 |-----|---------|
@@ -483,4 +481,4 @@ Then open `http://localhost:8000/flows.html` in a browser. Click a flow in the r
 | `packages[].tier` | Layout tier: `client` \| `middleware` \| `api` \| `storage` |
 | `edges[].id` | Unique identifier used in step `edges` arrays |
 | `flows[].steps[].packages` | Package IDs active during this step (highlighted on diagram) |
-| `flows[].steps[].edges` | Edge IDs active during this step (glowing arrows on diagram) |
+| `flows[].steps[].edges` | Edge IDs active during this step (animated arrows on diagram) |
