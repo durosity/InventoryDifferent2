@@ -1030,7 +1030,7 @@ export const resolvers = {
                     include: {
                         device: {
                             include: {
-                                images: { where: { isThumbnail: true }, take: 1 },
+                                images: { where: { isThumbnail: true } },
                             },
                         },
                     },
@@ -1075,7 +1075,7 @@ export const resolvers = {
             }
 
             // Needs Attention — each list includes device + thumbnail
-            const deviceInclude = { images: { where: { isThumbnail: true }, take: 1 } };
+            const deviceInclude = { images: { where: { isThumbnail: true } } };
             const [inRepair, pramBatteryPending, unknownFunctionalStatus] = await Promise.all([
                 context.prisma.device.findMany({
                     where: { deleted: false, status: 'IN_REPAIR' as any },
