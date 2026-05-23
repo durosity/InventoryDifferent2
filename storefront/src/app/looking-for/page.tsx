@@ -12,6 +12,7 @@ interface WishlistCategory {
 interface WishlistItem {
   id: string;
   name: string;
+  additionalName?: string;
   manufacturer?: string;
   modelNumber?: string;
   releaseYear?: number;
@@ -31,6 +32,7 @@ async function fetchWishlistItems(): Promise<WishlistItem[]> {
             wishlistItems(where: { deleted: false }) {
               id
               name
+              additionalName
               manufacturer
               modelNumber
               releaseYear
@@ -123,6 +125,9 @@ export default async function LookingForPage() {
                         className="rounded border border-[var(--border)] bg-[var(--card)] p-4"
                       >
                         <div className="font-medium text-[var(--foreground)] text-sm">{item.name}</div>
+                        {item.additionalName && (
+                          <div className="text-xs text-[var(--muted-foreground)] mt-0.5 italic">{item.additionalName}</div>
+                        )}
                         {(item.manufacturer || item.modelNumber) && (
                           <div className="text-xs text-[var(--muted-foreground)] mt-0.5">
                             {[item.manufacturer, item.modelNumber].filter(Boolean).join(' · ')}

@@ -5,6 +5,8 @@ import gql from 'graphql-tag';
 import Link from 'next/link';
 import { useAuth } from '../../../lib/auth-context';
 import { useT } from '../../../i18n/context';
+import { useIsDarkMode } from '../../../lib/useIsDarkMode';
+import { pickThumbnail } from '../../../lib/pickThumbnail';
 
 const DASHBOARD_QUERY = gql`
   query GetDashboard {
@@ -21,6 +23,7 @@ const DASHBOARD_QUERY = gql`
             path
             thumbnailPath
             isThumbnail
+            thumbnailMode
           }
         }
       }
@@ -56,7 +59,7 @@ const DASHBOARD_QUERY = gql`
   }
 `;
 
-type DeviceImage = { path: string; thumbnailPath?: string; isThumbnail?: boolean };
+type DeviceImage = { path: string; thumbnailPath?: string; isThumbnail: boolean; thumbnailMode?: string | null };
 type AttentionDevice = { id: number; name: string; images: DeviceImage[] };
 type ActivityEntry = {
   id: number;
@@ -88,7 +91,8 @@ function fmtCurrency(n: number): string {
 }
 
 function DeviceThumbnail({ images, size = 'size-16' }: { images: DeviceImage[]; size?: string }) {
-  const thumb = images?.find((i) => i.isThumbnail) ?? images?.[0];
+  const isDark = useIsDarkMode();
+  const thumb = pickThumbnail(images ?? [], isDark);
   const src = thumb ? (thumb.thumbnailPath || thumb.path) : null;
   if (src) {
     return (

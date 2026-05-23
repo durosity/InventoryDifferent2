@@ -20,6 +20,8 @@ export const releaseNotes: ReleaseEntry[] = [
     fixed: [
       'Sessions now survive API server restarts — JWT secret is persisted in the database rather than regenerated on each boot',
       'Showcase admin: new journey now appears in the journeys list immediately after creation without requiring a page refresh',
+      'Storefront Looking For page now shows the additional name (variant info) below the device name',
+      'Dashboard thumbnails now respect browser light/dark mode (uses the same mode-specific thumbnail picker as the inventory grid)',
     ],
   },
   {
