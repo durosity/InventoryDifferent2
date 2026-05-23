@@ -37,17 +37,17 @@ const DASHBOARD_QUERY = gql`
         inRepair {
           id
           name
-          images { path thumbnailPath isThumbnail }
+          images { path thumbnailPath isThumbnail thumbnailMode }
         }
         pramBatteryPending {
           id
           name
-          images { path thumbnailPath isThumbnail }
+          images { path thumbnailPath isThumbnail thumbnailMode }
         }
         unknownFunctionalStatus {
           id
           name
-          images { path thumbnailPath isThumbnail }
+          images { path thumbnailPath isThumbnail thumbnailMode }
         }
       }
       collectionHealth {
