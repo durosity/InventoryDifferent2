@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "@apollo/client";
+import { useQuery, useMutation, useApolloClient } from "@apollo/client";
 import gql from "graphql-tag";
 import { API_BASE_URL } from "../../../lib/config";
 import { LoadingPanel } from "../../../components/LoadingPanel";
@@ -48,6 +48,7 @@ export default function TrashPage() {
   const t = useT();
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
+  const apolloClient = useApolloClient();
   const { data, loading, error, refetch } = useQuery(GET_DELETED_DEVICES);
   const [restoreDevice, { loading: restoring }] = useMutation(RESTORE_DEVICE);
   const [permanentlyDeleteDevice, { loading: deleting }] = useMutation(PERMANENTLY_DELETE_DEVICE);
@@ -66,6 +67,8 @@ export default function TrashPage() {
   const handleRestore = async (id: number) => {
     try {
       await restoreDevice({ variables: { id } });
+      apolloClient.cache.evict({ fieldName: 'devices' });
+      apolloClient.cache.gc();
       refetch();
     } catch (err) {
       console.error("Failed to restore device:", err);
