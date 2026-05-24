@@ -26,6 +26,7 @@ struct BarcodeScannerView: View {
     @State private var decodedModelName: String?
     @State private var decodedFactory: String?
     @State private var decodedYear: Int?
+    @State private var cameraActive = true
 
     private var scanFrameSize: CGFloat {
         let base = min(UIScreen.main.bounds.width, UIScreen.main.bounds.height)
@@ -37,7 +38,7 @@ struct BarcodeScannerView: View {
         return NavigationStack {
             ZStack {
                 // Camera preview
-                BarcodeScannerPreview(onCodeScanned: handleScannedCode)
+                BarcodeScannerPreview(onCodeScanned: handleScannedCode, isActive: $cameraActive)
                     .ignoresSafeArea()
                 
                 // Overlay
@@ -108,6 +109,7 @@ struct BarcodeScannerView: View {
                     },
                     onScanAgain: {
                         showNotFoundSheet = false
+                        cameraActive = true
                     }
                 )
                 .environmentObject(lm)
@@ -123,6 +125,11 @@ struct BarcodeScannerView: View {
                 .environmentObject(deviceStore)
                 .environmentObject(lm)
             }
+            .onAppear {
+                // Restart camera when view (re)appears, e.g. after navigating back from device detail
+                cameraActive = true
+                isSearching = false
+            }
         }
     }
     
@@ -135,8 +142,9 @@ struct BarcodeScannerView: View {
         
         scannedCode = code
         isSearching = true
+        cameraActive = false
         errorMessage = nil
-        
+
         Task {
             await lookupDevice(code: code)
         }
@@ -261,7 +269,7 @@ struct BarcodeScannerView: View {
     private func fetchDeviceBySerial(serialNumber: String) async -> Device? {
         let query = """
         query GetDeviceBySerial($serialNumber: String!) {
-            device(where: { serialNumber: { equals: $serialNumber }, deleted: { equals: false } }) {
+            devices(where: { serialNumber: { equals: $serialNumber }, deleted: { equals: false } }) {
                 id
                 name
                 additionalName
@@ -334,19 +342,19 @@ struct BarcodeScannerView: View {
             }
         }
         """
-        
+
         struct Response: Decodable {
-            let device: Device?
+            let devices: [Device]
         }
-        
+
         do {
             print("[Scanner] Executing serial number query for: \(serialNumber)")
             let response: Response = try await APIService.shared.execute(
                 query: query,
                 variables: ["serialNumber": serialNumber]
             )
-            print("[Scanner] Serial query response - device: \(response.device?.name ?? "nil")")
-            return response.device
+            print("[Scanner] Serial query response - device: \(response.devices.first?.name ?? "nil")")
+            return response.devices.first
         } catch {
             print("[Scanner] Serial query error: \(error)")
             return nil
@@ -358,14 +366,26 @@ struct BarcodeScannerView: View {
 
 struct BarcodeScannerPreview: UIViewRepresentable {
     let onCodeScanned: (String) -> Void
-    
+    @Binding var isActive: Bool
+
+    init(onCodeScanned: @escaping (String) -> Void, isActive: Binding<Bool> = .constant(true)) {
+        self.onCodeScanned = onCodeScanned
+        self._isActive = isActive
+    }
+
     func makeUIView(context: Context) -> CameraPreviewView {
         let view = CameraPreviewView()
         view.onCodeScanned = onCodeScanned
         return view
     }
-    
-    func updateUIView(_ uiView: CameraPreviewView, context: Context) {}
+
+    func updateUIView(_ uiView: CameraPreviewView, context: Context) {
+        if isActive {
+            uiView.startSession()
+        } else {
+            uiView.stopSession()
+        }
+    }
 }
 
 class CameraPreviewView: UIView {
@@ -471,6 +491,20 @@ class CameraPreviewView: UIView {
         }
     }
     
+    func startSession() {
+        guard !(captureSession?.isRunning ?? false) else { return }
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.captureSession?.startRunning()
+        }
+    }
+
+    func stopSession() {
+        guard captureSession?.isRunning ?? false else { return }
+        DispatchQueue.global(qos: .background).async {
+            self.captureSession?.stopRunning()
+        }
+    }
+
     deinit {
         captureSession?.stopRunning()
     }

@@ -48,7 +48,7 @@ struct NotFoundSheet: View {
                 }
 
                 if let year {
-                    Text("\(t.barcodeScanner.manufacturedIn) \(year)")
+                    Text(t.barcodeScanner.manufacturedIn + " " + String(year))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
