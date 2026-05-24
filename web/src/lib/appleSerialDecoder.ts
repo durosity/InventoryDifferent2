@@ -250,6 +250,14 @@ function decode12(normalized: string): ModernSerialResult {
 
 // ── Top-level dispatcher ──────────────────────────────────────────────────────
 
+function tryDecodeModern(normalized: string): ModernSerialResult | null {
+    switch (normalized.length) {
+        case 11: return decode11(normalized);
+        case 12: return decode12(normalized);
+        default: return null;
+    }
+}
+
 export function decodeAppleSerial(input: string): SerialDecodeResult {
     const normalized = normalize(input);
 
@@ -258,25 +266,19 @@ export function decodeAppleSerial(input: string): SerialDecodeResult {
     }
 
     const vintage = tryDecodeVintage(normalized);
-    if (vintage) {
-        // If vintage matched but has no model name, try modern as a fallback
-        // (handles early-90s 11/12-char serials with a digit at the year position)
-        if (!vintage.modelName && (normalized.length === 11 || normalized.length === 12)) {
-            const modern = normalized.length === 11 ? decode11(normalized) : decode12(normalized);
-            if (modern.modelName) return modern;
-        }
-        return vintage;
-    }
+    const modern = tryDecodeModern(normalized);
 
-    switch (normalized.length) {
-        case 11: return decode11(normalized);
-        case 12: return decode12(normalized);
-        default:
-            return {
-                type: "unknown",
-                message: `Serial length ${normalized.length} does not match any known Apple format.`,
-            };
+    if (vintage && modern) {
+        // Both matched — pick the more specific result (modern wins on tie)
+        if (vintage.modelName && !modern.modelName) return vintage;
+        if (!vintage.modelName && modern.modelName) return modern;
+        if (vintage.modelName && modern.modelName) return modern;
+        return vintage; // neither has a name — prefer vintage metadata
     }
+    if (vintage) return vintage;
+    if (modern) return modern;
+
+    return { type: "unknown", message: `Serial length ${normalized.length} does not match any known Apple format.` };
 }
 
 // Convenience: return just the model name (or undefined if not identified).
