@@ -30,7 +30,22 @@
   .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
   .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #3c3c43; }
   .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
-  @media print { body { background: white; padding: 12px; } .card { box-shadow: none; border: 1px solid #d2d2d7; break-inside: avoid; } h2 { break-after: avoid; } }
+
+  /* Reveal behaviour */
+  .card { cursor: pointer; user-select: none; }
+  .barcode-wrap { position: relative; }
+  .barcode-wrap svg { transition: filter 0.2s ease; }
+  .card:not(.revealed) .barcode-wrap svg { filter: blur(8px); }
+  .reveal-overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    transition: opacity 0.2s ease;
+  }
+  .reveal-overlay-icon { font-size: 18px; }
+  .reveal-overlay-label { font-size: 11px; font-weight: 600; color: #3c3c43; letter-spacing: 0.02em; }
+  .card.revealed .reveal-overlay { opacity: 0; pointer-events: none; }
+
+  @media print { .card:not(.revealed) .barcode-wrap svg { filter: none; } .reveal-overlay { display: none; } body { background: white; padding: 12px; } .card { box-shadow: none; border: 1px solid #d2d2d7; break-inside: avoid; } h2 { break-after: avoid; } }
 </style>
 </head>
 <body>
@@ -76,7 +91,23 @@ const FOUND = [
 ];
 
 const DECODED = [
-  { serial: "CK5221KAM0001W", name: "Macintosh 512K", meta: "Cork · 1985 · CK two-char factory" },
+  // Vintage format: factory + digit year + 2-digit week + 3-char production + model code
+  { serial: "CK5221KAM0001W", name: "Macintosh 512K",           meta: "vintage · CK two-char factory · 1985" },
+  { serial: "F3204ABD22",     name: "Macintosh Classic II",      meta: "vintage · model code D22" },
+  { serial: "F3204ABL02",     name: "Macintosh LC",              meta: "vintage · model code L02" },
+  { serial: "F3204ABC40",     name: "Macintosh IIfx",            meta: "vintage · model code C40" },
+  { serial: "F3204ABCC7",     name: "Macintosh Quadra 800",      meta: "vintage · model code CC7" },
+  { serial: "F3204AB41Y",     name: "Power Macintosh 6100/60",   meta: "vintage · model code 41Y" },
+  { serial: "F3204ABG20",     name: "Macintosh TV",              meta: "vintage · model code G20" },
+  // Modern 11-char: factory (2) + year letter + week + production + config code (last 3)
+  { serial: "SGA304AB18X",    name: "MacBook Air (Original)",    meta: "11-char · config 18X · first MacBook Air" },
+  { serial: "SGA304ABU9B",    name: "MacBook (13-inch, 2006)",   meta: "11-char · config U9B · first Intel MacBook" },
+  { serial: "SGA304AB9G6",    name: "Mac mini (Late 2009)",      meta: "11-char · config 9G6" },
+  { serial: "SGA304AB02X",    name: "iMac (20-inch, Mid 2007)",  meta: "11-char · config 02X" },
+  // Modern 12-char: factory (2) + year letter + ... + config code (last 4)
+  { serial: "FC0G502TF9VN",   name: "Mac Pro (Late 2013)",       meta: "12-char · config F9VN · the cylinder" },
+  { serial: "FC0G502THH27",   name: "MacBook (12-inch, 2017)",   meta: "12-char · config HH27" },
+  { serial: "FC0G502T0832",   name: "iMac Pro (2017)",           meta: "12-char · config 0832" },
 ];
 
 const UNKNOWN = [
@@ -84,6 +115,8 @@ const UNKNOWN = [
   { serial: "H4M1J1TMTN3V", name: "Unknown Mac",   meta: "Post-2021 randomized — undecodable" },
   { serial: "NOTAREAL1234",  name: "Garbage input", meta: "Should fail gracefully" },
 ];
+
+let currentRevealed = null;
 
 function makeCard(item, type) {
   const card = document.createElement("div");
@@ -93,7 +126,6 @@ function makeCard(item, type) {
   barcodeWrap.className = "barcode-wrap";
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   barcodeWrap.appendChild(svg);
-  card.appendChild(barcodeWrap);
 
   try {
     JsBarcode(svg, item.serial, {
@@ -112,6 +144,21 @@ function makeCard(item, type) {
     t.textContent = "Cannot encode";
     svg.appendChild(t);
   }
+
+  // "Tap to show" overlay sits over the barcode only
+  const overlay = document.createElement("div");
+  overlay.className = "reveal-overlay";
+  const overlayIcon = document.createElement("div");
+  overlayIcon.className = "reveal-overlay-icon";
+  overlayIcon.textContent = "▤";
+  const overlayLabel = document.createElement("div");
+  overlayLabel.className = "reveal-overlay-label";
+  overlayLabel.textContent = "Tap to show";
+  overlay.appendChild(overlayIcon);
+  overlay.appendChild(overlayLabel);
+  barcodeWrap.appendChild(overlay);
+
+  card.appendChild(barcodeWrap);
 
   const serial = document.createElement("div");
   serial.className = "serial";
@@ -132,6 +179,15 @@ function makeCard(item, type) {
   badge.className = "badge " + (type === "found" ? "found" : type === "decoded" ? "decoder" : "unknown");
   badge.textContent = type === "found" ? "In Collection" : type === "decoded" ? "Decoder Hit" : "Unknown";
   card.appendChild(badge);
+
+  // Click: reveal this card, hide the previous one
+  card.addEventListener("click", () => {
+    if (currentRevealed && currentRevealed !== card) {
+      currentRevealed.classList.remove("revealed");
+    }
+    card.classList.toggle("revealed");
+    currentRevealed = card.classList.contains("revealed") ? card : null;
+  });
 
   return card;
 }

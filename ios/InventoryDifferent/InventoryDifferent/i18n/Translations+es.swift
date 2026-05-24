@@ -528,7 +528,8 @@ extension Translations {
             unknownDevice: "Dispositivo desconocido",
             addNewDevice: "Añadir nuevo dispositivo",
             scanAgain: "Escanear de nuevo",
-            manufacturedIn: "Fabricado en"
+            manufacturedIn: "Fabricado en",
+            notThisModel: "¿No es este modelo? Añadir solo con número de serie"
         ),
         timeline: .init(
             title: "Línea de tiempo",

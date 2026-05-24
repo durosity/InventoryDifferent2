@@ -286,6 +286,7 @@ struct Translations {
         let addNewDevice: String
         let scanAgain: String
         let manufacturedIn: String
+        let notThisModel: String
     }
 
     // MARK: - Locations List

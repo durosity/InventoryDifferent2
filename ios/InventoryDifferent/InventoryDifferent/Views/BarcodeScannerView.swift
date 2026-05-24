@@ -112,6 +112,16 @@ struct BarcodeScannerView: View {
                             showAddDevice = true
                         }
                     },
+                    onAddDeviceUnmatched: {
+                        matchedTemplateId = nil
+                        decodedModelName = nil
+                        decodedFactory = nil
+                        decodedYear = nil
+                        showNotFoundSheet = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            showAddDevice = true
+                        }
+                    },
                     onScanAgain: {
                         showNotFoundSheet = false
                         cameraActive = true
@@ -121,7 +131,10 @@ struct BarcodeScannerView: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
             }
-            .sheet(isPresented: $showAddDevice) {
+            .sheet(isPresented: $showAddDevice, onDismiss: {
+                cameraActive = true
+                isSearching = false
+            }) {
                 AddDeviceView(
                     prefillTemplateId: matchedTemplateId,
                     prefillSerialNumber: notFoundSerial,

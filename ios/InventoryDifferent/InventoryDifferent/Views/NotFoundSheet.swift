@@ -13,6 +13,7 @@ struct NotFoundSheet: View {
     let factory: String?
     let year: Int?
     let onAddDevice: () -> Void
+    let onAddDeviceUnmatched: () -> Void
     let onScanAgain: () -> Void
 
     var body: some View {
@@ -65,6 +66,16 @@ struct NotFoundSheet: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+
+                if modelName != nil {
+                    Button(action: onAddDeviceUnmatched) {
+                        Text(t.barcodeScanner.notThisModel)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .tint(.secondary)
+                }
 
                 Button(action: onScanAgain) {
                     Text(t.barcodeScanner.scanAgain)

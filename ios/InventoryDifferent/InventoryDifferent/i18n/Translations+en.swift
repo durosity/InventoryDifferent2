@@ -529,7 +529,8 @@ extension Translations {
             unknownDevice: "Unknown device",
             addNewDevice: "Add New Device",
             scanAgain: "Scan Again",
-            manufacturedIn: "Manufactured in"
+            manufacturedIn: "Manufactured in",
+            notThisModel: "Not this model? Add with serial only"
         ),
         timeline: .init(
             title: "Timeline",

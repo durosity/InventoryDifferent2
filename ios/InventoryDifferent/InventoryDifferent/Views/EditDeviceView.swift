@@ -659,6 +659,7 @@ struct SerialBarcodeCaptureSheet: View {
         NavigationStack {
             ZStack {
                 BarcodeScannerPreview { code in
+                    guard URL(string: code)?.scheme.map({ ["http", "https"].contains($0) }) != true else { return }
                     onCapture(code)
                     dismiss()
                 }
