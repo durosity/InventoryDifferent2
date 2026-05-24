@@ -18,6 +18,12 @@ export const releaseNotes: ReleaseEntry[] = [
       'iOS barcode scanner: when a serial number is not in your inventory, a bottom sheet now decodes Apple serial numbers (pre-2021) to identify the model and offers to pre-fill the Add Device form',
       'iOS barcode scanner: decoded Apple model now matched against your templates and auto-applied when opening Add Device',
       'iOS serial decoder: full modern model table (~9000 entries) replacing placeholder stubs; new vintage codes for Macintosh Portable, PowerBook Duo 270c, PowerBook 165, and PowerBook 190cs',
+      'iOS barcode scanner: "Not this model?" button on the not-found sheet strips the decoded model prefill so you can add the device with serial number only',
+      'iOS barcode scanner: camera now correctly restarts after the Add Device sheet is dismissed',
+      'iOS serial capture (edit device): URL QR codes are now ignored so scanning near a QR code does not overwrite the serial number field',
+      'Web barcode scanner: when a serial is not in inventory, identifies the model (Apple serials pre-2021), shows a not-found sheet with model name and year, and offers to pre-fill the Add Device form (authenticated users only — guests see lookup results only)',
+      'Web barcode scanner: URL QR codes that are not app deep-links now show a hint instead of producing a "No device found" error',
+      'Web barcode scanner: serial number is now pre-filled in the Add Device form when navigating from the not-found sheet',
     ],
     changed: [],
     fixed: [

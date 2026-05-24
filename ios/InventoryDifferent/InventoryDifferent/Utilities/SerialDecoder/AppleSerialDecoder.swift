@@ -44,6 +44,17 @@ public enum SerialDecodeResult: Codable {
 
 public struct AppleSerialDecoder {
 
+    fileprivate static func modernDecode(_ normalized: String) -> ModernSerialResult? {
+        switch normalized.count {
+        case 11:
+            return ModernSerialDecoder.decode11(normalized)
+        case 12:
+            return ModernSerialDecoder.decode12(normalized)
+        default:
+            return nil
+        }
+    }
+
     public static func decode(_ input: String) -> SerialDecodeResult {
         let normalized = VintageSerialDecoder.normalize(input)
 
@@ -51,19 +62,26 @@ public struct AppleSerialDecoder {
             return .error("Serial too short (minimum 8 characters after normalization).")
         }
 
-        // Try vintage first. Returns nil only when year char is non-digit,
-        // which is the reliable signal that this is a modern-format serial.
-        if let result = VintageSerialDecoder.tryDecode(normalized) {
-            return .vintage(result)
-        }
+        let vintageResult = VintageSerialDecoder.tryDecode(normalized)
+        let modernResult = modernDecode(normalized)
 
-        // Modern formats identified by length after vintage decode failed.
-        switch normalized.count {
-        case 11:
-            return .modern(ModernSerialDecoder.decode11(normalized))
-        case 12:
-            return .modern(ModernSerialDecoder.decode12(normalized))
-        default:
+        switch (vintageResult, modernResult) {
+        case let (vintage?, modern?):
+            switch (vintage.modelName, modern.modelName) {
+            case (.some, .none):
+                return .vintage(vintage)
+            case (.none, .some):
+                return .modern(modern)
+            case (.some, .some):
+                return .modern(modern)
+            case (.none, .none):
+                return .vintage(vintage)
+            }
+        case let (vintage?, nil):
+            return .vintage(vintage)
+        case let (nil, modern?):
+            return .modern(modern)
+        case (nil, nil):
             return .unknown("Serial length \(normalized.count) does not match any known Apple format.")
         }
     }

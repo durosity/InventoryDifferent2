@@ -129,6 +129,15 @@ export type Translations = {
     pointCamera: string;
     notSupported: string;
     cameraError: string;
+    notInInventory: string;
+    serialNotFound: string;
+    identifiedAs: string;
+    unknownDevice: string;
+    manufacturedIn: string;
+    addNewDevice: string;
+    notThisModel: string;
+    scanAgain: string;
+    urlIgnored: string;
   };
   nav: {
     devices: string;
@@ -1103,6 +1112,15 @@ export const en: Translations = {
     pointCamera: "Point the camera at the barcode.",
     notSupported: "Barcode scanning is not supported on this browser.",
     cameraError: "Unable to access the camera.",
+    notInInventory: "Not in Inventory",
+    serialNotFound: "This serial number wasn't found in your collection.",
+    identifiedAs: "Identified as",
+    unknownDevice: "Unknown device",
+    manufacturedIn: "Manufactured in",
+    addNewDevice: "Add New Device",
+    notThisModel: "Not this model? Add with serial only",
+    scanAgain: "Scan Again",
+    urlIgnored: "QR code is a URL — point the camera at a serial number barcode.",
   },
   nav: {
     devices: "Devices",

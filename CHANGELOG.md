@@ -8,6 +8,12 @@ All notable changes to InventoryDifferent will be documented here.
 - Usage page: scan for orphaned files (files on disk not referenced by any image record) and delete them individually or in bulk
 - Logout endpoint (`/auth/logout`) revokes the refresh token so a leaked token cannot be used to regain access
 - iOS barcode scanner: when a serial number is not in your inventory, a bottom sheet now decodes Apple serial numbers (pre-2021) to identify the model and offers to pre-fill the Add Device form
+- iOS barcode scanner: "Not this model?" button strips decoded model prefill so you can add the device with serial number only
+- iOS barcode scanner: camera now correctly restarts after the Add Device sheet is dismissed
+- iOS serial capture (edit device): URL QR codes are now ignored
+- Web barcode scanner: not-found sheet with Apple serial decoder, model identification, and Add Device button (authenticated users only)
+- Web barcode scanner: URL QR codes that are not app deep-links now show a hint
+- Web barcode scanner: serial number is pre-filled in the Add Device form when navigating from the not-found sheet
 
 ### Fixed
 - Sessions now survive API server restarts — JWT secret is persisted in the database rather than regenerated on each boot

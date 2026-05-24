@@ -11,8 +11,10 @@ import { DeviceTableNew } from "./list-new/_components/DeviceTableNew";
 import { FisheyeGrid } from "./list-new/_components/FisheyeGrid";
 import { LoadingPanel } from "../components/LoadingPanel";
 import { BarcodeScannerModal } from "../components/BarcodeScannerModal";
+import { BarcodeNotFoundModal } from "../components/BarcodeNotFoundModal";
 import { useAuth } from "../lib/auth-context";
 import { useT } from "../i18n/context";
+import { decodeAppleSerial } from "../lib/appleSerialDecoder";
 
 const GET_DEVICES = gql`
   query GetDevicesNew($where: DeviceWhereInput) {
@@ -125,6 +127,10 @@ export default function ListNewPage() {
   const [assetScanOpen, setAssetScanOpen] = useState(false);
   const [assetScanMessage, setAssetScanMessage] = useState('');
   const [barcodeSupported, setBarcodeSupported] = useState(false);
+  const [notFoundOpen, setNotFoundOpen] = useState(false);
+  const [notFoundSerial, setNotFoundSerial] = useState('');
+  const [notFoundModelName, setNotFoundModelName] = useState<string | undefined>();
+  const [notFoundYear, setNotFoundYear] = useState<number | undefined>();
   const assetScanFormats = useMemo(() => ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'itf'], []);
   const [getDeviceBySerial] = useLazyQuery(GET_DEVICE_BY_SERIAL);
   const [healthFilters, setHealthFilters] = useState({
@@ -332,6 +338,7 @@ export default function ListNewPage() {
           const saveScroll = () => sessionStorage.setItem(SESSION_SCROLL, String(window.scrollY));
           try {
             const url = new URL(value);
+            // Navigate to in-app device/location URLs
             const hashPath = url.hash.startsWith('#!') ? url.hash.slice(2) : url.hash.startsWith('#') ? url.hash.slice(1) : '';
             for (const p of [url.pathname, hashPath].filter(Boolean)) {
               const dm = p.match(/\/devices\/(\d+)(?:\/|$)/);
@@ -339,19 +346,57 @@ export default function ListNewPage() {
               const lm = p.match(/\/locations\/(\d+)(?:\/|$)/);
               if (lm) { saveScroll(); router.push(`/locations/${lm[1]}`); return true; }
             }
-          } catch { /* not a URL */ }
+            // Non-app URL QR code — show a hint and keep scanning
+            if (url.protocol === 'http:' || url.protocol === 'https:') {
+              setAssetScanMessage(t.scanner.urlIgnored);
+              return false;
+            }
+          } catch { /* not a URL — treat as serial */ }
           const serialNumber = value.trim();
-          if (!serialNumber) { setAssetScanMessage('Scanned value is empty.'); return false; }
+          if (!serialNumber) { return false; }
           setAssetScanMessage('Looking up serial number...');
           try {
             const result = await getDeviceBySerial({ variables: { where: { serialNumber: { equals: serialNumber }, deleted: { equals: false } } } });
             if (result.data?.device?.id) { saveScroll(); router.push(`/devices/${result.data.device.id}`); return true; }
-            setAssetScanMessage(`No device found with serial number: ${serialNumber}`);
-            return false;
+            // Not found — decode the serial and show the not-found sheet
+            const decoded = decodeAppleSerial(serialNumber);
+            const modelName = (decoded.type === 'vintage' || decoded.type === 'modern') ? decoded.modelName : undefined;
+            const year = decoded.type === 'vintage' ? decoded.year : undefined;
+            setNotFoundSerial(serialNumber);
+            setNotFoundModelName(modelName);
+            setNotFoundYear(year);
+            setAssetScanOpen(false);
+            setAssetScanMessage('');
+            setNotFoundOpen(true);
+            return true; // scanner handled it (closes scanner modal)
           } catch {
             setAssetScanMessage(`Error looking up serial number: ${serialNumber}`);
             return false;
           }
+        }}
+      />
+
+      <BarcodeNotFoundModal
+        open={notFoundOpen}
+        serial={notFoundSerial}
+        modelName={notFoundModelName}
+        year={notFoundYear}
+        isAuthenticated={isAuthenticated}
+        onClose={() => setNotFoundOpen(false)}
+        onScanAgain={() => {
+          setNotFoundOpen(false);
+          setAssetScanMessage('');
+          setAssetScanOpen(true);
+        }}
+        onAddDevice={() => {
+          setNotFoundOpen(false);
+          const params = new URLSearchParams({ serialNumber: notFoundSerial });
+          if (notFoundModelName) params.set('name', notFoundModelName);
+          router.push(`/devices/new?${params.toString()}`);
+        }}
+        onAddDeviceUnmatched={() => {
+          setNotFoundOpen(false);
+          router.push(`/devices/new?serialNumber=${encodeURIComponent(notFoundSerial)}`);
         }}
       />
 

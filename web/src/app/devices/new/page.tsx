@@ -27,6 +27,7 @@ function NewDeviceFormWithParams() {
     if (searchParams.get("storage")) prefill.storage = searchParams.get("storage")!;
     if (searchParams.get("operatingSystem")) prefill.operatingSystem = searchParams.get("operatingSystem")!;
     if (searchParams.get("externalUrl")) prefill.externalUrl = searchParams.get("externalUrl")!;
+    if (searchParams.get("serialNumber")) prefill.serialNumber = searchParams.get("serialNumber")!;
     if (searchParams.get("isWifiEnabled")) prefill.isWifiEnabled = true;
     if (searchParams.get("isPramBatteryRemoved")) prefill.isPramBatteryRemoved = true;
 

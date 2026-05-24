@@ -269,6 +269,7 @@ interface DevicePrefill {
     additionalName?: string;
     manufacturer?: string;
     modelNumber?: string;
+    serialNumber?: string;
     releaseYear?: number;
     categoryId?: number;
     cpu?: string;
@@ -342,7 +343,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
         additionalName: prefill?.additionalName ?? "",
         manufacturer: prefill?.manufacturer ?? "",
         modelNumber: prefill?.modelNumber ?? "",
-        serialNumber: "",
+        serialNumber: prefill?.serialNumber ?? "",
         releaseYear: prefill?.releaseYear ?? new Date().getFullYear(),
         locationId: 0 as number,
         categoryId: prefill?.categoryId ?? 0,
