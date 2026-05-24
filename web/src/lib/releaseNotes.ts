@@ -22,6 +22,7 @@ export const releaseNotes: ReleaseEntry[] = [
       'Showcase admin: new journey now appears in the journeys list immediately after creation without requiring a page refresh',
       'Storefront Looking For page now shows the additional name (variant info) below the device name',
       'Dashboard thumbnails now respect browser light/dark mode (uses the same mode-specific thumbnail picker as the inventory grid)',
+      'Search now includes the OS field — searching "10.4" or "Sonoma" correctly matches all devices with that operating system',
     ],
   },
   {

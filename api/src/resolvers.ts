@@ -313,6 +313,7 @@ export const resolvers = {
                         device.ram,
                         device.graphics,
                         device.storage,
+                        device.operatingSystem,
                         device.info,
                         (device as any).location?.name,
                         ...device.tags.map(tag => tag.name),
