@@ -315,8 +315,12 @@ export const resolvers = {
                         device.storage,
                         device.operatingSystem,
                         device.info,
+                        device.releaseYear?.toString(),
                         (device as any).location?.name,
+                        (device as any).category?.name,
+                        ...(context.isAuthenticated ? [device.whereAcquired] : []),
                         ...device.tags.map(tag => tag.name),
+                        ...device.customFieldValues.map((cfv: any) => cfv.value),
                         ...(context.isAuthenticated ? device.notes.map(note => note.content) : []),
                         ...device.maintenanceTasks.map(task => task.label + ' ' + task.notes)
                     ].filter(Boolean).join(' ').toLowerCase()

@@ -309,7 +309,7 @@ A comprehensive list of all implemented features, organized by platform. Use thi
 
 **REST endpoints**: auth (login/refresh/status), file upload (10MB, auto-thumbnail), bulk ZIP import/export (2GB, async with progress polling), static file serving
 
-**Search**: Computed `searchText` field indexes name, additionalName, manufacturer, modelNumber, serialNumber, CPU, RAM, graphics, storage, OS, info, location name, tags, maintenance task labels/notes, and (when authenticated) notes for fast full-text search
+**Search**: Computed `searchText` field indexes name, additionalName, manufacturer, modelNumber, serialNumber, CPU, RAM, graphics, storage, OS, info, releaseYear, location name, category name, tags, custom field values, maintenance task labels/notes, and (when authenticated) notes and whereAcquired for fast full-text search
 
 ### Web Admin Dashboard (`/`)
 
