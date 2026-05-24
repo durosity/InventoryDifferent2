@@ -17,6 +17,7 @@ struct AddDeviceView: View {
     var onCreated: ((Int) -> Void)? = nil
 
     // Optional prefill values (from wishlist "Mark as Acquired" or barcode scanner)
+    var prefillTemplateId: Int?
     var prefillSerialNumber: String?
     var prefillName: String?
     var prefillAdditionalName: String?
@@ -168,6 +169,11 @@ struct AddDeviceView: View {
                 await loadCategories()
                 await loadTemplates()
                 await loadLocations()
+                // Auto-apply matched template from barcode decoder (before other prefills
+                // so that prefill values take precedence over template defaults)
+                if let id = prefillTemplateId, let template = templates.first(where: { $0.id == id }) {
+                    applyTemplate(template)
+                }
                 // Apply prefill values from wishlist "Mark as Acquired"
                 if let v = prefillSerialNumber, !v.isEmpty { serialNumber = v }
                 if let v = prefillName, !v.isEmpty { name = v }

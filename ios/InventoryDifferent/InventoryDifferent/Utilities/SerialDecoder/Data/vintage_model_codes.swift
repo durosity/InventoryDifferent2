@@ -77,8 +77,12 @@ let vintageModelCodes: [String: String?] = [
     "20C":      "Macintosh Quadra 660 AV",
 
     // --- Portable / PowerBook ---
+    "DM59":     "Macintosh Portable",
     "M61":      "Macintosh Portable (BackLit)",
+    "11P":      "PowerBook Duo 270c",
+    "15E":      "PowerBook 165",
     "492":      "PowerBook 160c",
+    "4ZP":      "PowerBook 190cs",
 
     // --- PowerMac ---
     "41Y":      "Power Macintosh 6100/60",

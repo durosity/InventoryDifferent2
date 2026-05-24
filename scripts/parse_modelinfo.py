@@ -17,17 +17,23 @@ from pathlib import Path
 
 def parse_enum(content):
     """Extract AppleModel enum values (index -> model identifier like 'MacBook1,1')."""
-    match = re.search(r'typedef enum\s+\{([^}]+)\}\s+AppleModel', content, re.DOTALL)
+    match = re.search(r'typedef enum\s*\{([^}]+)\}', content, re.DOTALL)
     if not match:
         raise ValueError("AppleModel enum not found")
     body = match.group(1)
-    names = [line.strip().rstrip(',') for line in body.splitlines()
-             if line.strip() and not line.strip().startswith('//')]
-    # Convert enum names like "MacBook11" -> "MacBook1,1" (insert comma before last digit group)
+    names = []
+    for line in body.splitlines():
+        line = line.strip().rstrip(',')
+        if not line or line.startswith('//') or line.startswith('/*'):
+            continue
+        # Strip inline comments
+        line = re.sub(r'\s*//.*$', '', line).strip().rstrip(',').strip()
+        if line:
+            names.append(line)
+    # Convert enum names like "MacBook1_1" -> "MacBook1,1"
     identifiers = []
     for name in names:
-        # Pattern: letters followed by digits optionally followed by digits
-        m = re.match(r'^([A-Za-z]+)(\d+)(\d)$', name)
+        m = re.match(r'^([A-Za-z]+)(\d+)_(\d+)$', name)
         if m:
             identifiers.append(f"{m.group(1)}{m.group(2)},{m.group(3)}")
         else:
@@ -35,40 +41,44 @@ def parse_enum(content):
     return identifiers
 
 
-def parse_descriptions(content):
-    """Extract AppleModelDesc array (index -> human-readable name string)."""
-    match = re.search(
-        r'STATIC\s+CONST\s+CHAR8\s+\*\s+AppleModelDesc\s*\[\s*\]\s*=\s*\{([^}]+)\}',
-        content, re.DOTALL
-    )
-    if not match:
-        raise ValueError("AppleModelDesc not found")
-    body = match.group(1)
-    descs = re.findall(r'"([^"]+)"', body)
-    return descs
-
-
 def parse_model_codes(content):
     """
-    Extract AppleModelCode array — for each model, an array of valid config code strings.
+    Extract AppleModelCode array — for each model (by index), an array of config code strings.
     Returns list of lists: model_codes[model_index] = [code1, code2, ...]
     """
-    # Find the entire AppleModelCode block
     match = re.search(
-        r'STATIC\s+CONST\s+CHAR8\s+\*\s+AppleModelCode\s*\[\s*\]\s*\[.*?\]\s*=\s*\{(.+?)\}\s*;',
+        r'static\s+const\s+char\s+\*AppleModelCode\[\s*\]\[.*?\]\s*=\s*\{(.+?)\}\s*;',
         content, re.DOTALL
     )
     if not match:
         raise ValueError("AppleModelCode not found")
     body = match.group(1)
-
-    # Each model's codes are in a nested { "CODE1", "CODE2", ..., NULL } block
-    model_blocks = re.findall(r'\{([^}]*)\}', body)
+    # Each model's codes are in a { "CODE1", "CODE2", ..., NULL } block (comment before each)
+    model_blocks = re.findall(r'/\*[^*]*\*/\s*\{([^}]*)\}', body)
+    if not model_blocks:
+        # Fallback: no comments, just find all {} blocks
+        model_blocks = re.findall(r'\{([^}]+)\}', body)
     result = []
     for block in model_blocks:
-        codes = [c.strip('"') for c in re.findall(r'"([^"]+)"', block)]
+        codes = re.findall(r'"([^"]+)"', block)
         result.append(codes)
     return result
+
+
+def parse_model_desc(content):
+    """
+    Extract AppleModelDesc array of {config_code, human_readable_name} pairs.
+    Returns dict: config_code -> human_readable_name
+    """
+    match = re.search(
+        r'APPLE_MODEL_DESC\s+AppleModelDesc\s*\[\s*\]\s*=\s*\{(.+?)\}\s*;',
+        content, re.DOTALL
+    )
+    if not match:
+        raise ValueError("AppleModelDesc not found")
+    body = match.group(1)
+    pairs = re.findall(r'\{["\'](.*?)["\'],\s*["\'](.*?)["\']\}', body)
+    return {code: name for code, name in pairs}
 
 
 def main():
@@ -80,23 +90,29 @@ def main():
     content = path.read_text(encoding='utf-8')
 
     identifiers = parse_enum(content)
-    descriptions = parse_descriptions(content)
     model_codes_list = parse_model_codes(content)
+    desc_map = parse_model_desc(content)  # config_code -> human name
 
-    if not (len(identifiers) == len(descriptions) == len(model_codes_list)):
-        print(
-            f"Warning: count mismatch — identifiers={len(identifiers)}, "
-            f"descriptions={len(descriptions)}, code_blocks={len(model_codes_list)}",
-            file=sys.stderr
-        )
+    print(f"Parsed {len(identifiers)} models, {len(model_codes_list)} code blocks, "
+          f"{len(desc_map)} desc entries", file=sys.stderr)
 
     # Build flat dict: config_code -> (identifier, description)
-    mapping: dict[str, tuple[str, str]] = {}
-    for i, (ident, desc) in enumerate(zip(identifiers, descriptions)):
+    # Priority: use desc_map for the human name; use model_codes_list for identifier
+    code_to_ident: dict[str, str] = {}
+    for i, ident in enumerate(identifiers):
         codes = model_codes_list[i] if i < len(model_codes_list) else []
         for code in codes:
-            if code not in mapping:
-                mapping[code] = (ident, desc)
+            if code not in code_to_ident:
+                code_to_ident[code] = ident
+
+    # Merge: all codes from desc_map (human name), with identifier from code_to_ident where known
+    all_codes = set(desc_map.keys()) | set(code_to_ident.keys())
+    mapping: dict[str, tuple[str, str]] = {}
+    for code in all_codes:
+        ident = code_to_ident.get(code, "")
+        name = desc_map.get(code, "")
+        if name:  # only include entries with a human-readable name
+            mapping[code] = (ident, name)
 
     # Emit Swift
     print("// Modern Apple Mac model lookup table.")
@@ -108,8 +124,7 @@ def main():
     print('let modernModelCodes: [String: ModernModelEntry] = [')
     for code in sorted(mapping):
         ident, desc = mapping[code]
-        # Escape quotes
-        safe_code = code.replace('"', '\\"')
+        safe_code = code.replace('"', '\\"').replace('\\', '\\\\')
         safe_ident = ident.replace('"', '\\"')
         safe_desc = desc.replace('"', '\\"')
         print(f'    "{safe_code}": ("{safe_ident}", "{safe_desc}"),')

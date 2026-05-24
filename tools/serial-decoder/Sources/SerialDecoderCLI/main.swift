@@ -112,6 +112,10 @@ func runTests() {
         TestCase(serial: "E838G8CA2S6000",expectedFormat: "vintage", expectedModelCode: "A2S6000", expectedModelName: "Apple IIgs (ROM 01)",      expectsWarning: false, note: "Apple IIgs — product# = model code"),
         TestCase(serial: "F4381C3M0001",  expectedFormat: "vintage", expectedModelCode: "M0001",   expectedModelName: "Macintosh 128K",           expectsWarning: false, note: "Spec example"),
         TestCase(serial: "CK5221KAM0001W",expectedFormat: "vintage", expectedModelCode: "M0001W",  expectedModelName: "Macintosh 512K",           expectsWarning: false, note: "CK two-char factory"),
+        TestCase(serial: "F3047M1DM59",   expectedFormat: "vintage", expectedModelCode: "DM59",    expectedModelName: "Macintosh Portable",       expectsWarning: false, note: "Mac Portable non-backlit"),
+        TestCase(serial: "F3204X511P",    expectedFormat: "vintage", expectedModelCode: "11P",     expectedModelName: "PowerBook Duo 270c",       expectsWarning: false, note: "PowerBook Duo 270c"),
+        TestCase(serial: "F5204AB4ZP",    expectedFormat: "vintage", expectedModelCode: "4ZP",     expectedModelName: "PowerBook 190cs",          expectsWarning: false, note: "PowerBook 190cs"),
+        TestCase(serial: "F3140KN15E",    expectedFormat: "vintage", expectedModelCode: "15E",     expectedModelName: "PowerBook 165",            expectsWarning: false, note: "PowerBook 165"),
         // Normalization test
         TestCase(serial: "f438-1c3-m0001",expectedFormat: "vintage", expectedModelCode: "M0001",   expectedModelName: "Macintosh 128K",           expectsWarning: false, note: "Lowercase + dashes — should normalize"),
 

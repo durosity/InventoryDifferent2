@@ -137,6 +137,13 @@ final class VintageDecoderTests: XCTestCase {
 
     // MARK: - Dispatcher routing
 
+    func testMacPortable_DM59() {
+        let result = VintageSerialDecoder.decode("F3047M1DM59")
+        guard case .success(let r) = result else { XCTFail("Expected success"); return }
+        XCTAssertEqual(r.modelCode, "DM59")
+        XCTAssertEqual(r.modelName, "Macintosh Portable")
+    }
+
     func testDispatcher_routesVintageCorrectly() {
         let result = AppleSerialDecoder.decode("F9472LNB02")
         guard case .vintage = result else { XCTFail("Expected vintage route"); return }

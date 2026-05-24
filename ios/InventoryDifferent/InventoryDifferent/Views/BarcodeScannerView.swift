@@ -26,6 +26,7 @@ struct BarcodeScannerView: View {
     @State private var decodedModelName: String?
     @State private var decodedFactory: String?
     @State private var decodedYear: Int?
+    @State private var matchedTemplateId: Int?
     @State private var cameraActive = true
 
     private var scanFrameSize: CGFloat {
@@ -95,7 +96,11 @@ struct BarcodeScannerView: View {
             .navigationDestination(item: $foundLocationId) { locationId in
                 LocationDetailView(locationId: locationId)
             }
-            .sheet(isPresented: $showNotFoundSheet) {
+            .sheet(isPresented: $showNotFoundSheet, onDismiss: {
+                if !showAddDevice {
+                    cameraActive = true
+                }
+            }) {
                 NotFoundSheet(
                     serial: notFoundSerial,
                     modelName: decodedModelName,
@@ -118,9 +123,10 @@ struct BarcodeScannerView: View {
             }
             .sheet(isPresented: $showAddDevice) {
                 AddDeviceView(
+                    prefillTemplateId: matchedTemplateId,
                     prefillSerialNumber: notFoundSerial,
-                    prefillName: decodedModelName,
-                    prefillManufacturer: decodedModelName != nil ? "Apple" : nil
+                    prefillName: matchedTemplateId == nil ? decodedModelName : nil,
+                    prefillManufacturer: matchedTemplateId == nil && decodedModelName != nil ? "Apple" : nil
                 )
                 .environmentObject(deviceStore)
                 .environmentObject(lm)
@@ -244,16 +250,54 @@ struct BarcodeScannerView: View {
         default:
             break
         }
+        let templateId = modelName != nil ? await findMatchingTemplate(modelName: modelName!) : nil
         await MainActor.run {
             isSearching = false
             notFoundSerial = serialNumber
             decodedModelName = modelName
             decodedFactory = factory
             decodedYear = year
+            matchedTemplateId = templateId
             showNotFoundSheet = true
         }
     }
     
+    private func findMatchingTemplate(modelName: String) async -> Int? {
+        let query = """
+        query GetTemplates {
+            templates {
+                id
+                name
+                additionalName
+            }
+        }
+        """
+        struct TemplateStub: Decodable {
+            let id: Int
+            let name: String
+            let additionalName: String?
+        }
+        struct Response: Decodable {
+            let templates: [TemplateStub]
+        }
+        guard let response = try? await APIService.shared.execute(
+            query: query,
+            variables: [:]
+        ) as Response else { return nil }
+
+        let needle = modelName.lowercased()
+        // Strip parenthetical suffixes for a broader match: "Apple IIgs (ROM 01)" -> "apple iigsᵒ"
+        let needleStripped = needle.replacingOccurrences(of: #"\s*\(.*?\)"#, with: "", options: .regularExpression)
+
+        return response.templates.first(where: { t in
+            let haystack = t.name.lowercased()
+            let haystackAlt = (t.additionalName ?? "").lowercased()
+            return haystack.contains(needle) || needle.contains(haystack)
+                || haystack.contains(needleStripped) || needleStripped.contains(haystack)
+                || (!haystackAlt.isEmpty && (haystackAlt.contains(needle) || needle.contains(haystackAlt)))
+        })?.id
+    }
+
     private func fetchDevice(id: Int) async -> Device? {
         print("[Scanner] fetchDevice called for ID: \(id)")
         do {
@@ -312,7 +356,10 @@ struct BarcodeScannerView: View {
                     caption
                     isShopImage
                     isThumbnail
+                    thumbnailMode
                     isListingImage
+                    mediaType
+                    duration
                 }
                 notes {
                     id
@@ -324,6 +371,7 @@ struct BarcodeScannerView: View {
                     label
                     dateCompleted
                     notes
+                    cost
                 }
                 tags {
                     id
