@@ -269,6 +269,50 @@ Instead, use one of these patterns:
 
 ---
 
+## Apple Serial Number Decoder (`tools/serial-decoder/`)
+
+A standalone Swift CLI that decodes Apple serial numbers to identify hardware models. Used to validate the algorithm before iOS integration.
+
+```bash
+cd tools/serial-decoder
+swift run SerialDecoderCLI F9472LNB02        # decode a single serial
+swift run SerialDecoderCLI --json F9472LNB02 # JSON output
+swift run SerialDecoderCLI --test            # run all test cases
+swift test                                   # run XCTest suite
+```
+
+### Adding model code mappings (vintage decoder)
+
+Edit `tools/serial-decoder/Sources/SerialDecoderLib/Data/vintage_model_codes.swift`:
+- Add an entry to `vintageModelCodes`: `"CODE": "Human-Readable Model Name"`
+- Add a corresponding test case to `Sources/SerialDecoderCLI/main.swift` in the `tests` array
+- Add an XCTest to `Tests/SerialDecoderTests/VintageDecoderTests.swift`
+- Run `swift run SerialDecoderCLI --test` and `swift test` to confirm both pass
+
+Sources for vintage model codes: [myoldmac.net](http://myoldmac.net/FAQ/Mac-Serialnumber-decoder-e.php), the [MacRumors serial format thread](https://forums.macrumors.com/threads/decoding-apple-serials-where-when-hardware-was-assembled-1983-2021-and-apple-model-numbers-1977-present.2310423/).
+
+### Regenerating the modern model table
+
+The modern decoder's lookup table (`Data/modern_models.swift`) is generated from OpenCorePkg:
+
+```bash
+# Download modelinfo_autogen.h from:
+# https://github.com/acidanthera/OpenCorePkg/tree/master/Utilities/macserial
+python3 scripts/parse_modelinfo.py path/to/modelinfo_autogen.h \
+  > tools/serial-decoder/Sources/SerialDecoderLib/Data/modern_models.swift
+```
+
+### Decoder format reference
+
+| Serial length | Format | Year range | Model identified by |
+|---|---|---|---|
+| 8–10 chars, digit at pos 2 | Vintage | 1983–1989 | Last N chars (model code) |
+| 11 chars | Modern (old) | 1989–2010 | Last 3 chars (config code) |
+| 12 chars | Modern (new) | 2010–2021 | Last 4 chars (config code) |
+| 12 chars, post-Apr 2021 | Randomized | 2021+ | Not decodable |
+
+---
+
 ## Feature Catalog
 
 A comprehensive list of all implemented features, organized by platform. Use this as a reference when planning new features to avoid duplication and ensure consistency across platforms.
