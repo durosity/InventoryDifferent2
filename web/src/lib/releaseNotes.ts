@@ -24,6 +24,7 @@ export const releaseNotes: ReleaseEntry[] = [
       'Storefront Looking For page now shows the additional name (variant info) below the device name',
       'Dashboard thumbnails now respect browser light/dark mode (uses the same mode-specific thumbnail picker as the inventory grid)',
       'Search now includes OS, release year, category name, custom field values, and (when authenticated) acquisition source — previously these fields were silently excluded',
+      'Barcode scanner serial number lookup now correctly filters by serial number — previously the filter was silently ignored and the first device in the database was always returned',
     ],
   },
   {

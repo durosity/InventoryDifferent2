@@ -289,6 +289,11 @@ export const resolvers = {
                 whereClause.locationId = { in: args.where.location.id.in };
             }
 
+            // Handle serialNumber filter
+            if (args.where?.serialNumber?.equals !== undefined) {
+                whereClause.serialNumber = args.where.serialNumber.equals;
+            }
+
             const devices = await context.prisma.device.findMany({
                 where: whereClause,
                 include: DEVICE_INCLUDE,
