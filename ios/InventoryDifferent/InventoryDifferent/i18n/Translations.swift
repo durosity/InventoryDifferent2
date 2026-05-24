@@ -279,6 +279,13 @@ struct Translations {
         let pointCamera: String
         let scannedEmpty: String
         let notFound: String
+        let notInInventory: String
+        let serialNotFound: String
+        let identifiedAs: String
+        let unknownDevice: String
+        let addNewDevice: String
+        let scanAgain: String
+        let manufacturedIn: String
     }
 
     // MARK: - Locations List

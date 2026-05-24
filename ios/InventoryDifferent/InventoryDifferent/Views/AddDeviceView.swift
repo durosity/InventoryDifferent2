@@ -16,7 +16,8 @@ struct AddDeviceView: View {
     // Called with the new device ID after a successful save; nil = just dismiss
     var onCreated: ((Int) -> Void)? = nil
 
-    // Optional prefill values (from wishlist "Mark as Acquired")
+    // Optional prefill values (from wishlist "Mark as Acquired" or barcode scanner)
+    var prefillSerialNumber: String?
     var prefillName: String?
     var prefillAdditionalName: String?
     var prefillManufacturer: String?
@@ -168,6 +169,7 @@ struct AddDeviceView: View {
                 await loadTemplates()
                 await loadLocations()
                 // Apply prefill values from wishlist "Mark as Acquired"
+                if let v = prefillSerialNumber, !v.isEmpty { serialNumber = v }
                 if let v = prefillName, !v.isEmpty { name = v }
                 if let v = prefillAdditionalName, !v.isEmpty { additionalName = v }
                 if let v = prefillManufacturer, !v.isEmpty { manufacturer = v }

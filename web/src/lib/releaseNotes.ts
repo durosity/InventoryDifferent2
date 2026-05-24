@@ -15,6 +15,7 @@ export const releaseNotes: ReleaseEntry[] = [
     added: [
       'Usage page: scan for orphaned files (files on disk not referenced by any image record) and delete them individually or in bulk',
       'Logout endpoint (/auth/logout) revokes the refresh token so a leaked token cannot be used to regain access',
+      'iOS barcode scanner: when a serial number is not in your inventory, a bottom sheet now decodes Apple serial numbers (pre-2021) to identify the model and offers to pre-fill the Add Device form',
     ],
     changed: [],
     fixed: [

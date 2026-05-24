@@ -521,7 +521,14 @@ extension Translations {
             lookingUp: "Buscando dispositivo...",
             pointCamera: "Apunta la cámara al código de barras o QR",
             scannedEmpty: "El valor escaneado está vacío",
-            notFound: "No se encontró ningún dispositivo para: "
+            notFound: "No se encontró ningún dispositivo para: ",
+            notInInventory: "No está en tu inventario",
+            serialNotFound: "Este número de serie no está en tu colección.",
+            identifiedAs: "Identificado como",
+            unknownDevice: "Dispositivo desconocido",
+            addNewDevice: "Añadir nuevo dispositivo",
+            scanAgain: "Escanear de nuevo",
+            manufacturedIn: "Fabricado en"
         ),
         timeline: .init(
             title: "Línea de tiempo",

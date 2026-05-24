@@ -20,6 +20,13 @@ struct BarcodeScannerView: View {
     @State private var foundLocationId: Int?
     @State private var selectedTab = 0
 
+    @State private var showNotFoundSheet = false
+    @State private var showAddDevice = false
+    @State private var notFoundSerial = ""
+    @State private var decodedModelName: String?
+    @State private var decodedFactory: String?
+    @State private var decodedYear: Int?
+
     private var scanFrameSize: CGFloat {
         let base = min(UIScreen.main.bounds.width, UIScreen.main.bounds.height)
         return max(220, min(340, base * 0.7))
@@ -86,6 +93,35 @@ struct BarcodeScannerView: View {
             }
             .navigationDestination(item: $foundLocationId) { locationId in
                 LocationDetailView(locationId: locationId)
+            }
+            .sheet(isPresented: $showNotFoundSheet) {
+                NotFoundSheet(
+                    serial: notFoundSerial,
+                    modelName: decodedModelName,
+                    factory: decodedFactory,
+                    year: decodedYear,
+                    onAddDevice: {
+                        showNotFoundSheet = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            showAddDevice = true
+                        }
+                    },
+                    onScanAgain: {
+                        showNotFoundSheet = false
+                    }
+                )
+                .environmentObject(lm)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: $showAddDevice) {
+                AddDeviceView(
+                    prefillSerialNumber: notFoundSerial,
+                    prefillName: decodedModelName,
+                    prefillManufacturer: decodedModelName != nil ? "Apple" : nil
+                )
+                .environmentObject(deviceStore)
+                .environmentObject(lm)
             }
         }
     }
@@ -186,16 +222,27 @@ struct BarcodeScannerView: View {
         }
         
         print("[Scanner] No device found for: \(serialNumber)")
-        // Not found
+        let decoded = AppleSerialDecoder.decode(serialNumber)
+        var modelName: String? = nil
+        var factory: String? = nil
+        var year: Int? = nil
+        switch decoded {
+        case .vintage(let r):
+            modelName = r.modelName
+            factory = r.factory
+            year = r.year
+        case .modern(let r):
+            modelName = r.modelName
+        default:
+            break
+        }
         await MainActor.run {
             isSearching = false
-            errorMessage = lm.t.barcodeScanner.notFound + serialNumber
-        }
-        
-        // Reset after delay to allow scanning again
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
-        await MainActor.run {
-            errorMessage = nil
+            notFoundSerial = serialNumber
+            decodedModelName = modelName
+            decodedFactory = factory
+            decodedYear = year
+            showNotFoundSheet = true
         }
     }
     

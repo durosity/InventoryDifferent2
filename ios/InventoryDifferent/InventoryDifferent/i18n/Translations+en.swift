@@ -522,7 +522,14 @@ extension Translations {
             lookingUp: "Looking up device...",
             pointCamera: "Point camera at barcode or QR code",
             scannedEmpty: "Scanned value is empty",
-            notFound: "No device found for: "
+            notFound: "No device found for: ",
+            notInInventory: "Not in Your Inventory",
+            serialNotFound: "This serial number isn't in your collection.",
+            identifiedAs: "Identified as",
+            unknownDevice: "Unknown device",
+            addNewDevice: "Add New Device",
+            scanAgain: "Scan Again",
+            manufacturedIn: "Manufactured in"
         ),
         timeline: .init(
             title: "Timeline",
