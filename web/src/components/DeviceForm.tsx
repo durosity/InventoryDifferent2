@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery, useApolloClient } from "@apollo/client";
 import gql from "graphql-tag";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -319,6 +319,7 @@ const getLocalDateInputValue = () => {
 export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
     const t = useT();
     const router = useRouter();
+    const apolloClient = useApolloClient();
     const { data: categoriesData } = useQuery(GET_CATEGORIES);
     const { data: locationsData, refetch: refetchLocations } = useQuery(GET_LOCATIONS);
     const { data: templatesData } = useQuery(GET_TEMPLATES);
@@ -619,8 +620,10 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
         try {
             let deviceId: number;
             if (mode === "create") {
-                const result = await createDevice({ variables: { input }, refetchQueries: ['GetDevicesNew'] });
+                const result = await createDevice({ variables: { input } });
                 deviceId = result.data.createDevice.id;
+                apolloClient.cache.evict({ fieldName: 'devices' });
+                apolloClient.cache.gc();
             } else {
                 await updateDevice({ variables: { input: { ...input, id: device!.id } } });
                 deviceId = device!.id;
