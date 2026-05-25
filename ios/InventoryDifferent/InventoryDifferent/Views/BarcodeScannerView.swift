@@ -299,15 +299,28 @@ struct BarcodeScannerView: View {
         ) as Response else { return nil }
 
         let needle = modelName.lowercased()
-        // Strip parenthetical suffixes for a broader match: "Apple IIgs (ROM 01)" -> "apple iigsᵒ"
+        // Strip parenthetical suffixes for a broader match: "Apple IIgs (ROM 01)" -> "apple iigs"
         let needleStripped = needle.replacingOccurrences(of: #"\s*\(.*?\)"#, with: "", options: .regularExpression)
+
+        // Normalized form: remove spaces + treat "mac"/"macintosh" as equivalent.
+        // Handles "Power Mac G3 Minitower" (decoder) matching "Power Macintosh G3 MiniTower" (template).
+        func normKey(_ s: String) -> String {
+            s.lowercased()
+             .replacingOccurrences(of: "macintosh", with: "mac")
+             .components(separatedBy: .whitespacesAndNewlines).joined()
+        }
+        let normNeedle = normKey(needleStripped)
 
         return response.templates.first(where: { t in
             let haystack = t.name.lowercased()
             let haystackAlt = (t.additionalName ?? "").lowercased()
+            let normHaystack = normKey(t.name)
+            let normHaystackAlt = normKey(t.additionalName ?? "")
             return haystack.contains(needle) || needle.contains(haystack)
                 || haystack.contains(needleStripped) || needleStripped.contains(haystack)
+                || normHaystack.contains(normNeedle) || normNeedle.contains(normHaystack)
                 || (!haystackAlt.isEmpty && (haystackAlt.contains(needle) || needle.contains(haystackAlt)))
+                || (!normHaystackAlt.isEmpty && (normHaystackAlt.contains(normNeedle) || normNeedle.contains(normHaystackAlt)))
         })?.id
     }
 
