@@ -270,6 +270,7 @@ interface DevicePrefill {
     manufacturer?: string;
     modelNumber?: string;
     serialNumber?: string;
+    templateId?: number;
     releaseYear?: number;
     categoryId?: number;
     cpu?: string;
@@ -552,6 +553,14 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
             setLinks(prev => prev.filter(l => l._fromTemplate !== true));
         }
     };
+
+    // Apply prefill template once the template list has loaded
+    useEffect(() => {
+        if (prefill?.templateId && templates.length > 0) {
+            applyTemplate(prefill.templateId);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [prefill?.templateId, templates.length]);
 
     const validate = () => {
         const newErrors: Record<string, string> = {};

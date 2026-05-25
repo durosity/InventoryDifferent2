@@ -28,6 +28,10 @@ function NewDeviceFormWithParams() {
     if (searchParams.get("operatingSystem")) prefill.operatingSystem = searchParams.get("operatingSystem")!;
     if (searchParams.get("externalUrl")) prefill.externalUrl = searchParams.get("externalUrl")!;
     if (searchParams.get("serialNumber")) prefill.serialNumber = searchParams.get("serialNumber")!;
+    if (searchParams.get("templateId")) {
+        const tplId = parseInt(searchParams.get("templateId")!, 10);
+        if (!isNaN(tplId)) prefill.templateId = tplId;
+    }
     if (searchParams.get("isWifiEnabled")) prefill.isWifiEnabled = true;
     if (searchParams.get("isPramBatteryRemoved")) prefill.isPramBatteryRemoved = true;
 

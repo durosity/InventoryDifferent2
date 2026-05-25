@@ -82,6 +82,16 @@ const GET_DEVICE_BY_SERIAL = gql`
   }
 `;
 
+const GET_TEMPLATES_FOR_MATCHING = gql`
+  query GetTemplatesForMatching {
+    templates {
+      id
+      name
+      additionalName
+    }
+  }
+`;
+
 interface FilterState {
   categoryIds: number[];
   statuses: string[];
@@ -131,8 +141,10 @@ export default function ListNewPage() {
   const [notFoundSerial, setNotFoundSerial] = useState('');
   const [notFoundModelName, setNotFoundModelName] = useState<string | undefined>();
   const [notFoundYear, setNotFoundYear] = useState<number | undefined>();
+  const [notFoundTemplateId, setNotFoundTemplateId] = useState<number | undefined>();
   const assetScanFormats = useMemo(() => ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'itf'], []);
   const [getDeviceBySerial] = useLazyQuery(GET_DEVICE_BY_SERIAL);
+  const [getTemplatesForMatching] = useLazyQuery(GET_TEMPLATES_FOR_MATCHING);
   const [healthFilters, setHealthFilters] = useState({
     noImages: false,
     noNotes: false,
@@ -300,6 +312,31 @@ export default function ListNewPage() {
     setBarcodeSupported(typeof BarcodeDetectorCtor === 'function' && !!navigator?.mediaDevices?.getUserMedia);
   }, []);
 
+  // Same normalized matching logic as iOS findMatchingTemplate
+  const findMatchingTemplate = async (modelName: string): Promise<number | undefined> => {
+    const result = await getTemplatesForMatching().catch(() => null);
+    const templates: { id: number; name: string; additionalName?: string }[] =
+      result?.data?.templates ?? [];
+    if (!templates.length) return undefined;
+
+    const needle = modelName.toLowerCase().replace(/\s*\(.*?\)/g, '').trim();
+    const normKey = (s: string) =>
+      s.toLowerCase().replace(/macintosh/g, 'mac').replace(/\s+/g, '');
+    const normNeedle = normKey(needle);
+
+    const match = templates.find(t => {
+      const h = t.name.toLowerCase();
+      const hAlt = (t.additionalName ?? '').toLowerCase();
+      const normH = normKey(t.name);
+      const normHAlt = normKey(t.additionalName ?? '');
+      return h.includes(needle) || needle.includes(h)
+        || normH.includes(normNeedle) || normNeedle.includes(normH)
+        || (hAlt && (hAlt.includes(needle) || needle.includes(hAlt)))
+        || (normHAlt && (normHAlt.includes(normNeedle) || normNeedle.includes(normHAlt)));
+    });
+    return match?.id;
+  };
+
   if (loading && !data) {
     return (
       <>
@@ -362,9 +399,11 @@ export default function ListNewPage() {
             const decoded = decodeAppleSerial(serialNumber);
             const modelName = (decoded.type === 'vintage' || decoded.type === 'modern') ? decoded.modelName : undefined;
             const year = decoded.type === 'vintage' ? decoded.year : undefined;
+            const templateId = modelName ? await findMatchingTemplate(modelName) : undefined;
             setNotFoundSerial(serialNumber);
             setNotFoundModelName(modelName);
             setNotFoundYear(year);
+            setNotFoundTemplateId(templateId);
             setAssetScanOpen(false);
             setAssetScanMessage('');
             setNotFoundOpen(true);
@@ -391,7 +430,11 @@ export default function ListNewPage() {
         onAddDevice={() => {
           setNotFoundOpen(false);
           const params = new URLSearchParams({ serialNumber: notFoundSerial });
-          if (notFoundModelName) params.set('name', notFoundModelName);
+          if (notFoundTemplateId) {
+            params.set('templateId', String(notFoundTemplateId));
+          } else if (notFoundModelName) {
+            params.set('name', notFoundModelName);
+          }
           router.push(`/devices/new?${params.toString()}`);
         }}
         onAddDeviceUnmatched={() => {
