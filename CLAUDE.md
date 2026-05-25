@@ -281,25 +281,41 @@ swift run SerialDecoderCLI --test            # run all test cases
 swift test                                   # run XCTest suite
 ```
 
-### Adding model code mappings (vintage decoder)
+### Adding or updating model codes
 
-Edit `tools/serial-decoder/Sources/SerialDecoderLib/Data/vintage_model_codes.swift`:
-- Add an entry to `vintageModelCodes`: `"CODE": "Human-Readable Model Name"`
-- Add a corresponding test case to `Sources/SerialDecoderCLI/main.swift` in the `tests` array
-- Add an XCTest to `Tests/SerialDecoderTests/VintageDecoderTests.swift`
-- Run `swift run SerialDecoderCLI --test` and `swift test` to confirm both pass
+The canonical data lives in two JSON files — edit these, never the generated Swift/TS files:
+
+- **`tools/decoder-data/modern_models.json`** — array of `[configCode, modelIdentifier, modelName]`
+- **`tools/decoder-data/vintage_model_codes.json`** — object of `{modelCode: name | null}`
+
+After editing, run the generator to update all platform files at once:
+
+```bash
+python3 scripts/generate_decoder_data.py
+```
+
+This regenerates:
+- `ios/.../SerialDecoder/Data/modern_models.swift` (chunked, avoids swift-frontend OOM)
+- `ios/.../SerialDecoder/Data/vintage_model_codes.swift`
+- `tools/serial-decoder/Sources/SerialDecoderLib/Data/modern_models.swift`
+- `tools/serial-decoder/Sources/SerialDecoderLib/Data/vintage_model_codes.swift`
+- `web/src/lib/modern_models.json` (imported directly by TypeScript — no TS wrapper needed)
+- `web/src/lib/vintage_model_codes.json`
+
+Commit all generated files together with the JSON source change.
 
 Sources for vintage model codes: [myoldmac.net](http://myoldmac.net/FAQ/Mac-Serialnumber-decoder-e.php), the [MacRumors serial format thread](https://forums.macrumors.com/threads/decoding-apple-serials-where-when-hardware-was-assembled-1983-2021-and-apple-model-numbers-1977-present.2310423/).
 
-### Regenerating the modern model table
+### Regenerating the modern model table from OpenCorePkg
 
-The modern decoder's lookup table (`Data/modern_models.swift`) is generated from OpenCorePkg:
+To pull in a new upstream release of the model database:
 
 ```bash
 # Download modelinfo_autogen.h from:
 # https://github.com/acidanthera/OpenCorePkg/tree/master/Utilities/macserial
 python3 scripts/parse_modelinfo.py path/to/modelinfo_autogen.h \
-  > tools/serial-decoder/Sources/SerialDecoderLib/Data/modern_models.swift
+  > tools/decoder-data/modern_models.json   # update the canonical source
+python3 scripts/generate_decoder_data.py    # regenerate all platform files
 ```
 
 ### Decoder format reference

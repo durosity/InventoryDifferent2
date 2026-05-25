@@ -42,7 +42,7 @@ public struct ModernSerialDecoder {
         let factoryCode = String(normalized.prefix(2))
         let (modelId, modelName) = lookupModernModel(configCode)
         var warnings: [String] = []
-        if modelId == nil {
+        if modelId == nil && modelName == nil {
             warnings.append("Config code '\(configCode)' not found in modern model database.")
         }
         return ModernSerialResult(
@@ -61,7 +61,7 @@ public struct ModernSerialDecoder {
         let factoryCode = String(normalized.prefix(2))
         let (modelId, modelName) = lookupModernModel(configCode)
         var warnings: [String] = []
-        if modelId == nil {
+        if modelId == nil && modelName == nil {
             warnings.append("Config code '\(configCode)' not found in modern model database. This may be a post-April 2021 serial, which is cryptographically randomized and cannot be decoded.")
         }
         return ModernSerialResult(
