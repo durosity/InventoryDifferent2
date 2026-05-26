@@ -2137,6 +2137,7 @@ struct DevicePhotosChildView: View {
     @State private var showImagePicker = false
     @State private var showGenerateImageSheet = false
     @State private var openaiEnabled = false
+    @State private var imageToEdit: DeviceImage?
 
     var body: some View {
         let t = lm.t
@@ -2230,6 +2231,13 @@ struct DevicePhotosChildView: View {
             }
             Button(lm.t.common.cancel, role: .cancel) { imageForThumbnailChoice = nil }
         } message: { Text(lm.t.deviceDetail.chooseThumbnailMessage) }
+        .sheet(item: $imageToEdit) { img in
+            EditPhotoView(image: img) { updated in
+                images = images.map { $0.id == updated.id ? updated : $0 }
+                imageToEdit = nil
+            }
+            .environmentObject(lm)
+        }
         .task {
             openaiEnabled = await DeviceService.shared.checkOpenAIEnabled()
         }
@@ -2275,14 +2283,23 @@ struct DevicePhotosChildView: View {
                                 .clipShape(Circle())
                         }
                         Spacer()
-                        Button {
-                            imageToDelete = image
-                            showDeleteImageAlert = true
+                        Menu {
+                            Button {
+                                imageToEdit = image
+                            } label: {
+                                Label(lm.t.imageManagement.editPhoto, systemImage: "crop.rotate")
+                            }
+                            Button(role: .destructive) {
+                                imageToDelete = image
+                                showDeleteImageAlert = true
+                            } label: {
+                                Label(lm.t.common.delete, systemImage: "trash")
+                            }
                         } label: {
-                            Image(systemName: "trash.fill")
+                            Image(systemName: "ellipsis")
                                 .font(.system(size: 16)).foregroundColor(.white)
                                 .frame(width: 44, height: 44)
-                                .background(Color.red.opacity(0.85))
+                                .background(Color.black.opacity(0.55))
                                 .clipShape(Circle())
                         }
                     }
