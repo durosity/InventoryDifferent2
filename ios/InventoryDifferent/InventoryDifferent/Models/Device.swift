@@ -178,6 +178,12 @@ struct DeviceImage: Codable, Identifiable {
     let id: Int
     let path: String
     let thumbnailPath: String?
+    let originalPath: String?
+    let rotation: Int?
+    let cropLeft: Double?
+    let cropTop: Double?
+    let cropWidth: Double?
+    let cropHeight: Double?
     let dateTaken: String?
     let caption: String?
     let isShopImage: Bool

@@ -178,6 +178,12 @@ class DeviceService {
                     id
                     path
                     thumbnailPath
+                    originalPath
+                    rotation
+                    cropLeft
+                    cropTop
+                    cropWidth
+                    cropHeight
                     dateTaken
                     caption
                     isShopImage
@@ -271,6 +277,12 @@ class DeviceService {
                     id
                     path
                     thumbnailPath
+                    originalPath
+                    rotation
+                    cropLeft
+                    cropTop
+                    cropWidth
+                    cropHeight
                     dateTaken
                     caption
                     isShopImage
@@ -547,6 +559,12 @@ class DeviceService {
                     id
                     path
                     thumbnailPath
+                    originalPath
+                    rotation
+                    cropLeft
+                    cropTop
+                    cropWidth
+                    cropHeight
                     dateTaken
                     caption
                     isShopImage
@@ -623,6 +641,12 @@ class DeviceService {
                 id
                 path
                 thumbnailPath
+                originalPath
+                rotation
+                cropLeft
+                cropTop
+                cropWidth
+                cropHeight
                 dateTaken
                 caption
                 isShopImage
@@ -677,6 +701,78 @@ class DeviceService {
         return response.deleteImage
     }
     
+    func editImage(id: Int, rotation: Int, cropLeft: Double?, cropTop: Double?, cropWidth: Double?, cropHeight: Double?) async throws -> DeviceImage {
+        let mutation = """
+        mutation EditImage($id: Int!, $rotation: Int!, $cropLeft: Float, $cropTop: Float, $cropWidth: Float, $cropHeight: Float) {
+            editImage(id: $id, rotation: $rotation, cropLeft: $cropLeft, cropTop: $cropTop, cropWidth: $cropWidth, cropHeight: $cropHeight) {
+                id
+                path
+                thumbnailPath
+                originalPath
+                rotation
+                cropLeft
+                cropTop
+                cropWidth
+                cropHeight
+                dateTaken
+                caption
+                isShopImage
+                isThumbnail
+                thumbnailMode
+                isListingImage
+                mediaType
+                duration
+            }
+        }
+        """
+
+        var variables: [String: Any] = ["id": id, "rotation": rotation]
+        if let v = cropLeft   { variables["cropLeft"]   = v }
+        if let v = cropTop    { variables["cropTop"]    = v }
+        if let v = cropWidth  { variables["cropWidth"]  = v }
+        if let v = cropHeight { variables["cropHeight"] = v }
+
+        struct Response: Decodable {
+            let editImage: DeviceImage
+        }
+
+        let response: Response = try await api.execute(query: mutation, variables: variables)
+        return response.editImage
+    }
+
+    func resetImageEdits(id: Int) async throws -> DeviceImage {
+        let mutation = """
+        mutation ResetImageEdits($id: Int!) {
+            resetImageEdits(id: $id) {
+                id
+                path
+                thumbnailPath
+                originalPath
+                rotation
+                cropLeft
+                cropTop
+                cropWidth
+                cropHeight
+                dateTaken
+                caption
+                isShopImage
+                isThumbnail
+                thumbnailMode
+                isListingImage
+                mediaType
+                duration
+            }
+        }
+        """
+
+        struct Response: Decodable {
+            let resetImageEdits: DeviceImage
+        }
+
+        let response: Response = try await api.execute(query: mutation, variables: ["id": id])
+        return response.resetImageEdits
+    }
+
     func uploadImage(deviceId: Int, mediaData: Data, filename: String = "image.jpg", mimeType: String = "image/jpeg") async throws -> DeviceImage {
         // Step 1: Upload file to /upload endpoint
         let boundary = UUID().uuidString
@@ -719,6 +815,12 @@ class DeviceService {
                 id
                 path
                 thumbnailPath
+                originalPath
+                rotation
+                cropLeft
+                cropTop
+                cropWidth
+                cropHeight
                 dateTaken
                 caption
                 isShopImage
@@ -925,6 +1027,12 @@ class DeviceService {
                     id
                     path
                     thumbnailPath
+                    originalPath
+                    rotation
+                    cropLeft
+                    cropTop
+                    cropWidth
+                    cropHeight
                     dateTaken
                     caption
                     isShopImage
@@ -1086,6 +1194,12 @@ class DeviceService {
                     id
                     path
                     thumbnailPath
+                    originalPath
+                    rotation
+                    cropLeft
+                    cropTop
+                    cropWidth
+                    cropHeight
                     dateTaken
                     caption
                     isShopImage

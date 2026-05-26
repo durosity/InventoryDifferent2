@@ -473,7 +473,8 @@ extension Translations {
             setListingImage: "Establecer como imagen de anuncio",
             deleteImage: "Eliminar imagen",
             deleteTitle: "¿Eliminar esta imagen?",
-            deleteMessage: "Esta acción no se puede deshacer."
+            deleteMessage: "Esta acción no se puede deshacer.",
+            editPhoto: "Editar foto"
         ),
         note: .init(
             addTitle: "Añadir nota",
@@ -565,6 +566,13 @@ extension Translations {
             errorLoading: "Error al cargar la ubicación",
             noDevices: "No hay dispositivos en esta ubicación",
             deviceCountFmt: "%d dispositivos"
+        ),
+        editPhoto: .init(
+            title: "Editar foto",
+            rotateLeft: "Girar a la izquierda",
+            rotateRight: "Girar a la derecha",
+            saveEdits: "Guardar cambios",
+            resetToOriginal: "Restaurar original"
         )
     )
 }

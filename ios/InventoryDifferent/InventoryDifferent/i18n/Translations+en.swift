@@ -474,7 +474,8 @@ extension Translations {
             setListingImage: "Set as Listing Image",
             deleteImage: "Delete Image",
             deleteTitle: "Delete this image?",
-            deleteMessage: "This action cannot be undone."
+            deleteMessage: "This action cannot be undone.",
+            editPhoto: "Edit Photo"
         ),
         note: .init(
             addTitle: "Add Note",
@@ -566,6 +567,13 @@ extension Translations {
             errorLoading: "Error loading location",
             noDevices: "No devices at this location",
             deviceCountFmt: "%d devices"
+        ),
+        editPhoto: .init(
+            title: "Edit Photo",
+            rotateLeft: "Rotate Left",
+            rotateRight: "Rotate Right",
+            saveEdits: "Save Edits",
+            resetToOriginal: "Reset to Original"
         )
     )
 }

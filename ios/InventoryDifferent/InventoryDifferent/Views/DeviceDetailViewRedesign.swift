@@ -305,6 +305,9 @@ struct DeviceDetailRedesignView: View {
                     images = images.map { img in
                         img.id == newImage.id ? img : DeviceImage(
                             id: img.id, path: img.path, thumbnailPath: img.thumbnailPath,
+                            originalPath: img.originalPath, rotation: img.rotation,
+                            cropLeft: img.cropLeft, cropTop: img.cropTop,
+                            cropWidth: img.cropWidth, cropHeight: img.cropHeight,
                             dateTaken: img.dateTaken, caption: img.caption,
                             isShopImage: img.isShopImage, isThumbnail: false,
                             thumbnailMode: img.thumbnailMode, isListingImage: img.isListingImage,
@@ -2197,6 +2200,9 @@ struct DevicePhotosChildView: View {
                     images = images.map { img in
                         img.id == newImage.id ? img : DeviceImage(
                             id: img.id, path: img.path, thumbnailPath: img.thumbnailPath,
+                            originalPath: img.originalPath, rotation: img.rotation,
+                            cropLeft: img.cropLeft, cropTop: img.cropTop,
+                            cropWidth: img.cropWidth, cropHeight: img.cropHeight,
                             dateTaken: img.dateTaken, caption: img.caption,
                             isShopImage: img.isShopImage, isThumbnail: false,
                             thumbnailMode: img.thumbnailMode, isListingImage: img.isListingImage,

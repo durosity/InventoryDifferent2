@@ -228,6 +228,12 @@ struct Translations {
         let title, done, imageSettings: String
         let setThumbnail, removeFromShop, addToShop, setListingImage: String
         let deleteImage, deleteTitle, deleteMessage: String
+        let editPhoto: String
+    }
+
+    // MARK: - Edit Photo
+    struct EditPhotoT {
+        let title, rotateLeft, rotateRight, saveEdits, resetToOriginal: String
     }
 
     // MARK: - Add Note / Edit Note
@@ -360,4 +366,5 @@ struct Translations {
     let settings: SettingsT
     let locationsList: LocationsListT
     let locationDetail: LocationT
+    let editPhoto: EditPhotoT
 }

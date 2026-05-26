@@ -16,6 +16,7 @@ struct ImageManagementView: View {
 
     @State private var isUpdating = false
     @State private var showDeleteConfirmation = false
+    @State private var showEditPhoto = false
     @State private var error: String?
 
     var body: some View {
@@ -111,6 +112,23 @@ struct ImageManagementView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
                                 }
                                 .disabled(isUpdating || image.isListingImage)
+
+                                Button {
+                                    showEditPhoto = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "crop.rotate")
+                                        Text(t.imageManagement.editPhoto)
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .foregroundColor(.primary)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                                .disabled(isUpdating)
                             }
 
                             if image.mediaType == "VIDEO", let secs = image.duration {
@@ -196,6 +214,13 @@ struct ImageManagementView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showEditPhoto) {
+                EditPhotoView(image: image) { updated in
+                    onUpdate(updated)
+                    dismiss()
+                }
+                .environmentObject(lm)
+            }
         }
     }
     
@@ -225,6 +250,12 @@ struct ImageManagementView: View {
             id: 1,
             path: "/uploads/devices/1/image.jpg",
             thumbnailPath: nil,
+            originalPath: nil,
+            rotation: nil,
+            cropLeft: nil,
+            cropTop: nil,
+            cropWidth: nil,
+            cropHeight: nil,
             dateTaken: nil,
             caption: nil,
             isShopImage: false,

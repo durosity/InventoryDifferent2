@@ -473,7 +473,8 @@ extension Translations {
             setListingImage: "Définir comme image d'annonce",
             deleteImage: "Supprimer l'image",
             deleteTitle: "Supprimer cette image ?",
-            deleteMessage: "Cette action ne peut pas être annulée."
+            deleteMessage: "Cette action ne peut pas être annulée.",
+            editPhoto: "Modifier la photo"
         ),
         note: .init(
             addTitle: "Ajouter une note",
@@ -565,6 +566,13 @@ extension Translations {
             errorLoading: "Erreur lors du chargement de l'emplacement",
             noDevices: "Aucun appareil à cet emplacement",
             deviceCountFmt: "%d appareils"
+        ),
+        editPhoto: .init(
+            title: "Modifier la photo",
+            rotateLeft: "Rotation gauche",
+            rotateRight: "Rotation droite",
+            saveEdits: "Enregistrer",
+            resetToOriginal: "Restaurer l'original"
         )
     )
 }

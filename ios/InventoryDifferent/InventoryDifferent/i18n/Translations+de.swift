@@ -474,7 +474,8 @@ extension Translations {
             setListingImage: "Als Inserat-Bild festlegen",
             deleteImage: "Bild löschen",
             deleteTitle: "Dieses Bild löschen?",
-            deleteMessage: "Diese Aktion kann nicht rückgängig gemacht werden."
+            deleteMessage: "Diese Aktion kann nicht rückgängig gemacht werden.",
+            editPhoto: "Foto bearbeiten"
         ),
         note: .init(
             addTitle: "Notiz hinzufügen",
@@ -566,6 +567,13 @@ extension Translations {
             errorLoading: "Fehler beim Laden des Standorts",
             noDevices: "Keine Geräte an diesem Standort",
             deviceCountFmt: "%d Geräte"
+        ),
+        editPhoto: .init(
+            title: "Foto bearbeiten",
+            rotateLeft: "Links drehen",
+            rotateRight: "Rechts drehen",
+            saveEdits: "Änderungen speichern",
+            resetToOriginal: "Original wiederherstellen"
         )
     )
 }
