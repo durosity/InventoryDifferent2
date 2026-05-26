@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "Image" ADD COLUMN     "cropHeight" DOUBLE PRECISION,
+ADD COLUMN     "cropLeft" DOUBLE PRECISION,
+ADD COLUMN     "cropTop" DOUBLE PRECISION,
+ADD COLUMN     "cropWidth" DOUBLE PRECISION,
+ADD COLUMN     "originalPath" TEXT,
+ADD COLUMN     "rotation" INTEGER NOT NULL DEFAULT 0;

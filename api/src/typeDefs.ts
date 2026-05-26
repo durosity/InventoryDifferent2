@@ -166,6 +166,12 @@ export const typeDefs = gql`
     isListingImage: Boolean!
     mediaType: MediaType!
     duration: Int
+    originalPath: String
+    rotation: Int!
+    cropLeft: Float
+    cropTop: Float
+    cropWidth: Float
+    cropHeight: Float
   }
 
   type Note {
@@ -849,6 +855,8 @@ export const typeDefs = gql`
     createImage(input: ImageCreateInput!): Image!
     updateImage(input: ImageUpdateInput!): Image!
     deleteImage(id: Int!): Boolean!
+    editImage(id: Int!, rotation: Int!, cropLeft: Float, cropTop: Float, cropWidth: Float, cropHeight: Float): Image!
+    resetImageEdits(id: Int!): Image!
     createMaintenanceTask(input: MaintenanceTaskCreateInput!): MaintenanceTask!
     updateMaintenanceTask(input: MaintenanceTaskUpdateInput!): MaintenanceTask!
     deleteMaintenanceTask(id: Int!): Boolean!

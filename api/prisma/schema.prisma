@@ -168,6 +168,12 @@ model Image {
   isListingImage Boolean @default(false)
   mediaType     MediaType @default(IMAGE)
   duration      Int?
+  originalPath  String?
+  rotation      Int     @default(0)
+  cropLeft      Float?
+  cropTop       Float?
+  cropWidth     Float?
+  cropHeight    Float?
 }
 
 model Note {
