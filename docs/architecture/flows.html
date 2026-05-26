@@ -223,6 +223,17 @@ var DATA = {
       ]
     },
     {
+      id:'edit-photo', icon:'✂️', name:'Edit Photo (Rotate / Crop)', path:'Web / iOS → API → /uploads → PostgreSQL',
+      steps: [
+        { title:'User opens Edit Photo', desc:'Web: pencil button appears on hover over gallery thumbnail → opens EditImageModal. iOS: Edit Photo button in ImageManagementView sheet → presents EditPhotoView.', packages:['p-web','p-ios'], edges:[] },
+        { title:'editImage mutation fired', desc:'Client sends editImage(id, rotation, cropLeft?, cropTop?, cropWidth?, cropHeight?) over GraphQL with JWT. Crop coords are 0–1 normalized floats in the post-rotation space.', packages:['p-web','p-ios'], edges:['e-web-api','e-ios-api'] },
+        { title:'API locks in original (first edit)', desc:'editImage resolver: if image.originalPath is null this is the first edit — originalPath is set to image.path to preserve the untouched file.', packages:['p-api'], edges:['e-api-db'] },
+        { title:'applyImageTransforms writes display copy', desc:'Sharp reads the original file, applies .rotate() (EXIF auto-orient + explicit rotation), then .extract() if a crop is set. Output is written to /uploads/devices/{id}/display/{uuid}.ext.', packages:['p-api'], edges:['e-api-uploads'] },
+        { title:'Thumbnail regenerated', desc:'Same pipeline (applyImageTransforms) is run at 320×320 WebP to regenerate the thumbnail from the new display copy.', packages:['p-api'], edges:['e-api-uploads'] },
+        { title:'DB row updated', desc:'Image.path = displayCopyPath, Image.thumbnailPath = newThumbPath, all transform fields stored. Clients receive the updated Image object and reload from the new URL.', packages:['p-api'], edges:['e-api-db'] }
+      ]
+    },
+    {
       id:'add-note', icon:'📝', name:'Add Note', path:'Web / iOS / MCP → API → PostgreSQL',
       steps: [
         { title:'Note submitted', desc:'createNote(input) mutation fired from web device detail, iOS Notes tab, or MCP add_note tool.', packages:['p-web','p-ios','p-mcp'], edges:['e-web-api','e-ios-api','e-mcp-api'] },
