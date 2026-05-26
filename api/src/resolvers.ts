@@ -8,6 +8,7 @@ const sharp: any = require('sharp');
 
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { randomUUID } from 'crypto';
 const execFileAsync = promisify(execFile);
 
 // Compute time-decay popularity scores for devices based on page views from the last 14 days.
@@ -219,6 +220,42 @@ export async function generateVideoThumbnail(videoPath: string): Promise<{ thumb
         return { thumbnailPath: thumbPath, duration };
     } catch (_err) {
         return { thumbnailPath: null, duration: null };
+    }
+}
+
+export async function applyImageTransforms(
+    sourceFile: string,
+    rotation: number,
+    crop: { left: number; top: number; width: number; height: number } | null,
+    outputPath: string
+): Promise<void> {
+    await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
+
+    if (crop) {
+        // Determine post-rotation dimensions without decoding pixels.
+        // Sharp metadata() returns original dimensions; EXIF orientations 5-8
+        // swap width/height, as does 90°/270° user rotation.
+        const meta = await sharp(sourceFile).metadata();
+        const exifSwaps = meta.orientation !== undefined && meta.orientation >= 5;
+        let imgW = meta.width ?? 0;
+        let imgH = meta.height ?? 0;
+        if (exifSwaps) [imgW, imgH] = [imgH, imgW];
+        if (rotation === 90 || rotation === 270) [imgW, imgH] = [imgH, imgW];
+
+        let pipeline = sharp(sourceFile).rotate(); // EXIF auto-orient
+        if (rotation !== 0) pipeline = pipeline.rotate(rotation);
+        await pipeline
+            .extract({
+                left:   Math.max(0, Math.round(crop.left   * imgW)),
+                top:    Math.max(0, Math.round(crop.top    * imgH)),
+                width:  Math.max(1, Math.round(crop.width  * imgW)),
+                height: Math.max(1, Math.round(crop.height * imgH)),
+            })
+            .toFile(outputPath);
+    } else {
+        let pipeline = sharp(sourceFile).rotate();
+        if (rotation !== 0) pipeline = pipeline.rotate(rotation);
+        await pipeline.toFile(outputPath);
     }
 }
 
@@ -1707,6 +1744,101 @@ export const resolvers = {
 
             return true;
         },
+
+        editImage: async (_parent: any, args: any, context: Context) => {
+            requireAuth(context);
+            const { id, rotation, cropLeft, cropTop, cropWidth, cropHeight } = args;
+            const image = await (context.prisma as any).image.findUniqueOrThrow({ where: { id } });
+
+            // Always transform from the untouched original
+            const sourceApiPath: string = image.originalPath ?? image.path;
+            const sourceDiskPath = path.join('/app/uploads', sourceApiPath.replace('/uploads/', ''));
+
+            if (!sourceDiskPath.startsWith('/app/uploads') || !fs.existsSync(sourceDiskPath)) {
+                throw new Error('Source image not found on disk');
+            }
+
+            // Build display copy path
+            const ext = path.posix.extname(sourceApiPath) || '.jpg';
+            const displayDir = `/uploads/devices/${image.deviceId}/display`;
+            const displayBasename = randomUUID();
+            const displayApiPath = `${displayDir}/${displayBasename}${ext}`;
+            const displayDiskDir = path.join('/app/uploads', `devices/${image.deviceId}/display`);
+            const displayDiskPath = path.join(displayDiskDir, `${displayBasename}${ext}`);
+
+            // Crop object (null if no crop specified)
+            const hasCrop = cropLeft != null && cropTop != null && cropWidth != null && cropHeight != null;
+            const cropArg = hasCrop ? { left: cropLeft, top: cropTop, width: cropWidth, height: cropHeight } : null;
+
+            // Apply transforms → display copy
+            await applyImageTransforms(sourceDiskPath, rotation ?? 0, cropArg, displayDiskPath);
+
+            // Regenerate thumbnail from display copy at standard thumbs/ location
+            const thumbDiskDir = path.join('/app/uploads', `devices/${image.deviceId}/thumbs`);
+            fs.mkdirSync(thumbDiskDir, { recursive: true });
+            const thumbDiskPath = path.join(thumbDiskDir, `${displayBasename}.webp`);
+            const thumbApiPath = `/uploads/devices/${image.deviceId}/thumbs/${displayBasename}.webp`;
+            await sharp(displayDiskPath)
+                .rotate()
+                .resize({ width: 320, height: 320, fit: 'inside', withoutEnlargement: true })
+                .webp({ quality: 70 })
+                .toFile(thumbDiskPath);
+
+            // Update DB: lock in originalPath on first edit
+            return (context.prisma as any).image.update({
+                where: { id },
+                data: {
+                    path: displayApiPath,
+                    thumbnailPath: thumbApiPath,
+                    originalPath: image.originalPath ?? image.path,
+                    rotation: rotation ?? 0,
+                    cropLeft:   hasCrop ? cropLeft   : null,
+                    cropTop:    hasCrop ? cropTop    : null,
+                    cropWidth:  hasCrop ? cropWidth  : null,
+                    cropHeight: hasCrop ? cropHeight : null,
+                },
+            });
+        },
+
+        resetImageEdits: async (_parent: any, args: any, context: Context) => {
+            requireAuth(context);
+            const { id } = args;
+            const image = await (context.prisma as any).image.findUniqueOrThrow({ where: { id } });
+
+            if (!image.originalPath) throw new Error('Image has no edits to reset');
+
+            // Delete current display copy
+            const displayDiskPath = path.join('/app/uploads', image.path.replace('/uploads/', ''));
+            if (displayDiskPath.startsWith('/app/uploads') && fs.existsSync(displayDiskPath)) {
+                try { fs.unlinkSync(displayDiskPath); } catch {}
+            }
+
+            // Delete current thumbnail
+            if (image.thumbnailPath) {
+                const thumbDiskPath = path.join('/app/uploads', image.thumbnailPath.replace('/uploads/', ''));
+                if (thumbDiskPath.startsWith('/app/uploads') && fs.existsSync(thumbDiskPath)) {
+                    try { fs.unlinkSync(thumbDiskPath); } catch {}
+                }
+            }
+
+            // Regenerate thumbnail from original using existing helper
+            const newThumbPath = await generateThumbnailForUpload(image.originalPath);
+
+            return (context.prisma as any).image.update({
+                where: { id },
+                data: {
+                    path: image.originalPath,
+                    thumbnailPath: newThumbPath,
+                    originalPath: null,
+                    rotation: 0,
+                    cropLeft: null,
+                    cropTop: null,
+                    cropWidth: null,
+                    cropHeight: null,
+                },
+            });
+        },
+
         deleteOrphanedFiles: async (_parent: any, args: { paths: string[] }, context: Context) => {
             requireAuth(context);
             const fsModule = await import('fs');
