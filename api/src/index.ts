@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
 import { typeDefs } from './typeDefs';
-import { resolvers, generateThumbnailForUpload } from './resolvers';
+import { resolvers, generateThumbnailForUpload, applyImageTransforms } from './resolvers';
 import OpenAI from 'openai';
 import {
     verifyAdminCredentials,
@@ -557,17 +557,67 @@ RESTART IDENTITY CASCADE;
                             ? (imageData.isThumbnail === true)
                             : (i === 0);
 
+                        // Re-apply transforms if the original was exported
+                        let finalImageApiPath = `/uploads/devices/${actualDeviceId}/${newFilename}`;
+                        let finalThumbPath = thumbnailPath;
+                        let restoredOriginalPath: string | null = null;
+
+                        if (imageData.exportedOriginalFilename && imageData.rotation != null) {
+                            const extractedOrigPath = path.join(extractDir, imageData.exportedOriginalFilename);
+                            if (fs.existsSync(extractedOrigPath)) {
+                                const origFilename = `${uuidv4()}${path.extname(path.basename(imageData.exportedOriginalFilename))}`;
+                                const origApiPath = `/uploads/devices/${actualDeviceId}/${origFilename}`;
+                                fs.copyFileSync(extractedOrigPath, path.join(deviceUploadDir, origFilename));
+                                restoredOriginalPath = origApiPath;
+
+                                const hasCrop = imageData.cropWidth != null;
+                                const cropArg = hasCrop
+                                    ? { left: imageData.cropLeft, top: imageData.cropTop, width: imageData.cropWidth, height: imageData.cropHeight }
+                                    : null;
+                                const displayDir = path.join(deviceUploadDir, 'display');
+                                fs.mkdirSync(displayDir, { recursive: true });
+                                const dispBasename = uuidv4();
+                                const dispExt = path.extname(origFilename) || '.jpg';
+                                const dispDiskPath = path.join(displayDir, `${dispBasename}${dispExt}`);
+                                const dispApiPath = `/uploads/devices/${actualDeviceId}/display/${dispBasename}${dispExt}`;
+                                const origDiskPath = path.join(deviceUploadDir, origFilename);
+                                try {
+                                    await applyImageTransforms(origDiskPath, imageData.rotation, cropArg, dispDiskPath);
+                                    // Regenerate thumbnail from display copy
+                                    const thumbFilename2 = `${dispBasename}.webp`;
+                                    const thumbPath2 = path.join(thumbsDir, thumbFilename2);
+                                    await sharp(dispDiskPath)
+                                        .rotate()
+                                        .resize({ width: 320, height: 320, fit: 'inside', withoutEnlargement: true })
+                                        .webp({ quality: 70 })
+                                        .toFile(thumbPath2);
+                                    finalImageApiPath = dispApiPath;
+                                    finalThumbPath = `/uploads/devices/${actualDeviceId}/thumbs/${thumbFilename2}`;
+                                } catch (transformErr) {
+                                    console.error('Error re-applying image transforms on import:', transformErr);
+                                }
+                            }
+                        }
+
                         await (prisma.image as any).create({
                             data: {
                                 deviceId: actualDeviceId,
-                                path: `/uploads/devices/${actualDeviceId}/${newFilename}`,
-                                thumbnailPath,
+                                path: finalImageApiPath,
+                                thumbnailPath: finalThumbPath,
                                 caption: imageData.caption,
                                 dateTaken: imageData.dateTaken ? new Date(imageData.dateTaken) : new Date(),
                                 isThumbnail: shouldBeThumbnail,
                                 isShopImage: imageData.isShopImage || false,
                                 thumbnailMode: imageData.thumbnailMode || 'BOTH',
                                 isListingImage: imageData.isListingImage || false,
+                                ...(restoredOriginalPath ? {
+                                    originalPath: restoredOriginalPath,
+                                    rotation: imageData.rotation ?? 0,
+                                    cropLeft: imageData.cropLeft ?? null,
+                                    cropTop: imageData.cropTop ?? null,
+                                    cropWidth: imageData.cropWidth ?? null,
+                                    cropHeight: imageData.cropHeight ?? null,
+                                } : {}),
                             }
                         });
                     }
@@ -1125,6 +1175,19 @@ RESTART IDENTITY CASCADE;
                                 }
                             }
 
+                            // If image has been edited, also export the original file
+                            let exportedOriginalFilename: string | null = null;
+                            if ((image as any).originalPath) {
+                                const origSrcPath = path.join('/app/uploads', (image as any).originalPath.replace('/uploads/', ''));
+                                if (fs.existsSync(origSrcPath)) {
+                                    const originalsDir = path.join(exportDir, 'images', String(device.id), 'originals');
+                                    fs.mkdirSync(originalsDir, { recursive: true });
+                                    const origFilename = path.basename((image as any).originalPath);
+                                    await fs.promises.copyFile(origSrcPath, path.join(originalsDir, origFilename));
+                                    exportedOriginalFilename = `images/${device.id}/originals/${origFilename}`;
+                                }
+                            }
+
                             deviceExport.images.push({
                                 id: image.id,
                                 path: image.path,
@@ -1136,6 +1199,14 @@ RESTART IDENTITY CASCADE;
                                 thumbnailMode: (image as any).thumbnailMode,
                                 isListingImage: (image as any).isListingImage,
                                 exportedFilename: `images/${device.id}/${exportFilename}`,
+                                // Transform metadata for non-destructive edits
+                                originalPath: (image as any).originalPath ?? null,
+                                rotation: (image as any).rotation ?? 0,
+                                cropLeft: (image as any).cropLeft ?? null,
+                                cropTop: (image as any).cropTop ?? null,
+                                cropWidth: (image as any).cropWidth ?? null,
+                                cropHeight: (image as any).cropHeight ?? null,
+                                exportedOriginalFilename,
                             });
 
                             job.processedImages++;
@@ -1152,6 +1223,13 @@ RESTART IDENTITY CASCADE;
                             thumbnailMode: (img as any).thumbnailMode,
                             isListingImage: (img as any).isListingImage,
                             exportedFilename: null,
+                            originalPath: (img as any).originalPath ?? null,
+                            rotation: (img as any).rotation ?? 0,
+                            cropLeft: (img as any).cropLeft ?? null,
+                            cropTop: (img as any).cropTop ?? null,
+                            cropWidth: (img as any).cropWidth ?? null,
+                            cropHeight: (img as any).cropHeight ?? null,
+                            exportedOriginalFilename: null,
                         }));
                     }
 
