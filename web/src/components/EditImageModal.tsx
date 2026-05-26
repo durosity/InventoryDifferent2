@@ -52,6 +52,7 @@ export function EditImageModal({ image, onClose, onSaved }: Props) {
   const sourceUrl = `${API_BASE_URL}${image.originalPath ?? image.path}`;
 
   const [rotation, setRotation] = useState<number>(image.rotation ?? 0);
+  const [shiftHeld, setShiftHeld] = useState(false);
   const [crop, setCrop] = useState<PercentCrop | undefined>(
     image.cropLeft != null && image.cropWidth != null
       ? {
@@ -94,6 +95,14 @@ export function EditImageModal({ image, onClose, onSaved }: Props) {
   useEffect(() => {
     generatePreview(rotation);
   }, [rotation, generatePreview]);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => { if (e.key === "Shift") setShiftHeld(true); };
+    const up   = (e: KeyboardEvent) => { if (e.key === "Shift") setShiftHeld(false); };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup",   up);
+    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
+  }, []);
 
   const handleRotate = (delta: number) => {
     const next = (rotation + delta + 360) % 360;
@@ -182,10 +191,11 @@ export function EditImageModal({ image, onClose, onSaved }: Props) {
         </div>
 
         {/* Crop editor */}
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-1.5">
           <ReactCrop
             crop={crop}
             onChange={(_, pc) => setCrop(pc)}
+            aspect={shiftHeld ? 1 : undefined}
             style={{ maxHeight: "50vh" }}
           >
             <img
@@ -194,6 +204,9 @@ export function EditImageModal({ image, onClose, onSaved }: Props) {
               style={{ maxHeight: "50vh", maxWidth: "100%", display: "block" }}
             />
           </ReactCrop>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Drag to crop · Hold <kbd className="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 font-mono text-[10px]">shift</kbd> to constrain to square
+          </p>
         </div>
 
         {/* Actions */}
