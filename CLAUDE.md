@@ -186,16 +186,16 @@ Run all applicable builds after making changes to verify nothing is broken befor
 
 ## Multi-Language (i18n) Support
 
-The app supports English, German, and French. Every user-visible string **must** go through the translation system — never hardcode UI text.
+The app supports English, German, French, and Spanish. Every user-visible string **must** go through the translation system — never hardcode UI text.
 
 ### Web (Next.js)
 
-- **Translation files**: `web/src/i18n/translations/en.ts`, `de.ts`, and `fr.ts`
+- **Translation files**: `web/src/i18n/translations/en.ts`, `de.ts`, `fr.ts`, and `es.ts`
   - `en.ts` defines the `Translations` TypeScript type **and** the English values
-  - `de.ts` and `fr.ts` export only values (share the type from `en.ts`)
+  - `de.ts`, `fr.ts`, and `es.ts` export only values (share the type from `en.ts`)
 - **Consuming translations**: call `const t = useT()` (from `../../i18n/context`) in any client component, then use `t.<section>.<key>`
 - **Language selection**: The web app automatically detects the browser's language preference. To change the language:
-  1. Set your browser's preferred language to English (`en`), German (`de`), or French (`fr`)
+  1. Set your browser's preferred language to English (`en`), German (`de`), French (`fr`), or Spanish (`es`)
   2. Refresh the page
   - **Chrome/Edge**: Settings → Languages → Add/reorder languages
   - **Firefox**: Settings → Language → Choose your preferred language
@@ -205,7 +205,8 @@ The app supports English, German, and French. Every user-visible string **must**
   2. Add the English values in `en.ts`
   3. Add the German values in `de.ts`
   4. Add the French values in `fr.ts`
-  5. Use `t.<section>.<key>` in the component — never a hardcoded string
+  5. Add the Spanish values in `es.ts`
+  6. Use `t.<section>.<key>` in the component — never a hardcoded string
 - **Section naming convention**: top-level sections are `common`, `nav`, `home`, `detail`, `filter`, `sort`, `card`, `table`, `icons`, `form`, `login`, `chat`, and `pages.<pageName>` for page-specific strings
 - **Dynamic strings with counts/interpolation**: split into prefix/suffix keys or use JS concatenation — do not skip translation
 
@@ -250,6 +251,10 @@ The app displays a version number in the web footer (clickable for release notes
 4. Apply the same changes to `CHANGELOG.md`
 5. Commit both files
 
+## Web Docker Build Context
+
+`web/Dockerfile` copies only the `web/` directory — files from `../tools/` or other packages are not available at `docker build` time. Any shared data files the web needs must be committed inside `web/src/` (the generator script handles this for decoder data by writing to `web/src/lib/`).
+
 ## Environment Variables: NEXT_PUBLIC_* Rule
 
 **NEVER use `NEXT_PUBLIC_*` environment variables for values that deployers need to configure at runtime.** Next.js bakes `NEXT_PUBLIC_*` values in at build time, so they cannot be changed after the Docker image is built.
@@ -284,6 +289,8 @@ swift test                                   # run XCTest suite
 ### Adding or updating model codes
 
 The canonical data lives in two JSON files — edit these, never the generated Swift/TS files:
+
+> **Note:** The generator syncs *data* only. Logic changes to `AppleSerialDecoder.swift`, `ModernSerialDecoder.swift`, or `VintageSerialDecoder.swift` must be manually mirrored to `web/src/lib/appleSerialDecoder.ts`.
 
 - **`tools/decoder-data/modern_models.json`** — array of `[configCode, modelIdentifier, modelName]`
 - **`tools/decoder-data/vintage_model_codes.json`** — object of `{modelCode: name | null}`
@@ -326,6 +333,10 @@ python3 scripts/generate_decoder_data.py    # regenerate all platform files
 | 11 chars | Modern (old) | 1989–2010 | Last 3 chars (config code) |
 | 12 chars | Modern (new) | 2010–2021 | Last 4 chars (config code) |
 | 12 chars, post-Apr 2021 | Randomized | 2021+ | Not decodable |
+
+### Template matching
+
+After decoding a serial, both iOS and web look for a matching template using normalised string comparison: lowercase, strip parenthetical suffixes like `(ROM 01)`, collapse whitespace, and treat `"mac"`/`"macintosh"` as equivalent. Both platforms must use identical logic — see `BarcodeScannerView.swift::findMatchingTemplate` and `web/src/app/page.tsx::findMatchingTemplate`.
 
 ---
 
