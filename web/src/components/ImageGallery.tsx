@@ -3,7 +3,9 @@
 import { useMutation } from "@apollo/client";
 import gql from "graphql-tag";
 import { useState, useEffect } from "react";
+import { Pencil } from "lucide-react";
 import { API_BASE_URL } from "../lib/config";
+import { EditImageModal, type EditableImage } from "./EditImageModal";
 
 const DELETE_IMAGE = gql`
   mutation DeleteImage($id: Int!) {
@@ -27,6 +29,12 @@ interface Image {
     id: number;
     path: string;
     thumbnailPath?: string | null;
+    originalPath?: string | null;
+    rotation?: number | null;
+    cropLeft?: number | null;
+    cropTop?: number | null;
+    cropWidth?: number | null;
+    cropHeight?: number | null;
     caption: string | null;
     isThumbnail: boolean;
     thumbnailMode?: string | null;
@@ -45,6 +53,7 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
     const [thumbnailChoiceId, setThumbnailChoiceId] = useState<number | null>(null);
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+    const [editingImage, setEditingImage] = useState<EditableImage | null>(null);
     const [deleteImage, { loading: deleting }] = useMutation(DELETE_IMAGE);
     const [updateImage, { loading: updating }] = useMutation(UPDATE_IMAGE);
 
@@ -213,6 +222,16 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
 
                         {/* Hover overlay with actions - 2x2 grid */}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors opacity-0 group-hover:opacity-100 p-2">
+                            {/* Centered edit button */}
+                            {image.mediaType !== 'VIDEO' && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setEditingImage(image); }}
+                                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full text-gray-700 hover:bg-white transition-colors z-10"
+                                    title="Edit photo"
+                                >
+                                    <Pencil size={15} />
+                                </button>
+                            )}
                             <div className="w-full h-full grid grid-cols-2 grid-rows-2">
                                 {/* Top-left: Thumbnail (grid/image icon) */}
                                 <div className="flex items-start justify-start">
@@ -426,6 +445,14 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                     </div>
                 );
             })()}
+
+            {editingImage && (
+                <EditImageModal
+                    image={editingImage}
+                    onClose={() => setEditingImage(null)}
+                    onSaved={() => { setEditingImage(null); onImagesChanged(); }}
+                />
+            )}
         </div>
     );
 }

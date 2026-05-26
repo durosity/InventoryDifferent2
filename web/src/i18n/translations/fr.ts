@@ -396,6 +396,11 @@ export const fr: Translations = {
     copyImage: "Copier l'image",
     downloadPng: "Télécharger PNG",
     backToInventory: "Retour à l'inventaire",
+    editPhotoTitle: "Modifier la photo",
+    rotateLeft: "Rotation gauche",
+    rotateRight: "Rotation droite",
+    saveEdits: "Enregistrer les modifications",
+    resetToOriginal: "Restaurer l'original",
   },
   pages: {
     photosPage: {

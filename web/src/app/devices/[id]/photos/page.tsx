@@ -22,6 +22,12 @@ const GET_DEVICE_PHOTOS = gql`
         id
         path
         thumbnailPath
+        originalPath
+        rotation
+        cropLeft
+        cropTop
+        cropWidth
+        cropHeight
         caption
         dateTaken
         isThumbnail

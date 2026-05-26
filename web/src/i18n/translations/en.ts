@@ -387,6 +387,11 @@ export type Translations = {
     copyImage: string;
     downloadPng: string;
     backToInventory: string;
+    editPhotoTitle: string;
+    rotateLeft: string;
+    rotateRight: string;
+    saveEdits: string;
+    resetToOriginal: string;
   };
   pages: {
     photosPage: {
@@ -1377,6 +1382,11 @@ export const en: Translations = {
     copyImage: "Copy Image",
     downloadPng: "Download PNG",
     backToInventory: "Back to Inventory",
+    editPhotoTitle: "Edit Photo",
+    rotateLeft: "Rotate Left",
+    rotateRight: "Rotate Right",
+    saveEdits: "Save Edits",
+    resetToOriginal: "Reset to Original",
   },
   pages: {
     photosPage: {
