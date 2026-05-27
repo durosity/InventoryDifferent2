@@ -1,4 +1,4 @@
-export const APP_VERSION = '2.8.0';
+export const APP_VERSION = '2.8.1';
 
 export interface ReleaseEntry {
   version: string;
@@ -12,6 +12,13 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
+    added: [],
+    changed: [],
+    fixed: [],
+  },
+  {
+    version: '2.8.1',
+    date: '2026-05-27',
     added: [
       'Guest access control: admins can lock the collection to signed-in users only via the Settings page',
       'iOS photo upload: after taking a camera photo, the edit view opens automatically so you can rotate or crop before the image is finalised',

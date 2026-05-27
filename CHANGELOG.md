@@ -4,6 +4,10 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+---
+
+## [2.8.1] — 2026-05-27
+
 ### Added
 - Guest access control: setting in Settings page to require sign-in to view any collection items (off by default — existing open-access behaviour is preserved)
 - iOS photo upload: after taking a camera photo, the edit view opens automatically so you can rotate or crop before the image is finalised
