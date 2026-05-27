@@ -883,6 +883,11 @@ export const de: Translations = {
       save: "Speichern",
       saved: "Gespeichert",
       notConfigured: "OpenAI API-Schlüssel ist nicht konfiguriert. KI-Bildgenerierung ist nicht verfügbar.",
+      accessControl: "Sammlungszugriff",
+      guestAccessLabel: "Gastzugang erlauben",
+      guestAccessDescription: "Wenn aktiviert, können Besucher Ihre Sammlung ohne Anmeldung durchsuchen. Gäste sehen Geräteinformationen, aber keine Preise, Notizen oder Erwerbsdaten.",
+      guestAccessEnabled: "Gastzugang ist aktiviert",
+      guestAccessDisabled: "Gastzugang ist deaktiviert — Anmeldung erforderlich",
     },
     slideshow: {
       settings: "Einstellungen",

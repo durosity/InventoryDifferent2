@@ -883,6 +883,11 @@ export const es: Translations = {
       save: "Guardar",
       saved: "Guardado",
       notConfigured: "La clave API de OpenAI no está configurada. La generación de imágenes IA no está disponible.",
+      accessControl: "Acceso a la colección",
+      guestAccessLabel: "Permitir acceso de invitados",
+      guestAccessDescription: "Cuando está habilitado, los visitantes pueden explorar su colección sin iniciar sesión. Los invitados verán la información del dispositivo pero no los precios, notas ni datos de adquisición.",
+      guestAccessEnabled: "El acceso de invitados está activado",
+      guestAccessDisabled: "El acceso de invitados está desactivado — se requiere inicio de sesión",
     },
     slideshow: {
       settings: "Configuración",

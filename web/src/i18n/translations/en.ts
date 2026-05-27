@@ -874,6 +874,11 @@ export type Translations = {
       save: string;
       saved: string;
       notConfigured: string;
+      accessControl: string;
+      guestAccessLabel: string;
+      guestAccessDescription: string;
+      guestAccessEnabled: string;
+      guestAccessDisabled: string;
     };
     slideshow: {
       settings: string;
@@ -1869,6 +1874,11 @@ export const en: Translations = {
       save: "Save",
       saved: "Saved",
       notConfigured: "OpenAI API key is not configured. AI image generation is unavailable.",
+      accessControl: "Collection Access",
+      guestAccessLabel: "Allow guest access",
+      guestAccessDescription: "When enabled, visitors can browse your collection without signing in. Guests will see device information but not pricing, notes, or acquisition details.",
+      guestAccessEnabled: "Guest access is on",
+      guestAccessDisabled: "Guest access is off — sign-in required to view the collection",
     },
     slideshow: {
       settings: "Settings",

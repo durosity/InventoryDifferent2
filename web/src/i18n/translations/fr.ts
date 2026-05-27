@@ -883,6 +883,11 @@ export const fr: Translations = {
       save: "Enregistrer",
       saved: "Enregistré",
       notConfigured: "La clé API OpenAI n'est pas configurée. La génération d'images IA est indisponible.",
+      accessControl: "Accès à la collection",
+      guestAccessLabel: "Autoriser l'accès invité",
+      guestAccessDescription: "Lorsqu'il est activé, les visiteurs peuvent parcourir votre collection sans se connecter. Les invités verront les informations sur les appareils mais pas les prix, les notes ou les données d'acquisition.",
+      guestAccessEnabled: "L'accès invité est activé",
+      guestAccessDisabled: "L'accès invité est désactivé — connexion requise pour voir la collection",
     },
     slideshow: {
       settings: "Paramètres",
