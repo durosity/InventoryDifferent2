@@ -1,4 +1,4 @@
-export const APP_VERSION = '2.7.0';
+export const APP_VERSION = '2.8.0';
 
 export interface ReleaseEntry {
   version: string;
@@ -12,6 +12,13 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
+    added: [],
+    changed: [],
+    fixed: [],
+  },
+  {
+    version: '2.8.0',
+    date: '2026-05-26',
     added: [
       'Non-destructive photo editing: rotate (90° increments) and free-form crop device images from the web gallery and iOS image management — original file is always preserved and edits are reflected in thumbnails and the storefront',
       'Usage page: scan for orphaned files (files on disk not referenced by any image record) and delete them individually or in bulk',

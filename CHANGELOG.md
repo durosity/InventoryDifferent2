@@ -4,6 +4,10 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+---
+
+## [2.8.0] — 2026-05-26
+
 ### Added
 - Non-destructive photo editing: rotate and free-form crop device images on web and iOS — originals are preserved, transforms are pre-baked to display copies, and thumbnails are regenerated
 - Usage page: scan for orphaned files (files on disk not referenced by any image record) and delete them individually or in bulk

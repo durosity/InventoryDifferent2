@@ -16,11 +16,11 @@ A self-hosted inventory management system for vintage computer collections. Trac
 | `mcp-server/` | MCP server for AI assistant integrations | stdio |
 | `ios/` | Native iOS app (SwiftUI) | — |
 
-**Admin dashboard:** card/table views, search and multi-filter, financial tracking, image management, notes, maintenance tasks, tags, custom fields, accessories checklist, reference links, bulk ZIP import/export, AI chat assistant, barcode/QR scanning, wishlist, stats charts, timeline, print view, trash with restore.
+**Admin dashboard:** card/table views, search and multi-filter, financial tracking, image management with non-destructive rotate and crop editing, notes, maintenance tasks, tags, custom fields, accessories checklist, reference links, bulk ZIP import/export, AI chat assistant, barcode/QR scanning, wishlist, stats charts, timeline, print view, trash with restore.
 
 **Storefront:** public product grid for items listed for sale, search, filter by status/category, item detail with specs and condition, "Looking For" page from your wishlist.
 
-**iOS app:** device list with search/filter/sort, detail view, image management, add/edit device, financials, stats, AI chat with voice input/output and hands-free conversation mode, barcode scanner, value history chart.
+**iOS app:** device list with search/filter/sort, detail view, image management with rotate and crop editing, add/edit device, financials, stats, AI chat with voice input/output and hands-free conversation mode, barcode scanner, value history chart.
 
 ---
 
