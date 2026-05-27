@@ -8,6 +8,7 @@ interface AuthContextType {
     isLoading: boolean;
     authRequired: boolean;
     usernameRequired: boolean;
+    guestAccessEnabled: boolean;
     username: string | null;
     login: (username: string | null, password: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const [authRequired, setAuthRequired] = useState(true);
     const [usernameRequired, setUsernameRequired] = useState(false);
+    const [guestAccessEnabled, setGuestAccessEnabled] = useState(true);
     const [username, setUsername] = useState<string | null>(() =>
         typeof window !== 'undefined' ? localStorage.getItem(USERNAME_KEY) : null
     );
@@ -153,6 +155,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 setAuthRequired(statusData.authRequired);
                 setUsernameRequired(statusData.usernameRequired ?? false);
+                const guestAllowed = statusData.guestAccessEnabled ?? true;
+                setGuestAccessEnabled(guestAllowed);
 
                 // If auth is not required, everyone is authenticated
                 if (!statusData.authRequired) {
@@ -164,6 +168,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 // Check if we have a valid token
                 const hasValidToken = await ensureValidToken();
                 setIsAuthenticated(hasValidToken);
+
+                // If guest access is disabled and not authenticated, redirect to login
+                if (!hasValidToken && !guestAllowed) {
+                    const currentPath = window.location.pathname;
+                    if (!currentPath.startsWith('/login')) {
+                        window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+                        return;
+                    }
+                }
             } catch {
                 // If we can't reach the API, assume auth is required
                 setIsAuthenticated(false);
@@ -239,6 +252,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isLoading,
             authRequired,
             usernameRequired,
+            guestAccessEnabled,
             username,
             login,
             logout,
