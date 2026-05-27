@@ -4,6 +4,9 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+### Added
+- Guest access control: setting in Settings page to require sign-in to view any collection items (off by default — existing open-access behaviour is preserved)
+
 ---
 
 ## [2.8.0] — 2026-05-26

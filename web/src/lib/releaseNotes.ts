@@ -12,7 +12,9 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
-    added: [],
+    added: [
+      'Guest access control: admins can lock the collection to signed-in users only via the Settings page',
+    ],
     changed: [],
     fixed: [],
   },
