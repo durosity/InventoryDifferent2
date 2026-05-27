@@ -19,7 +19,7 @@ type ImageModel = (typeof MODELS)[number];
 export default function SettingsPage() {
   const t = useT();
   const ts = t.pages.settings;
-  const { isAuthenticated, isLoading: authLoading, getAccessToken } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, getAccessToken, authRequired } = useAuth();
   const [setSystemSetting] = useMutation(SET_SYSTEM_SETTING);
 
   const [openaiEnabled, setOpenaiEnabled] = useState<boolean | null>(null);
@@ -28,6 +28,8 @@ export default function SettingsPage() {
   const [promptSaved, setPromptSaved] = useState(false);
   const [modelSaved, setModelSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [guestAccess, setGuestAccess] = useState(true);
+  const [guestAccessSaved, setGuestAccessSaved] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/generate-image/config`)
@@ -43,6 +45,15 @@ export default function SettingsPage() {
       .catch(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/auth/status`)
+      .then(r => r.json())
+      .then(d => {
+        setGuestAccess(d.guestAccessEnabled ?? true);
+      })
+      .catch(() => {});
+  }, []);
+
   const savePrompt = async () => {
     await setSystemSetting({ variables: { key: 'imagePrompt', value: prompt } });
     setPromptSaved(true);
@@ -54,6 +65,17 @@ export default function SettingsPage() {
     await setSystemSetting({ variables: { key: 'imageModel', value: model } });
     setModelSaved(true);
     setTimeout(() => setModelSaved(false), 2000);
+  };
+
+  const saveGuestAccess = async (enabled: boolean) => {
+    setGuestAccess(enabled);
+    const token = getAccessToken();
+    await setSystemSetting({
+      variables: { key: 'guestAccessEnabled', value: enabled ? 'true' : 'false' },
+      context: token ? { headers: { Authorization: `Bearer ${token}` } } : {},
+    });
+    setGuestAccessSaved(true);
+    setTimeout(() => setGuestAccessSaved(false), 2000);
   };
 
   if (authLoading || loading) {
@@ -135,6 +157,44 @@ export default function SettingsPage() {
           )}
         </div>
       </section>
+
+      {authRequired && (
+        <section className="space-y-6">
+          <h2 className="text-xs font-bold text-on-surface-variant uppercase tracking-widest border-b border-outline-variant/30 pb-2">
+            {ts.accessControl}
+          </h2>
+
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-on-surface">{ts.guestAccessLabel}</p>
+                <p className="text-xs text-on-surface-variant mt-1">{ts.guestAccessDescription}</p>
+              </div>
+              <button
+                role="switch"
+                aria-checked={guestAccess}
+                onClick={() => saveGuestAccess(!guestAccess)}
+                disabled={!isAuthenticated}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-40 ${
+                  guestAccess ? 'bg-primary' : 'bg-outline-variant'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    guestAccess ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+            <p className="text-xs text-on-surface-variant">
+              {guestAccess ? ts.guestAccessEnabled : ts.guestAccessDisabled}
+            </p>
+            {guestAccessSaved && (
+              <p className="text-xs text-primary font-medium">{ts.saved}</p>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
