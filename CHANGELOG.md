@@ -7,6 +7,10 @@ All notable changes to InventoryDifferent will be documented here.
 ### Added
 - Guest access control: setting in Settings page to require sign-in to view any collection items (off by default — existing open-access behaviour is preserved)
 
+### Fixed
+- Photo editing: rotation not applied to display copy or thumbnail when saving a rotate-only edit (EXIF auto-orient was being silently skipped due to Sharp replacing chained rotate calls)
+- Photo editing iOS: "bad extract area" crash when saving a rotated+cropped image on source photos with EXIF orientation metadata
+
 ---
 
 ## [2.8.0] — 2026-05-26

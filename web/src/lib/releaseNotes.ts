@@ -16,7 +16,10 @@ export const releaseNotes: ReleaseEntry[] = [
       'Guest access control: admins can lock the collection to signed-in users only via the Settings page',
     ],
     changed: [],
-    fixed: [],
+    fixed: [
+      'Photo editing: rotation not applied to display copy or thumbnail when saving a rotate-only edit (EXIF auto-orient was being silently skipped)',
+      'Photo editing iOS: "bad extract area" crash when saving a rotated+cropped image on photos with EXIF orientation metadata',
+    ],
   },
   {
     version: '2.8.0',

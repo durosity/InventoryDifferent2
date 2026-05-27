@@ -232,32 +232,30 @@ export async function applyImageTransforms(
 ): Promise<void> {
     await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
 
-    if (crop) {
-        // Determine post-rotation dimensions without decoding pixels.
-        // Sharp metadata() returns original dimensions; EXIF orientations 5-8
-        // swap width/height, as does 90°/270° user rotation.
-        const meta = await sharp(sourceFile).metadata();
-        const exifSwaps = meta.orientation !== undefined && meta.orientation >= 5;
-        let imgW = meta.width ?? 0;
-        let imgH = meta.height ?? 0;
-        if (exifSwaps) [imgW, imgH] = [imgH, imgW];
-        if (rotation === 90 || rotation === 270) [imgW, imgH] = [imgH, imgW];
+    // Sharp replaces rotation options on each .rotate() call, so chaining
+    // .rotate() (EXIF auto-orient) then .rotate(angle) skips the auto-orient.
+    // Fix: apply EXIF auto-orient in a separate pass to a buffer, then apply
+    // user rotation on the already-corrected pixels.
+    const { data: orientedBuf, info } =
+        await sharp(sourceFile).rotate().toBuffer({ resolveWithObject: true });
 
-        let pipeline = sharp(sourceFile).rotate(); // EXIF auto-orient
-        if (rotation !== 0) pipeline = pipeline.rotate(rotation);
-        await pipeline
-            .extract({
-                left:   Math.max(0, Math.round(crop.left   * imgW)),
-                top:    Math.max(0, Math.round(crop.top    * imgH)),
-                width:  Math.max(1, Math.round(crop.width  * imgW)),
-                height: Math.max(1, Math.round(crop.height * imgH)),
-            })
-            .toFile(outputPath);
-    } else {
-        let pipeline = sharp(sourceFile).rotate();
-        if (rotation !== 0) pipeline = pipeline.rotate(rotation);
-        await pipeline.toFile(outputPath);
+    // Dimensions after user rotation (auto-orient is already applied in pass 1)
+    const swap = rotation === 90 || rotation === 270;
+    const imgW = swap ? info.height : info.width;
+    const imgH = swap ? info.width  : info.height;
+
+    let pipeline = sharp(orientedBuf);
+    if (rotation !== 0) pipeline = pipeline.rotate(rotation);
+
+    if (crop) {
+        const left   = Math.max(0, Math.round(crop.left   * imgW));
+        const top    = Math.max(0, Math.round(crop.top    * imgH));
+        const width  = Math.max(1, Math.min(imgW - left,  Math.round(crop.width  * imgW)));
+        const height = Math.max(1, Math.min(imgH - top,   Math.round(crop.height * imgH)));
+        pipeline = pipeline.extract({ left, top, width, height });
     }
+
+    await pipeline.toFile(outputPath);
 }
 
 export const resolvers = {
