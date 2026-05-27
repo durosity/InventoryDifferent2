@@ -69,6 +69,12 @@ export function filterDeviceSensitiveFields(device: any, isAuthenticated: boolea
     };
 }
 
+// Check if guest access is enabled in system settings
+async function isGuestAccessEnabled(prisma: any): Promise<boolean> {
+    const setting = await prisma.systemSetting.findUnique({ where: { key: 'guestAccessEnabled' } });
+    return setting?.value !== 'false';
+}
+
 const DEVICE_INCLUDE = {
     category: true,
     location: true,
@@ -262,6 +268,11 @@ export async function applyImageTransforms(
 export const resolvers = {
     Query: {
         devices: async (_parent: any, args: any, context: Context) => {
+            if (!context.isAuthenticated) {
+                const guestAllowed = await isGuestAccessEnabled(context.prisma);
+                if (!guestAllowed) return [];
+            }
+
             const whereClause: any = {};
 
             // Handle deleted filter
@@ -370,6 +381,11 @@ export const resolvers = {
             });
         },
         device: async (_parent: any, args: { where?: { id?: number, serialNumber?: { equals?: string }, deleted?: { equals?: boolean } } }, context: Context) => {
+            if (!context.isAuthenticated) {
+                const guestAllowed = await isGuestAccessEnabled(context.prisma);
+                if (!guestAllowed) return null;
+            }
+
             const whereClause: any = {};
             if (args.where?.id !== undefined) {
                 whereClause.id = args.where.id;
