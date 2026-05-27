@@ -261,11 +261,14 @@ export async function createApp(prismaOverride?: PrismaClient) {
     });
 
     // Auth status endpoint
-    app.get('/auth/status', (req, res) => {
+    app.get('/auth/status', async (req, res) => {
+        const setting = await prisma.systemSetting.findUnique({ where: { key: 'guestAccessEnabled' } });
+        const guestAccessEnabled = setting?.value !== 'false';
         return res.json({
             authenticated: req.isAuthenticated ?? false,
             authRequired: isAuthConfigured(),
             usernameRequired: !!getAdminUsername(),
+            guestAccessEnabled,
         });
     });
 
