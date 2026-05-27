@@ -30,6 +30,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [guestAccess, setGuestAccess] = useState(true);
   const [guestAccessSaved, setGuestAccessSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/generate-image/config`)
@@ -69,11 +70,11 @@ export default function SettingsPage() {
 
   const saveGuestAccess = async (enabled: boolean) => {
     setGuestAccess(enabled);
-    const token = getAccessToken();
+    setIsSaving(true);
     await setSystemSetting({
       variables: { key: 'guestAccessEnabled', value: enabled ? 'true' : 'false' },
-      context: token ? { headers: { Authorization: `Bearer ${token}` } } : {},
     });
+    setIsSaving(false);
     setGuestAccessSaved(true);
     setTimeout(() => setGuestAccessSaved(false), 2000);
   };
@@ -174,7 +175,7 @@ export default function SettingsPage() {
                 role="switch"
                 aria-checked={guestAccess}
                 onClick={() => saveGuestAccess(!guestAccess)}
-                disabled={!isAuthenticated}
+                disabled={!isAuthenticated || isSaving}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-40 ${
                   guestAccess ? 'bg-primary' : 'bg-outline-variant'
                 }`}
