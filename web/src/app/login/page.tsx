@@ -12,7 +12,7 @@ function LoginForm() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { login, isLoading, usernameRequired } = useAuth();
+    const { login, isLoading, usernameRequired, guestAccessEnabled } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -119,14 +119,16 @@ function LoginForm() {
                     </div>
                 </form>
 
-                <div className="text-center">
-                    <Link
-                        href="/"
-                        className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                    >
-                        {t.login.continueAsGuest}
-                    </Link>
-                </div>
+                {guestAccessEnabled && (
+                    <div className="text-center">
+                        <Link
+                            href="/"
+                            className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                        >
+                            {t.login.continueAsGuest}
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );
