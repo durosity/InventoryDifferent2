@@ -112,27 +112,47 @@ export function EditImageModal({ image, onClose, onSaved }: Props) {
 
   const [editImage, { loading: saving }] = useMutation(EDIT_IMAGE);
   const [resetImageEdits, { loading: resetting }] = useMutation(RESET_IMAGE_EDITS);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const handleMutationError = (err: unknown) => {
+    const message = (err as any)?.message ?? String(err);
+    if (/authentication required|not authenticated|unauthorized/i.test(message)) {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+    } else {
+      setSaveError(message || "Failed to save. Please try again.");
+    }
+  };
 
   const handleSave = async () => {
+    setSaveError(null);
     const hasCrop = crop && crop.width > 0 && crop.height > 0;
-    await editImage({
-      variables: {
-        id: image.id,
-        rotation,
-        cropLeft: hasCrop ? crop!.x / 100 : null,
-        cropTop: hasCrop ? crop!.y / 100 : null,
-        cropWidth: hasCrop ? crop!.width / 100 : null,
-        cropHeight: hasCrop ? crop!.height / 100 : null,
-      },
-    });
-    onSaved();
-    onClose();
+    try {
+      await editImage({
+        variables: {
+          id: image.id,
+          rotation,
+          cropLeft: hasCrop ? crop!.x / 100 : null,
+          cropTop: hasCrop ? crop!.y / 100 : null,
+          cropWidth: hasCrop ? crop!.width / 100 : null,
+          cropHeight: hasCrop ? crop!.height / 100 : null,
+        },
+      });
+      onSaved();
+      onClose();
+    } catch (err) {
+      handleMutationError(err);
+    }
   };
 
   const handleReset = async () => {
-    await resetImageEdits({ variables: { id: image.id } });
-    onSaved();
-    onClose();
+    setSaveError(null);
+    try {
+      await resetImageEdits({ variables: { id: image.id } });
+      onSaved();
+      onClose();
+    } catch (err) {
+      handleMutationError(err);
+    }
   };
 
   const busy = saving || resetting;
@@ -189,6 +209,13 @@ export function EditImageModal({ image, onClose, onSaved }: Props) {
           </button>
           <span className="ml-auto text-sm text-gray-400">{rotation}°</span>
         </div>
+
+        {/* Save error */}
+        {saveError && (
+          <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {saveError}
+          </p>
+        )}
 
         {/* Crop editor */}
         <div className="flex flex-col items-center gap-1.5">

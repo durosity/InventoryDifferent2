@@ -69,6 +69,8 @@ struct ImageUploadView: View {
     @State private var uploadProgress: Double = 0
     @State private var errorMessage: String?
     @State private var showCamera = false
+    @State private var imageToEditAfterUpload: DeviceImage? = nil
+    @State private var showEditAfterUpload = false
 
     var body: some View {
         let t = lm.t.imageUpload
@@ -168,6 +170,19 @@ struct ImageUploadView: View {
                 }
                 .ignoresSafeArea()
             }
+            .sheet(isPresented: $showEditAfterUpload, onDismiss: {
+                guard let img = imageToEditAfterUpload else { return }
+                imageToEditAfterUpload = nil
+                onUpload([img])
+                dismiss()
+            }) {
+                if let img = imageToEditAfterUpload {
+                    EditPhotoView(image: img) { updated in
+                        imageToEditAfterUpload = updated
+                    }
+                    .environmentObject(lm)
+                }
+            }
         }
     }
 
@@ -180,8 +195,8 @@ struct ImageUploadView: View {
             let uploaded = try await DeviceService.shared.uploadImage(deviceId: deviceId, mediaData: data)
             uploadProgress = 1.0
             isUploading = false
-            onUpload([uploaded])
-            dismiss()
+            imageToEditAfterUpload = uploaded
+            showEditAfterUpload = true
         } catch {
             errorMessage = "Failed to upload photo: \(error.localizedDescription)"
             isUploading = false

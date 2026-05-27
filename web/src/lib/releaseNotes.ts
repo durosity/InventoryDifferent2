@@ -14,11 +14,13 @@ export const releaseNotes: ReleaseEntry[] = [
     date: '',
     added: [
       'Guest access control: admins can lock the collection to signed-in users only via the Settings page',
+      'iOS photo upload: after taking a camera photo, the edit view opens automatically so you can rotate or crop before the image is finalised',
     ],
     changed: [],
     fixed: [
       'Photo editing: rotation not applied to display copy or thumbnail when saving a rotate-only edit (EXIF auto-orient was being silently skipped)',
       'Photo editing iOS: "bad extract area" crash when saving a rotated+cropped image on photos with EXIF orientation metadata',
+      'Photo edit modal: auth errors (session expired after server restart) now redirect to login instead of silently failing',
     ],
   },
   {
