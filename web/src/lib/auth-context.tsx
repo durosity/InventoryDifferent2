@@ -238,7 +238,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const logout = useCallback(() => {
         clearTokens();
         setIsAuthenticated(false);
-    }, [clearTokens]);
+        if (!guestAccessEnabled) {
+            window.location.href = '/login';
+        }
+    }, [clearTokens, guestAccessEnabled]);
 
     // Get access token for API calls
     const getAccessToken = useCallback((): string | null => {

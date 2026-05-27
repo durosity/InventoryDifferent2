@@ -71,12 +71,17 @@ export default function SettingsPage() {
   const saveGuestAccess = async (enabled: boolean) => {
     setGuestAccess(enabled);
     setIsSaving(true);
-    await setSystemSetting({
-      variables: { key: 'guestAccessEnabled', value: enabled ? 'true' : 'false' },
-    });
-    setIsSaving(false);
-    setGuestAccessSaved(true);
-    setTimeout(() => setGuestAccessSaved(false), 2000);
+    try {
+      await setSystemSetting({
+        variables: { key: 'guestAccessEnabled', value: enabled ? 'true' : 'false' },
+      });
+      setGuestAccessSaved(true);
+      setTimeout(() => setGuestAccessSaved(false), 2000);
+    } catch {
+      setGuestAccess(!enabled);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (authLoading || loading) {

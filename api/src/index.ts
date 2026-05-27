@@ -262,14 +262,23 @@ export async function createApp(prismaOverride?: PrismaClient) {
 
     // Auth status endpoint
     app.get('/auth/status', async (req, res) => {
-        const setting = await prisma.systemSetting.findUnique({ where: { key: 'guestAccessEnabled' } });
-        const guestAccessEnabled = setting?.value !== 'false';
-        return res.json({
-            authenticated: req.isAuthenticated ?? false,
-            authRequired: isAuthConfigured(),
-            usernameRequired: !!getAdminUsername(),
-            guestAccessEnabled,
-        });
+        try {
+            const setting = await prisma.systemSetting.findUnique({ where: { key: 'guestAccessEnabled' } });
+            const guestAccessEnabled = setting?.value !== 'false';
+            return res.json({
+                authenticated: req.isAuthenticated ?? false,
+                authRequired: isAuthConfigured(),
+                usernameRequired: !!getAdminUsername(),
+                guestAccessEnabled,
+            });
+        } catch {
+            return res.json({
+                authenticated: req.isAuthenticated ?? false,
+                authRequired: isAuthConfigured(),
+                usernameRequired: !!getAdminUsername(),
+                guestAccessEnabled: true,
+            });
+        }
     });
 
     // File upload endpoint (requires auth)
