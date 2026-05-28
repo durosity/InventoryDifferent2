@@ -6,6 +6,13 @@ import { useState } from "react";
 import { LoadingPanel } from "../../../components/LoadingPanel";
 import { useT } from "../../../i18n/context";
 import { useAuth } from "../../../lib/auth-context";
+import { API_BASE_URL } from "../../../lib/config";
+
+const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
+function isImagePath(p: string) {
+  const ext = p.slice(p.lastIndexOf(".")).toLowerCase();
+  return IMAGE_EXTS.has(ext);
+}
 
 const GET_SYSTEM_USAGE = gql`
   query GetSystemUsage {
@@ -269,6 +276,18 @@ export default function UsagePage() {
                       onChange={() => toggleSelect(orphan.path)}
                       className="cursor-pointer flex-shrink-0"
                     />
+                    {isImagePath(orphan.path) ? (
+                      <img
+                        src={`${API_BASE_URL}${orphan.path}`}
+                        alt=""
+                        className="flex-shrink-0 h-10 w-10 rounded object-cover bg-[var(--muted)]"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    ) : (
+                      <div className="flex-shrink-0 h-10 w-10 rounded bg-[var(--muted)] flex items-center justify-center text-[10px] text-[var(--muted-foreground)] font-mono">
+                        {orphan.path.slice(orphan.path.lastIndexOf(".") + 1).toUpperCase()}
+                      </div>
+                    )}
                     <span className="flex-1 min-w-0 truncate text-sm font-mono text-[var(--foreground)]">
                       {orphan.path.replace("/uploads/", "")}
                     </span>

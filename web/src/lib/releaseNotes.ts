@@ -15,10 +15,13 @@ export const releaseNotes: ReleaseEntry[] = [
     added: [
       'Trash count badge: a red count indicator appears on the Trash nav item whenever deleted devices are waiting in the trash',
     ],
-    changed: [],
+    changed: [
+      'Orphaned files list now shows a thumbnail preview for image files so you can identify them before deleting',
+    ],
     fixed: [
       'Deleting a photo now removes all associated files (display copy, thumbnail, and the preserved original from non-destructive editing)',
       'Orphan file scan no longer flags the preserved original of an edited photo as an orphan',
+      'Re-editing an already-edited photo no longer accumulates orphaned display copies and thumbnails from previous edits',
     ],
   },
   {

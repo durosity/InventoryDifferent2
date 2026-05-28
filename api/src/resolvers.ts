@@ -1746,6 +1746,14 @@ export const resolvers = {
             const sourceApiPath: string = image.originalPath ?? image.path;
             const sourceDiskPath = path.join('/app/uploads', sourceApiPath.replace('/uploads/', ''));
 
+            // If this image was already edited, delete the old display copy and thumbnail before creating new ones
+            if (image.originalPath) {
+                for (const oldApiPath of [image.path, image.thumbnailPath].filter(Boolean)) {
+                    const oldDiskPath = path.join('/app/uploads', (oldApiPath as string).replace('/uploads/', ''));
+                    try { if (fs.existsSync(oldDiskPath)) fs.unlinkSync(oldDiskPath); } catch {}
+                }
+            }
+
             if (!sourceDiskPath.startsWith('/app/uploads') || !fs.existsSync(sourceDiskPath)) {
                 throw new Error('Source image not found on disk');
             }
