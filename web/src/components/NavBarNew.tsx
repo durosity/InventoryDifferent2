@@ -3,8 +3,18 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+import { useQuery } from "@apollo/client";
+import gql from "graphql-tag";
 import { useT } from "../i18n/context";
 import { useAuth } from "../lib/auth-context";
+
+const GET_TRASH_COUNT = gql`
+  query GetTrashCount {
+    devices(where: { deleted: { equals: true } }) {
+      id
+    }
+  }
+`;
 
 const MAIN_NAV = [
   { key: 'devices' as const,    href: '/',            icon: 'devices' },
@@ -45,6 +55,11 @@ export function NavBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, authRequired, username, logout } = useAuth();
+  const { data: trashData } = useQuery(GET_TRASH_COUNT, {
+    skip: !isAuthenticated,
+    fetchPolicy: 'cache-and-network',
+  });
+  const trashCount = trashData?.devices?.length ?? 0;
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
   const [userOpen, setUserOpen] = useState(false);
@@ -177,6 +192,11 @@ export function NavBar() {
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{item.icon}</span>
                       {(t.nav as Record<string, string>)[item.key]}
+                      {item.key === 'trash' && trashCount > 0 && (
+                        <span className="ml-auto min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full">
+                          {trashCount > 99 ? '99+' : trashCount}
+                        </span>
+                      )}
                     </Link>
                   ))}
                 </div>
@@ -279,6 +299,11 @@ export function NavBar() {
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>{item.icon}</span>
                       {(t.nav as Record<string, string>)[item.key]}
+                      {item.key === 'trash' && trashCount > 0 && (
+                        <span className="ml-auto min-w-[20px] h-[20px] px-1 flex items-center justify-center bg-red-500 text-white text-[11px] font-bold rounded-full">
+                          {trashCount > 99 ? '99+' : trashCount}
+                        </span>
+                      )}
                     </Link>
                   ))}
                 </div>

@@ -12,7 +12,9 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
-    added: [],
+    added: [
+      'Trash count badge: a red count indicator appears on the Trash nav item whenever deleted devices are waiting in the trash',
+    ],
     changed: [],
     fixed: [],
   },
