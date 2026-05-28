@@ -1,4 +1,4 @@
-export const APP_VERSION = '2.8.1';
+export const APP_VERSION = '2.8.2';
 
 export interface ReleaseEntry {
   version: string;
@@ -12,6 +12,13 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
+    added: [],
+    changed: [],
+    fixed: [],
+  },
+  {
+    version: '2.8.2',
+    date: '2026-05-28',
     added: [
       'Trash count badge: a red count indicator appears on the Trash nav item whenever deleted devices are waiting in the trash',
     ],

@@ -4,6 +4,10 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+---
+
+## [2.8.2] - 2026-05-28
+
 ### Added
 - Trash count badge: a red count indicator appears on the Trash nav item whenever deleted devices are waiting in the trash
 
