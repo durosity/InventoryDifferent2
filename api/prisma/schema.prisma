@@ -49,9 +49,14 @@ model Device {
   soldDate            DateTime?
 
   // Computer Specs
-  cpu                 String?
+  cpuType             String?
+  cpuSpeed            String?
   ram                 String?
-  graphics            String?
+  graphicsChip        String?
+  screenSize          String?
+  displayType         String?
+  displayVariant      String?
+  nativeResolution    String?
   storage             String?
   operatingSystem     String?
   isWifiEnabled       Boolean?
@@ -141,9 +146,14 @@ model WishlistItem {
   deleted              Boolean   @default(false)
   createdAt            DateTime  @default(now())
   // Spec fields (populated via template or manually)
-  cpu                  String?
+  cpuType              String?
+  cpuSpeed             String?
   ram                  String?
-  graphics             String?
+  graphicsChip         String?
+  screenSize           String?
+  displayType          String?
+  displayVariant       String?
+  nativeResolution     String?
   storage              String?
   operatingSystem      String?
   externalUrl          String?
@@ -210,9 +220,14 @@ model Template {
   modelNumber     String?
   releaseYear     Int?
   estimatedValue  Decimal?  @db.Decimal(10, 2)
-  cpu             String?
+  cpuType         String?
+  cpuSpeed        String?
   ram             String?
-  graphics        String?
+  graphicsChip    String?
+  screenSize      String?
+  displayType     String?
+  displayVariant  String?
+  nativeResolution String?
   storage         String?
   operatingSystem String?
   externalUrl     String?

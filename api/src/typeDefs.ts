@@ -96,9 +96,14 @@ export const typeDefs = gql`
     soldPrice: Float
     soldDate: DateTime
     
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     isWifiEnabled: Boolean
@@ -217,9 +222,14 @@ export const typeDefs = gql`
     modelNumber: String
     releaseYear: Int
     estimatedValue: Float
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
@@ -304,9 +314,14 @@ export const typeDefs = gql`
     group: String
     deleted: Boolean!
     createdAt: String!
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
@@ -333,9 +348,14 @@ export const typeDefs = gql`
     priority: Int
     group: String
     categoryId: Int
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
@@ -356,9 +376,14 @@ export const typeDefs = gql`
     priority: Int
     group: String
     categoryId: Int
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
@@ -393,9 +418,14 @@ export const typeDefs = gql`
     modelNumber: String
     releaseYear: Int
     estimatedValue: Float
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
@@ -415,9 +445,14 @@ export const typeDefs = gql`
     modelNumber: String
     releaseYear: Int
     estimatedValue: Float
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
@@ -647,9 +682,14 @@ export const typeDefs = gql`
     soldDate: DateTime
 
     # Optional - Computer Specs
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     isWifiEnabled: Boolean
@@ -692,9 +732,14 @@ export const typeDefs = gql`
     soldPrice: Float
     soldDate: DateTime
 
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     isWifiEnabled: Boolean
