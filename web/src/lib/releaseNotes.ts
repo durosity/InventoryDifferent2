@@ -16,7 +16,10 @@ export const releaseNotes: ReleaseEntry[] = [
       'Trash count badge: a red count indicator appears on the Trash nav item whenever deleted devices are waiting in the trash',
     ],
     changed: [],
-    fixed: [],
+    fixed: [
+      'Deleting a photo now removes all associated files (display copy, thumbnail, and the preserved original from non-destructive editing)',
+      'Orphan file scan no longer flags the preserved original of an edited photo as an orphan',
+    ],
   },
   {
     version: '2.8.1',

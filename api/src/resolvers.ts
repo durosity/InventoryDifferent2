@@ -725,7 +725,7 @@ export const resolvers = {
 
             // Collect all DB-referenced paths into a Set
             const [images, showcaseConfig, showcaseJourneys] = await Promise.all([
-                context.prisma.image.findMany({ select: { path: true, thumbnailPath: true } }),
+                context.prisma.image.findMany({ select: { path: true, thumbnailPath: true, originalPath: true } }),
                 (context.prisma as any).showcaseConfig.findUnique({
                     where: { id: 'singleton' },
                     select: { heroImagePath: true },
@@ -738,6 +738,7 @@ export const resolvers = {
             for (const img of images) {
                 if (img.path) referencedPaths.add(img.path);
                 if ((img as any).thumbnailPath) referencedPaths.add((img as any).thumbnailPath);
+                if ((img as any).originalPath) referencedPaths.add((img as any).originalPath);
             }
             // Showcase images are stored as relative paths (no /uploads/ prefix) — normalise to match
             if (showcaseConfig?.heroImagePath) {
@@ -1713,26 +1714,18 @@ export const resolvers = {
                 return false;
             }
 
-            // Delete the file from disk
-            const filePath = path.join('/app/uploads', image.path.replace('/uploads/', ''));
-            try {
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
-                }
-            } catch (err) {
-                console.error('Error deleting file:', err);
-                // Continue with DB deletion even if file deletion fails
-            }
+            // Delete all files associated with this image: display copy, thumbnail, and
+            // the untouched original (kept for non-destructive re-editing)
+            const pathsToDelete: string[] = [image.path];
+            if (image.thumbnailPath) pathsToDelete.push(image.thumbnailPath as string);
+            if ((image as any).originalPath) pathsToDelete.push((image as any).originalPath);
 
-            const thumbnailPath = image.thumbnailPath as string | null | undefined;
-            if (thumbnailPath) {
-                const thumbFilePath = path.join('/app/uploads', thumbnailPath.replace('/uploads/', ''));
+            for (const apiPath of pathsToDelete) {
+                const diskPath = path.join('/app/uploads', apiPath.replace('/uploads/', ''));
                 try {
-                    if (fs.existsSync(thumbFilePath)) {
-                        fs.unlinkSync(thumbFilePath);
-                    }
+                    if (fs.existsSync(diskPath)) fs.unlinkSync(diskPath);
                 } catch (err) {
-                    console.error('Error deleting thumbnail file:', err);
+                    console.error('Error deleting file:', diskPath, err);
                 }
             }
 
