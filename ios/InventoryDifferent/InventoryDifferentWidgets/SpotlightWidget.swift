@@ -1,0 +1,351 @@
+import WidgetKit
+import SwiftUI
+
+// MARK: - Entry
+
+struct SpotlightEntry: TimelineEntry {
+    let date: Date
+    let device: SpotlightDevice?
+    let thumbnailData: Data?
+}
+
+// MARK: - Provider
+
+struct SpotlightProvider: TimelineProvider {
+    func placeholder(in context: Context) -> SpotlightEntry {
+        SpotlightEntry(date: Date(), device: nil, thumbnailData: nil)
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (SpotlightEntry) -> Void) {
+        Task {
+            let pool = await WidgetAPIService.shared.fetchSpotlightPool() ?? []
+            let device = Self.pickDevice(from: pool, for: Date())
+            let thumb: Data?
+            if let url = device?.thumbnailURL {
+                thumb = await WidgetAPIService.shared.fetchThumbnail(urlString: url)
+            } else {
+                thumb = nil
+            }
+            completion(SpotlightEntry(date: Date(), device: device, thumbnailData: thumb))
+        }
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<SpotlightEntry>) -> Void) {
+        Task {
+            let pool = await WidgetAPIService.shared.fetchSpotlightPool() ?? []
+            let now = Date()
+            let blockStart = Date(timeIntervalSince1970: (now.timeIntervalSince1970 / Self.rotationInterval).rounded(.down) * Self.rotationInterval)
+
+            // Determine the next N devices up front so we can fetch thumbnails in parallel.
+            let devices = (0..<Self.entryCount).map { offset -> SpotlightDevice? in
+                let date = blockStart.addingTimeInterval(TimeInterval(offset) * Self.rotationInterval)
+                return Self.pickDevice(from: pool, for: date)
+            }
+
+            // Fetch all thumbnails concurrently — each is ~20-60 KB WebP, well within widget memory budget.
+            let thumbnails: [Data?] = await withTaskGroup(of: (Int, Data?).self, returning: [Data?].self) { group in
+                for (i, device) in devices.enumerated() {
+                    let url = device?.thumbnailURL
+                    group.addTask {
+                        guard let url else { return (i, nil) }
+                        return (i, await WidgetAPIService.shared.fetchThumbnail(urlString: url))
+                    }
+                }
+                var result = [Data?](repeating: nil, count: Self.entryCount)
+                for await (i, data) in group { result[i] = data }
+                return result
+            }
+
+            let entries = (0..<Self.entryCount).map { offset in
+                SpotlightEntry(
+                    date: blockStart.addingTimeInterval(TimeInterval(offset) * Self.rotationInterval),
+                    device: devices[offset],
+                    thumbnailData: thumbnails[offset]
+                )
+            }
+
+            // Refresh from server once this batch is exhausted.
+            let refresh = blockStart.addingTimeInterval(TimeInterval(Self.entryCount) * Self.rotationInterval)
+            completion(Timeline(entries: entries, policy: .after(refresh)))
+        }
+    }
+
+    /// Rotation interval — device changes every 30 minutes.
+    internal static let rotationInterval: TimeInterval = 30 * 60
+
+    /// Number of pre-fetched entries per timeline batch (~5 hours of coverage).
+    private static let entryCount = 10
+
+    /// Deterministic weighted selection — same time block always yields the same device.
+    /// `internal` so tests can call it directly.
+    internal static func pickDevice(from devices: [SpotlightDevice], for date: Date) -> SpotlightDevice? {
+        guard !devices.isEmpty else { return nil }
+        var pool: [SpotlightDevice] = []
+        for d in devices {
+            pool.append(d)
+            if d.isFavorite { pool.append(d); pool.append(d) }
+        }
+        let blockIndex = Int(date.timeIntervalSince1970 / rotationInterval)
+        return pool[abs(blockIndex) % pool.count]
+    }
+}
+
+// MARK: - Widget declaration
+
+struct SpotlightWidget: Widget {
+    let kind = "SpotlightWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: SpotlightProvider()) { entry in
+            SpotlightEntryView(entry: entry)
+                .widgetURL(entry.device.map { URL(string: "inventorydifferent://devices/\($0.id)") } ?? nil)
+        }
+        .configurationDisplayName("Device Spotlight")
+        .description("Rotates every few hours to spotlight different devices.")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+    }
+}
+
+// MARK: - Entry view (routes by size)
+
+struct SpotlightEntryView: View {
+    @Environment(\.widgetFamily) var family
+    let entry: SpotlightEntry
+
+    var body: some View {
+        switch family {
+        case .systemSmall:  SpotlightSmallView(entry: entry)
+        case .systemMedium: SpotlightMediumView(entry: entry)
+        default:            SpotlightLargeView(entry: entry)
+        }
+    }
+}
+
+// MARK: - Small
+
+struct SpotlightSmallView: View {
+    let entry: SpotlightEntry
+    @Environment(\.colorScheme) var colorScheme
+
+    private var hasThumbnail: Bool { entry.thumbnailData != nil }
+
+    var body: some View {
+        ZStack {
+            if hasThumbnail {
+                LinearGradient(
+                    colors: [.clear, Color.black.opacity(colorScheme == .dark ? 0.9 : 0.6)],
+                    startPoint: .center, endPoint: .bottom
+                )
+            }
+            if let device = entry.device {
+                VStack(alignment: .leading, spacing: 2) {
+                    Spacer()
+                    Text(device.name)
+                        .font(.system(size: 14, weight: .light))
+                        .foregroundColor(hasThumbnail ? .white : .primary)
+                        .tracking(0.5)
+                        .lineLimit(2)
+                    if let year = device.releaseYear {
+                        Text(String(year))
+                            .font(.system(size: 10, weight: .light))
+                            .foregroundColor(hasThumbnail ? .white.opacity(0.5) : .secondary)
+                            .tracking(1.5)
+                            .textCase(.uppercase)
+                    }
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            } else {
+                SpotlightPlaceholder()
+            }
+        }
+        .widgetBackground {
+            SpotlightBackground(thumbnailData: entry.thumbnailData)
+        }
+    }
+}
+
+// MARK: - Medium
+
+struct SpotlightMediumView: View {
+    let entry: SpotlightEntry
+
+    var body: some View {
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("SPOTLIGHT")
+                    .font(.system(size: 8, weight: .light))
+                    .foregroundColor(.secondary)
+                    .tracking(3.5)
+                Spacer()
+                if let device = entry.device {
+                    Text(device.name)
+                        .font(.system(size: 17, weight: .light))
+                        .foregroundColor(.primary)
+                        .tracking(0.5)
+                        .lineLimit(1)
+                    if let extra = device.additionalName {
+                        Text(extra)
+                            .font(.system(size: 11, weight: .light))
+                            .foregroundColor(.secondary)
+                            .tracking(0.3)
+                            .lineLimit(1)
+                    }
+                    Text(metaLine(device).uppercased())
+                        .font(.system(size: 10, weight: .light))
+                        .foregroundColor(.secondary)
+                        .tracking(1.8)
+                        .lineLimit(1)
+                        .padding(.top, 2)
+                    if let value = device.estimatedValue {
+                        Text("$\(Int(value).formatted())")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(Color(hex: "6bcb77").opacity(0.85))
+                            .tracking(0.8)
+                            .padding(.top, 4)
+                    }
+                } else {
+                    SpotlightPlaceholder()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+
+            Group {
+                if let data = entry.thumbnailData, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Color.primary.opacity(0.08)
+                }
+            }
+            .frame(width: 90, height: 90)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .padding(16)
+        .widgetBackground {
+            Color("WidgetBackground")
+        }
+    }
+
+    private func metaLine(_ device: SpotlightDevice) -> String {
+        [device.manufacturer, device.releaseYear.map(String.init), device.cpu]
+            .compactMap { $0 }
+            .joined(separator: " · ")
+    }
+}
+
+// MARK: - Large
+
+struct SpotlightLargeView: View {
+    let entry: SpotlightEntry
+    @Environment(\.colorScheme) var colorScheme
+
+    private var hasThumbnail: Bool { entry.thumbnailData != nil }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ZStack {
+                if hasThumbnail {
+                    LinearGradient(
+                        colors: [.clear, Color.black.opacity(colorScheme == .dark ? 0.3 : 0.2)],
+                        startPoint: .center, endPoint: .bottom
+                    )
+                }
+                VStack {
+                    HStack {
+                        Text("SPOTLIGHT")
+                            .font(.system(size: 8, weight: .light))
+                            .foregroundColor(hasThumbnail ? .white.opacity(0.4) : .secondary)
+                            .tracking(3.0)
+                            .padding(12)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+            }
+            .frame(maxHeight: .infinity)
+
+            VStack(alignment: .leading, spacing: 3) {
+                if let device = entry.device {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(device.name)
+                            .font(.system(size: 17, weight: .light))
+                            .foregroundColor(.primary)
+                            .tracking(0.5)
+                            .lineLimit(1)
+                        Spacer()
+                        if let value = device.estimatedValue {
+                            Text("$\(Int(value).formatted())")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color(hex: "6bcb77").opacity(0.85))
+                                .tracking(0.8)
+                        }
+                    }
+                    Text([device.manufacturer, device.releaseYear.map(String.init)]
+                            .compactMap { $0 }.joined(separator: " · ").uppercased())
+                        .font(.system(size: 10, weight: .light))
+                        .foregroundColor(.secondary)
+                        .tracking(1.8)
+                    if device.cpu != nil || device.ram != nil {
+                        HStack(spacing: 6) {
+                            if let cpu = device.cpu { SpecChip(text: cpu) }
+                            if let ram = device.ram { SpecChip(text: ram) }
+                            if device.functionalStatus == "YES" { SpecChip(text: "Working", isGreen: true) }
+                        }
+                    }
+                } else {
+                    SpotlightPlaceholder()
+                }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.ultraThinMaterial)
+        }
+        .widgetBackground {
+            SpotlightBackground(thumbnailData: entry.thumbnailData)
+        }
+    }
+}
+
+// MARK: - Shared sub-views
+
+struct SpotlightBackground: View {
+    let thumbnailData: Data?
+
+    var body: some View {
+        if let data = thumbnailData, let uiImage = UIImage(data: data) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+        } else {
+            Color("WidgetBackground")
+        }
+    }
+}
+
+struct SpecChip: View {
+    let text: String
+    var isGreen = false
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 10))
+            .foregroundColor(isGreen ? Color(hex: "6bcb77") : .secondary)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(isGreen ? Color(hex: "6bcb77").opacity(0.15) : Color.primary.opacity(0.08))
+            )
+    }
+}
+
+struct SpotlightPlaceholder: View {
+    var body: some View {
+        Text("Open app to connect")
+            .font(.system(size: 11, weight: .light))
+            .foregroundColor(.secondary)
+            .padding(12)
+    }
+}

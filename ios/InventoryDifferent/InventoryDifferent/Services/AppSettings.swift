@@ -10,28 +10,44 @@ import Combine
 
 final class AppSettings: ObservableObject {
     static let shared = AppSettings()
-    
+    static let appGroupSuite = "group.com.wottle.inventorydifferent"
+
     private let serverURLKey = "serverURL"
     private let isConfiguredKey = "isConfigured"
-    
+
+    private var defaults: UserDefaults {
+        UserDefaults(suiteName: AppSettings.appGroupSuite) ?? .standard
+    }
+
     @Published var serverURL: String
     @Published var isConfigured: Bool
-    
+
     init() {
-        self.serverURL = UserDefaults.standard.string(forKey: serverURLKey) ?? ""
-        self.isConfigured = UserDefaults.standard.bool(forKey: isConfiguredKey)
+        let suite = UserDefaults(suiteName: AppSettings.appGroupSuite) ?? .standard
+        // Migrate any value already in UserDefaults.standard on first run
+        if let existing = UserDefaults.standard.string(forKey: "serverURL"),
+           suite.string(forKey: "serverURL") == nil {
+            suite.set(existing, forKey: "serverURL")
+            suite.set(UserDefaults.standard.bool(forKey: "isConfigured"), forKey: "isConfigured")
+        }
+        let url = suite.string(forKey: "serverURL") ?? ""
+        self.serverURL = url
+        self.isConfigured = suite.bool(forKey: "isConfigured")
+        if !url.isEmpty {
+            APIService.shared.updateBaseURL(url)
+        }
     }
-    
+
     func configure(serverURL: String) {
         self.serverURL = serverURL
         self.isConfigured = true
-        UserDefaults.standard.set(serverURL, forKey: serverURLKey)
-        UserDefaults.standard.set(true, forKey: isConfiguredKey)
+        defaults.set(serverURL, forKey: serverURLKey)
+        defaults.set(true, forKey: isConfiguredKey)
         APIService.shared.updateBaseURL(serverURL)
     }
-    
+
     func logout() {
         self.isConfigured = false
-        UserDefaults.standard.set(false, forKey: isConfiguredKey)
+        defaults.set(false, forKey: isConfiguredKey)
     }
 }

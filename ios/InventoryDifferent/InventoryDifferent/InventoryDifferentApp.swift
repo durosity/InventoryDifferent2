@@ -16,6 +16,7 @@ struct InventoryDifferentApp: App {
     @State private var showSplash = true
     @State private var deepLinkDeviceId: Int?
     @State private var deepLinkLocationId: Int?
+    @State private var deepLinkToStats = false
 
     var body: some Scene {
         WindowGroup {
@@ -37,7 +38,7 @@ struct InventoryDifferentApp: App {
                         .environmentObject(lm)
                 } else {
                     // Ready to show main content
-                    ContentView(deepLinkDeviceId: $deepLinkDeviceId, deepLinkLocationId: $deepLinkLocationId)
+                    ContentView(deepLinkDeviceId: $deepLinkDeviceId, deepLinkLocationId: $deepLinkLocationId, deepLinkToStats: $deepLinkToStats)
                         .environmentObject(deviceStore)
                         .environmentObject(appSettings)
                         .environmentObject(authService)
@@ -77,6 +78,7 @@ struct InventoryDifferentApp: App {
 
         var deviceId: Int?
         var locationId: Int?
+        var navigateToStats = false
 
         // For custom URL scheme: inventorydifferent://devices/123 or inventorydifferent://locations/123
         // Host = "devices"/"locations", Path = "/123"
@@ -90,6 +92,8 @@ struct InventoryDifferentApp: App {
                 if let idString = pathComponents.first, let id = Int(idString) {
                     locationId = id
                 }
+            } else if url.host == "stats" {
+                navigateToStats = true
             }
         }
         // For Universal Links: https://your-domain.example.com/devices/123 or /locations/123
@@ -122,6 +126,10 @@ struct InventoryDifferentApp: App {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                 print("🚀 Setting deepLinkLocationId to \(locationId)")
                 deepLinkLocationId = locationId
+            }
+        } else if navigateToStats {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                deepLinkToStats = true
             }
         } else {
             print("❌ Could not parse ID from URL")
