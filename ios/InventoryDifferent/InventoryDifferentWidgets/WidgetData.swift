@@ -54,6 +54,7 @@ extension WidgetStatsData {
 struct SpotlightDevice: Codable {
     let id: Int
     let name: String
+    let additionalName: String?
     let manufacturer: String?
     let releaseYear: Int?
     let estimatedValue: Double?
@@ -70,6 +71,7 @@ struct WidgetSpotlightAPIResponse: Decodable {
     struct APIDevice: Decodable {
         let id: Int
         let name: String
+        let additionalName: String?
         let manufacturer: String?
         let releaseYear: Int?
         let estimatedValue: Double?
@@ -87,6 +89,7 @@ extension SpotlightDevice {
     init(from device: WidgetSpotlightAPIResponse.APIDevice, serverURL: String) {
         self.id = device.id
         self.name = device.name
+        self.additionalName = device.additionalName
         self.manufacturer = device.manufacturer
         self.releaseYear = device.releaseYear
         self.estimatedValue = device.estimatedValue

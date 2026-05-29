@@ -31,7 +31,7 @@ final class WidgetAPIService {
         let query = """
         query WidgetSpotlight {
           devices(where: { deleted: { equals: false } }) {
-            id name manufacturer releaseYear estimatedValue
+            id name additionalName manufacturer releaseYear estimatedValue
             functionalStatus isFavorite cpu ram
             images { thumbnailPath isThumbnail }
             status

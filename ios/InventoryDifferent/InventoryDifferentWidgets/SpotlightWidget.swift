@@ -183,13 +183,20 @@ struct SpotlightMediumView: View {
                         .font(.system(size: 17, weight: .light))
                         .foregroundColor(.primary)
                         .tracking(0.5)
-                        .lineLimit(2)
+                        .lineLimit(1)
+                    if let extra = device.additionalName {
+                        Text(extra)
+                            .font(.system(size: 11, weight: .light))
+                            .foregroundColor(.secondary)
+                            .tracking(0.3)
+                            .lineLimit(1)
+                    }
                     Text(metaLine(device).uppercased())
                         .font(.system(size: 10, weight: .light))
                         .foregroundColor(.secondary)
                         .tracking(1.8)
                         .lineLimit(1)
-                        .padding(.top, 3)
+                        .padding(.top, 2)
                     if let value = device.estimatedValue {
                         Text("$\(Int(value).formatted())")
                             .font(.system(size: 11, weight: .medium))
@@ -247,7 +254,7 @@ struct SpotlightLargeView: View {
                 }
                 VStack {
                     HStack {
-                        Text("TODAY'S HIGHLIGHT")
+                        Text("SPOTLIGHT")
                             .font(.system(size: 8, weight: .light))
                             .foregroundColor(hasThumbnail ? .white.opacity(0.4) : .secondary)
                             .tracking(3.0)
