@@ -14,7 +14,10 @@ export const releaseNotes: ReleaseEntry[] = [
     date: '',
     added: [],
     changed: [],
-    fixed: [],
+    fixed: [
+      'iOS image viewer now responds to swipe gestures directly on the image when zoomed out, not just the surrounding black area',
+      'iOS image viewer resets zoom to fit-to-screen when swiping to a different image',
+    ],
   },
   {
     version: '2.8.2',
