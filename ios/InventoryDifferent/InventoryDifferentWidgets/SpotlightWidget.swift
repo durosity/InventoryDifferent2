@@ -96,23 +96,30 @@ struct SpotlightEntryView: View {
 
 struct SpotlightSmallView: View {
     let entry: SpotlightEntry
+    @Environment(\.colorScheme) var colorScheme
+
+    private var hasThumbnail: Bool { entry.thumbnailData != nil }
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [.clear, Color.black.opacity(0.9)],
-                           startPoint: .center, endPoint: .bottom)
+            if hasThumbnail {
+                LinearGradient(
+                    colors: [.clear, Color.black.opacity(colorScheme == .dark ? 0.9 : 0.6)],
+                    startPoint: .center, endPoint: .bottom
+                )
+            }
             if let device = entry.device {
                 VStack(alignment: .leading, spacing: 2) {
                     Spacer()
                     Text(device.name)
                         .font(.system(size: 14, weight: .light))
-                        .foregroundColor(.white)
+                        .foregroundColor(hasThumbnail ? .white : .primary)
                         .tracking(0.5)
                         .lineLimit(2)
                     if let year = device.releaseYear {
                         Text(String(year))
                             .font(.system(size: 10, weight: .light))
-                            .foregroundColor(.white.opacity(0.5))
+                            .foregroundColor(hasThumbnail ? .white.opacity(0.5) : .secondary)
                             .tracking(1.5)
                             .textCase(.uppercase)
                     }
@@ -133,26 +140,33 @@ struct SpotlightSmallView: View {
 
 struct SpotlightMediumView: View {
     let entry: SpotlightEntry
+    @Environment(\.colorScheme) var colorScheme
+
+    private var hasThumbnail: Bool { entry.thumbnailData != nil }
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [.clear, Color.black.opacity(0.95)],
-                           startPoint: .top, endPoint: .bottom)
+            if hasThumbnail {
+                LinearGradient(
+                    colors: [.clear, Color.black.opacity(colorScheme == .dark ? 0.95 : 0.65)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            }
             if let device = entry.device {
                 VStack(alignment: .leading, spacing: 4) {
                     Spacer()
                     Text("TODAY'S HIGHLIGHT")
                         .font(.system(size: 8, weight: .light))
-                        .foregroundColor(.white.opacity(0.35))
+                        .foregroundColor(hasThumbnail ? .white.opacity(0.35) : .secondary)
                         .tracking(3.5)
                     Text(device.name)
                         .font(.system(size: 19, weight: .light))
-                        .foregroundColor(.white)
+                        .foregroundColor(hasThumbnail ? .white : .primary)
                         .tracking(0.6)
                         .lineLimit(1)
                     Text(metaLine(device).uppercased())
                         .font(.system(size: 10, weight: .light))
-                        .foregroundColor(.white.opacity(0.4))
+                        .foregroundColor(hasThumbnail ? .white.opacity(0.4) : .secondary)
                         .tracking(1.8)
                     if let value = device.estimatedValue {
                         Text("$\(Int(value).formatted())")
@@ -185,17 +199,24 @@ struct SpotlightMediumView: View {
 
 struct SpotlightLargeView: View {
     let entry: SpotlightEntry
+    @Environment(\.colorScheme) var colorScheme
+
+    private var hasThumbnail: Bool { entry.thumbnailData != nil }
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                LinearGradient(colors: [.clear, Color.black.opacity(0.3)],
-                               startPoint: .center, endPoint: .bottom)
+                if hasThumbnail {
+                    LinearGradient(
+                        colors: [.clear, Color.black.opacity(colorScheme == .dark ? 0.3 : 0.2)],
+                        startPoint: .center, endPoint: .bottom
+                    )
+                }
                 VStack {
                     HStack {
                         Text("TODAY'S HIGHLIGHT")
                             .font(.system(size: 8, weight: .light))
-                            .foregroundColor(.white.opacity(0.4))
+                            .foregroundColor(hasThumbnail ? .white.opacity(0.4) : .secondary)
                             .tracking(3.0)
                             .padding(12)
                         Spacer()
@@ -209,12 +230,12 @@ struct SpotlightLargeView: View {
                 if let device = entry.device {
                     Text(device.name)
                         .font(.system(size: 20, weight: .light))
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
                         .tracking(0.6)
                     Text([device.manufacturer, device.releaseYear.map(String.init)]
                             .compactMap { $0 }.joined(separator: " · ").uppercased())
                         .font(.system(size: 10, weight: .light))
-                        .foregroundColor(.white.opacity(0.35))
+                        .foregroundColor(.secondary)
                         .tracking(1.8)
                     if device.cpu != nil || device.ram != nil {
                         HStack(spacing: 6) {
@@ -256,8 +277,7 @@ struct SpotlightBackground: View {
                 .resizable()
                 .scaledToFill()
         } else {
-            LinearGradient(colors: [Color(hex: "2d2d1a"), Color(hex: "1a1a1a"), Color(hex: "0d0d0d")],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            Color("WidgetBackground")
         }
     }
 }
@@ -269,12 +289,12 @@ struct SpecChip: View {
     var body: some View {
         Text(text)
             .font(.system(size: 10))
-            .foregroundColor(isGreen ? Color(hex: "6bcb77") : Color.white.opacity(0.7))
+            .foregroundColor(isGreen ? Color(hex: "6bcb77") : .secondary)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
             .background(
                 RoundedRectangle(cornerRadius: 5)
-                    .fill(isGreen ? Color(hex: "6bcb77").opacity(0.15) : Color.white.opacity(0.08))
+                    .fill(isGreen ? Color(hex: "6bcb77").opacity(0.15) : Color.primary.opacity(0.08))
             )
     }
 }
@@ -283,7 +303,7 @@ struct SpotlightPlaceholder: View {
     var body: some View {
         Text("Open app to connect")
             .font(.system(size: 11, weight: .light))
-            .foregroundColor(.white.opacity(0.35))
+            .foregroundColor(.secondary)
             .padding(12)
     }
 }
