@@ -4,8 +4,16 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+---
+
+## [2.8.4] - 2026-05-29
+
 ### Added
 - iOS home screen widgets: Stats (small/medium/large), Device Spotlight (small/medium/large), and Recent Additions (medium)
+
+### Fixed
+- iOS image viewer now responds to swipe gestures directly on the image when zoomed out, not just the surrounding black area
+- iOS image viewer resets zoom to fit-to-screen when swiping to a different image
 
 ---
 
