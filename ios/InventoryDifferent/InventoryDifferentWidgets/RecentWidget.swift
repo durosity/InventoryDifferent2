@@ -57,7 +57,7 @@ struct RecentWidgetView: View {
             HStack {
                 Text("RECENT ADDITIONS")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(.secondary)
                     .tracking(1.0)
                 Spacer()
                 RainbowDot(size: 11)
@@ -75,19 +75,19 @@ struct RecentWidgetView: View {
                 if let ts = entry.data?.lastUpdated {
                     Text("Updated \(ts.widgetRelativeDescription)")
                         .font(.system(size: 9))
-                        .foregroundColor(.white.opacity(0.25))
+                        .foregroundColor(.secondary)
                         .padding(.top, 6)
                 }
             } else {
                 Text("Open app to connect")
                     .font(.system(size: 11))
-                    .foregroundColor(.white.opacity(0.4))
+                    .foregroundColor(.secondary)
             }
         }
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .widgetBackground {
-            Color(hex: "1c1c1e")
+            Color("WidgetBackground")
         }
     }
 }
@@ -98,20 +98,19 @@ struct RecentRow: View {
     var body: some View {
         HStack(spacing: 10) {
             RoundedRectangle(cornerRadius: 7)
-                .fill(LinearGradient(colors: [Color(hex: "2a2a3e"), Color(hex: "1a1a2e")],
-                                     startPoint: .topLeading, endPoint: .bottomTrailing))
+                .fill(Color.primary.opacity(0.08))
                 .frame(width: 34, height: 34)
                 .overlay(Text("💾").font(.system(size: 16)))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(device.name)
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                     .lineLimit(1)
                 Text([device.manufacturer, device.releaseYear.map(String.init)]
                         .compactMap { $0 }.joined(separator: " · "))
                     .font(.system(size: 10))
-                    .foregroundColor(.white.opacity(0.4))
+                    .foregroundColor(.secondary)
             }
             Spacer()
             if let acquired = device.dateAcquired {

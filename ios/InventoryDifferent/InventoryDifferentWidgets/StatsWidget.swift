@@ -78,10 +78,10 @@ struct StatsSmallView: View {
             if let data {
                 Text("\(data.totalDevices)")
                     .font(.system(size: 42, weight: .heavy))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 Text("DEVICES")
                     .font(.system(size: 9, weight: .medium))
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(.secondary)
                     .tracking(1.5)
                 Text("$\(Int(data.estimatedValue).formatted()) est.")
                     .font(.system(size: 12, weight: .semibold))
@@ -94,7 +94,7 @@ struct StatsSmallView: View {
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .widgetBackground {
-            Color(hex: "1c1c1e")
+            Color("WidgetBackground")
         }
     }
 }
@@ -113,7 +113,7 @@ struct StatsMediumView: View {
                     .cornerRadius(5)
                 Text("INVENTORY DIFFERENT")
                     .font(.system(size: 9, weight: .bold))
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(.secondary)
                     .tracking(1.0)
             }
             if let data {
@@ -129,7 +129,7 @@ struct StatsMediumView: View {
         }
         .padding(14)
         .widgetBackground {
-            Color(hex: "1c1c1e")
+            Color("WidgetBackground")
         }
     }
 }
@@ -148,7 +148,7 @@ struct StatsLargeView: View {
                     .cornerRadius(5)
                 Text("INVENTORY DIFFERENT")
                     .font(.system(size: 9, weight: .bold))
-                    .foregroundColor(.white.opacity(0.5))
+                    .foregroundColor(.secondary)
                     .tracking(1.0)
             }
             if let data {
@@ -160,7 +160,7 @@ struct StatsLargeView: View {
                     StatsCell(value: "$\(Int(data.totalSpent).formatted())", label: "Total Spent", valueColor: Color(hex: "4d96ff"), fontSize: 18)
                     StatsCell(value: "\(data.inRepairCount)", label: "In Repair", valueColor: Color(hex: "ff6b6b"), fontSize: 24)
                 }
-                Divider().background(Color.white.opacity(0.1)).padding(.vertical, 2)
+                Divider().padding(.vertical, 2)
                 ForEach(statusBarsData(data.byStatus), id: \.label) { bar in
                     StatusBarRow(label: bar.label, fraction: bar.fraction, color: bar.color)
                 }
@@ -170,7 +170,7 @@ struct StatsLargeView: View {
         }
         .padding(16)
         .widgetBackground {
-            Color(hex: "1c1c1e")
+            Color("WidgetBackground")
         }
     }
 
@@ -204,7 +204,7 @@ struct StatsLargeView: View {
 struct StatsCell: View {
     let value: String
     let label: String
-    var valueColor: Color = .white
+    var valueColor: Color = .primary
     var fontSize: CGFloat = 20
 
     var body: some View {
@@ -216,13 +216,13 @@ struct StatsCell: View {
                 .minimumScaleFactor(0.7)
             Text(label.uppercased())
                 .font(.system(size: 9, weight: .medium))
-                .foregroundColor(.white.opacity(0.4))
+                .foregroundColor(.secondary)
                 .tracking(0.5)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.07))
+        .background(Color.primary.opacity(0.07))
         .cornerRadius(10)
     }
 }
@@ -236,11 +236,11 @@ struct StatusBarRow: View {
         HStack(spacing: 8) {
             Text(label)
                 .font(.system(size: 10))
-                .foregroundColor(.white.opacity(0.55))
+                .foregroundColor(.secondary)
                 .frame(width: 60, alignment: .leading)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3).fill(Color.white.opacity(0.1))
+                    RoundedRectangle(cornerRadius: 3).fill(Color.primary.opacity(0.1))
                     RoundedRectangle(cornerRadius: 3).fill(color)
                         .frame(width: max(4, geo.size.width * fraction))
                 }
@@ -248,7 +248,7 @@ struct StatusBarRow: View {
             .frame(height: 5)
             Text("\(Int(fraction * 100))%")
                 .font(.system(size: 10))
-                .foregroundColor(.white.opacity(0.4))
+                .foregroundColor(.secondary)
                 .frame(width: 30, alignment: .trailing)
         }
     }
@@ -258,6 +258,6 @@ struct StatsPlaceholderText: View {
     var body: some View {
         Text("Open app to connect")
             .font(.system(size: 11))
-            .foregroundColor(.white.opacity(0.4))
+            .foregroundColor(.secondary)
     }
 }
