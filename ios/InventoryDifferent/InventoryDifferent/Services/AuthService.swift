@@ -169,12 +169,20 @@ class AuthService: ObservableObject {
         setKeychainString(key: accessTokenKey, value: accessToken)
         setKeychainString(key: refreshTokenKey, value: refreshToken)
         setKeychainString(key: tokenExpiryKey, value: String(expiry.timeIntervalSince1970))
+        mirrorTokenForWidget(accessToken)
     }
 
     private func clearTokens() {
         deleteKeychainItem(key: accessTokenKey)
         deleteKeychainItem(key: refreshTokenKey)
         deleteKeychainItem(key: tokenExpiryKey)
+        UserDefaults(suiteName: AppSettings.appGroupSuite)?.removeObject(forKey: "widget_access_token")
+    }
+
+    // Write a copy of the access token to shared UserDefaults so the widget extension can read it.
+    // Tokens are short-lived (1h) so UserDefaults storage is acceptable for this use case.
+    private func mirrorTokenForWidget(_ token: String) {
+        UserDefaults(suiteName: AppSettings.appGroupSuite)?.set(token, forKey: "widget_access_token")
     }
 
     private func validateToken(_ token: String) async -> Bool {
@@ -214,6 +222,7 @@ class AuthService: ObservableObject {
             let expiryDate = Date().addingTimeInterval(TimeInterval(expiresIn))
             setKeychainString(key: accessTokenKey, value: accessToken)
             setKeychainString(key: tokenExpiryKey, value: String(expiryDate.timeIntervalSince1970))
+            mirrorTokenForWidget(accessToken)
 
             // Store rolling refresh token if present
             if let newRefreshToken = json["refreshToken"] as? String {
@@ -258,7 +267,6 @@ class AuthService: ObservableObject {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
-            kSecAttrAccessGroup as String: "group.com.wottle.InventoryDifferent",
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
 
@@ -274,7 +282,6 @@ class AuthService: ObservableObject {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
-            kSecAttrAccessGroup as String: "group.com.wottle.InventoryDifferent",
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -294,8 +301,7 @@ class AuthService: ObservableObject {
     private func deleteKeychainItem(key: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key,
-            kSecAttrAccessGroup as String: "group.com.wottle.InventoryDifferent"
+            kSecAttrAccount as String: key
         ]
 
         SecItemDelete(query as CFDictionary)
