@@ -6,28 +6,48 @@ import SwiftUI
 struct RecentEntry: TimelineEntry {
     let date: Date
     let data: WidgetRecentData?
+    let thumbnails: [Data?]  // parallel to data.devices, pre-fetched at timeline generation
 }
 
 // MARK: - Provider
 
 struct RecentProvider: TimelineProvider {
     func placeholder(in context: Context) -> RecentEntry {
-        RecentEntry(date: Date(), data: nil)
+        RecentEntry(date: Date(), data: nil, thumbnails: [])
     }
 
     func getSnapshot(in context: Context, completion: @escaping (RecentEntry) -> Void) {
         Task {
             let data = await WidgetAPIService.shared.fetchRecent()
-            completion(RecentEntry(date: Date(), data: data))
+            let thumbs = await Self.fetchThumbnails(for: data)
+            completion(RecentEntry(date: Date(), data: data, thumbnails: thumbs))
         }
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<RecentEntry>) -> Void) {
         Task {
             let data = await WidgetAPIService.shared.fetchRecent()
-            let entry = RecentEntry(date: Date(), data: data)
+            let thumbs = await Self.fetchThumbnails(for: data)
+            let entry = RecentEntry(date: Date(), data: data, thumbnails: thumbs)
             let next = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
             completion(Timeline(entries: [entry], policy: .after(next)))
+        }
+    }
+
+    private static func fetchThumbnails(for data: WidgetRecentData?) async -> [Data?] {
+        guard let devices = data?.devices else { return [] }
+        let count = min(devices.count, 3)
+        return await withTaskGroup(of: (Int, Data?).self, returning: [Data?].self) { group in
+            for i in 0..<count {
+                let url = devices[i].thumbnailURL
+                group.addTask {
+                    guard let url else { return (i, nil) }
+                    return (i, await WidgetAPIService.shared.fetchThumbnail(urlString: url))
+                }
+            }
+            var result = [Data?](repeating: nil, count: count)
+            for await (i, data) in group { result[i] = data }
+            return result
         }
     }
 }
@@ -66,9 +86,9 @@ struct RecentWidgetView: View {
 
             if let data = entry.data, !data.devices.isEmpty {
                 VStack(spacing: 7) {
-                    ForEach(Array(data.devices.prefix(3))) { device in
+                    ForEach(Array(data.devices.prefix(3).enumerated()), id: \.element.id) { index, device in
                         Link(destination: URL(string: "inventorydifferent://devices/\(device.id)")!) {
-                            RecentRow(device: device)
+                            RecentRow(device: device, thumbnailData: index < entry.thumbnails.count ? entry.thumbnails[index] : nil)
                         }
                     }
                 }
@@ -94,13 +114,22 @@ struct RecentWidgetView: View {
 
 struct RecentRow: View {
     let device: RecentDevice
+    var thumbnailData: Data? = nil
 
     var body: some View {
         HStack(spacing: 10) {
-            RoundedRectangle(cornerRadius: 7)
-                .fill(Color.primary.opacity(0.08))
-                .frame(width: 34, height: 34)
-                .overlay(Text("💾").font(.system(size: 16)))
+            Group {
+                if let data = thumbnailData, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Text("💾").font(.system(size: 16))
+                }
+            }
+            .frame(width: 34, height: 34)
+            .clipShape(RoundedRectangle(cornerRadius: 7))
+            .background(RoundedRectangle(cornerRadius: 7).fill(Color.primary.opacity(0.08)))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(device.name)
