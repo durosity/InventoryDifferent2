@@ -52,7 +52,7 @@ final class WidgetAPIService {
     func fetchRecent() async -> WidgetRecentData? {
         let query = """
         query WidgetRecent {
-          devices(orderBy: { dateAcquired: desc }, take: 5, where: { deleted: { equals: false } }) {
+          devices(where: { deleted: { equals: false } }) {
             id name manufacturer releaseYear dateAcquired
             images { thumbnailPath }
           }

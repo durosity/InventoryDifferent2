@@ -135,17 +135,23 @@ struct WidgetRecentAPIResponse: Decodable {
 extension WidgetRecentData {
     init(from response: WidgetRecentAPIResponse, serverURL: String) {
         let iso = ISO8601DateFormatter()
-        self.devices = response.devices.map { d in
-            RecentDevice(
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let mapped = response.devices.map { d -> RecentDevice in
+            let acquired = d.dateAcquired.flatMap { iso.date(from: $0) }
+            return RecentDevice(
                 id: d.id,
                 name: d.name,
                 manufacturer: d.manufacturer,
                 releaseYear: d.releaseYear,
-                dateAcquired: d.dateAcquired.flatMap { iso.date(from: $0) },
+                dateAcquired: acquired,
                 thumbnailURL: d.images?.first(where: { $0.thumbnailPath != nil })?.thumbnailPath
                     .map { "\(serverURL)\($0)" }
             )
         }
+        self.devices = mapped
+            .sorted { ($0.dateAcquired ?? .distantPast) > ($1.dateAcquired ?? .distantPast) }
+            .prefix(5)
+            .map { $0 }
         self.lastUpdated = Date()
     }
 }
