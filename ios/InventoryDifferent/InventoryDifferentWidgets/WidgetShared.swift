@@ -1,6 +1,18 @@
 import SwiftUI
+import WidgetKit
 
 // Shared helpers used across all widget views
+
+extension View {
+    @ViewBuilder
+    func widgetBackground<Background: View>(@ViewBuilder background: () -> Background) -> some View {
+        if #available(iOS 17.0, *) {
+            self.containerBackground(for: .widget, content: background)
+        } else {
+            self.background(background())
+        }
+    }
+}
 
 extension Color {
     init(hex: String) {

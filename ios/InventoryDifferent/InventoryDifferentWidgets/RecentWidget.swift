@@ -53,41 +53,41 @@ struct RecentWidgetView: View {
     let entry: RecentEntry
 
     var body: some View {
-        ZStack {
-            Color(hex: "1c1c1e")
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Text("RECENT ADDITIONS")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white.opacity(0.5))
-                        .tracking(1.0)
-                    Spacer()
-                    RainbowDot(size: 11)
-                }
-                .padding(.bottom, 10)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("RECENT ADDITIONS")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white.opacity(0.5))
+                    .tracking(1.0)
+                Spacer()
+                RainbowDot(size: 11)
+            }
+            .padding(.bottom, 10)
 
-                if let data = entry.data, !data.devices.isEmpty {
-                    VStack(spacing: 7) {
-                        ForEach(Array(data.devices.prefix(3))) { device in
-                            Link(destination: URL(string: "inventorydifferent://devices/\(device.id)")!) {
-                                RecentRow(device: device)
-                            }
+            if let data = entry.data, !data.devices.isEmpty {
+                VStack(spacing: 7) {
+                    ForEach(Array(data.devices.prefix(3))) { device in
+                        Link(destination: URL(string: "inventorydifferent://devices/\(device.id)")!) {
+                            RecentRow(device: device)
                         }
                     }
-                    if let ts = entry.data?.lastUpdated {
-                        Text("Updated \(ts.widgetRelativeDescription)")
-                            .font(.system(size: 9))
-                            .foregroundColor(.white.opacity(0.25))
-                            .padding(.top, 6)
-                    }
-                } else {
-                    Text("Open app to connect")
-                        .font(.system(size: 11))
-                        .foregroundColor(.white.opacity(0.4))
                 }
+                if let ts = entry.data?.lastUpdated {
+                    Text("Updated \(ts.widgetRelativeDescription)")
+                        .font(.system(size: 9))
+                        .foregroundColor(.white.opacity(0.25))
+                        .padding(.top, 6)
+                }
+            } else {
+                Text("Open app to connect")
+                    .font(.system(size: 11))
+                    .foregroundColor(.white.opacity(0.4))
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .widgetBackground {
+            Color(hex: "1c1c1e")
         }
     }
 }

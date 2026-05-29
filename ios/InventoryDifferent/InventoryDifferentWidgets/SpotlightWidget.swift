@@ -99,7 +99,6 @@ struct SpotlightSmallView: View {
 
     var body: some View {
         ZStack {
-            SpotlightBackground(thumbnailData: entry.thumbnailData)
             LinearGradient(colors: [.clear, Color.black.opacity(0.9)],
                            startPoint: .center, endPoint: .bottom)
             if let device = entry.device {
@@ -124,6 +123,9 @@ struct SpotlightSmallView: View {
                 SpotlightPlaceholder()
             }
         }
+        .widgetBackground {
+            SpotlightBackground(thumbnailData: entry.thumbnailData)
+        }
     }
 }
 
@@ -134,7 +136,6 @@ struct SpotlightMediumView: View {
 
     var body: some View {
         ZStack {
-            SpotlightBackground(thumbnailData: entry.thumbnailData)
             LinearGradient(colors: [.clear, Color.black.opacity(0.95)],
                            startPoint: .top, endPoint: .bottom)
             if let device = entry.device {
@@ -168,6 +169,9 @@ struct SpotlightMediumView: View {
                 SpotlightPlaceholder()
             }
         }
+        .widgetBackground {
+            SpotlightBackground(thumbnailData: entry.thumbnailData)
+        }
     }
 
     private func metaLine(_ device: SpotlightDevice) -> String {
@@ -185,7 +189,6 @@ struct SpotlightLargeView: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                SpotlightBackground(thumbnailData: entry.thumbnailData)
                 LinearGradient(colors: [.clear, Color.black.opacity(0.3)],
                                startPoint: .center, endPoint: .bottom)
                 VStack {
@@ -235,6 +238,9 @@ struct SpotlightLargeView: View {
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(hex: "1c1c1e"))
+        }
+        .widgetBackground {
+            SpotlightBackground(thumbnailData: entry.thumbnailData)
         }
     }
 }

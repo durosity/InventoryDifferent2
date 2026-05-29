@@ -69,30 +69,30 @@ struct StatsSmallView: View {
     let data: WidgetStatsData?
 
     var body: some View {
-        ZStack {
+        VStack(alignment: .leading, spacing: 0) {
+            RainbowDot()
+            Spacer()
+            if let data {
+                Text("\(data.totalDevices)")
+                    .font(.system(size: 42, weight: .heavy))
+                    .foregroundColor(.white)
+                Text("DEVICES")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.white.opacity(0.5))
+                    .tracking(1.5)
+                Text("$\(Int(data.estimatedValue).formatted()) est.")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(hex: "4d96ff"))
+                    .padding(.top, 3)
+            } else {
+                StatsPlaceholderText()
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .widgetBackground {
             LinearGradient(colors: [Color(hex: "1a1a2e"), Color(hex: "16213e")],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
-            VStack(alignment: .leading, spacing: 0) {
-                RainbowDot()
-                Spacer()
-                if let data {
-                    Text("\(data.totalDevices)")
-                        .font(.system(size: 42, weight: .heavy))
-                        .foregroundColor(.white)
-                    Text("DEVICES")
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundColor(.white.opacity(0.5))
-                        .tracking(1.5)
-                    Text("$\(Int(data.estimatedValue).formatted()) est.")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color(hex: "4d96ff"))
-                        .padding(.top, 3)
-                } else {
-                    StatsPlaceholderText()
-                }
-            }
-            .padding(14)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         }
     }
 }
@@ -103,29 +103,29 @@ struct StatsMediumView: View {
     let data: WidgetStatsData?
 
     var body: some View {
-        ZStack {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                RainbowDot()
+                Text("INVENTORY DIFFERENT")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.white.opacity(0.5))
+                    .tracking(1.0)
+            }
+            if let data {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 7) {
+                    StatsCell(value: "\(data.totalDevices)", label: "Devices")
+                    StatsCell(value: "$\(Int(data.estimatedValue).formatted())", label: "Est. Value")
+                    StatsCell(value: "\(Int(data.workingPercent))%", label: "Working", valueColor: Color(hex: "6bcb77"))
+                    StatsCell(value: "\(data.forSaleCount)", label: "For Sale", valueColor: Color(hex: "ffd93d"))
+                }
+            } else {
+                StatsPlaceholderText()
+            }
+        }
+        .padding(14)
+        .widgetBackground {
             LinearGradient(colors: [Color(hex: "1a1a2e"), Color(hex: "16213e")],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 6) {
-                    RainbowDot()
-                    Text("INVENTORY DIFFERENT")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.white.opacity(0.5))
-                        .tracking(1.0)
-                }
-                if let data {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 7) {
-                        StatsCell(value: "\(data.totalDevices)", label: "Devices")
-                        StatsCell(value: "$\(Int(data.estimatedValue).formatted())", label: "Est. Value")
-                        StatsCell(value: "\(Int(data.workingPercent))%", label: "Working", valueColor: Color(hex: "6bcb77"))
-                        StatsCell(value: "\(data.forSaleCount)", label: "For Sale", valueColor: Color(hex: "ffd93d"))
-                    }
-                } else {
-                    StatsPlaceholderText()
-                }
-            }
-            .padding(14)
         }
     }
 }
@@ -136,35 +136,35 @@ struct StatsLargeView: View {
     let data: WidgetStatsData?
 
     var body: some View {
-        ZStack {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                RainbowDot()
+                Text("INVENTORY DIFFERENT")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.white.opacity(0.5))
+                    .tracking(1.0)
+            }
+            if let data {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                    StatsCell(value: "\(data.totalDevices)", label: "Total Devices", fontSize: 24)
+                    StatsCell(value: "$\(Int(data.estimatedValue).formatted())", label: "Est. Value", fontSize: 20)
+                    StatsCell(value: "\(Int(data.workingPercent))%", label: "Working", valueColor: Color(hex: "6bcb77"), fontSize: 24)
+                    StatsCell(value: "\(data.forSaleCount)", label: "For Sale", valueColor: Color(hex: "ffd93d"), fontSize: 24)
+                    StatsCell(value: "$\(Int(data.totalSpent).formatted())", label: "Total Spent", valueColor: Color(hex: "4d96ff"), fontSize: 18)
+                    StatsCell(value: "\(data.inRepairCount)", label: "In Repair", valueColor: Color(hex: "ff6b6b"), fontSize: 24)
+                }
+                Divider().background(Color.white.opacity(0.1)).padding(.vertical, 2)
+                ForEach(statusBarsData(data.byStatus), id: \.label) { bar in
+                    StatusBarRow(label: bar.label, fraction: bar.fraction, color: bar.color)
+                }
+            } else {
+                StatsPlaceholderText()
+            }
+        }
+        .padding(16)
+        .widgetBackground {
             LinearGradient(colors: [Color(hex: "1a1a2e"), Color(hex: "0d1117")],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 6) {
-                    RainbowDot()
-                    Text("INVENTORY DIFFERENT")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(.white.opacity(0.5))
-                        .tracking(1.0)
-                }
-                if let data {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                        StatsCell(value: "\(data.totalDevices)", label: "Total Devices", fontSize: 24)
-                        StatsCell(value: "$\(Int(data.estimatedValue).formatted())", label: "Est. Value", fontSize: 20)
-                        StatsCell(value: "\(Int(data.workingPercent))%", label: "Working", valueColor: Color(hex: "6bcb77"), fontSize: 24)
-                        StatsCell(value: "\(data.forSaleCount)", label: "For Sale", valueColor: Color(hex: "ffd93d"), fontSize: 24)
-                        StatsCell(value: "$\(Int(data.totalSpent).formatted())", label: "Total Spent", valueColor: Color(hex: "4d96ff"), fontSize: 18)
-                        StatsCell(value: "\(data.inRepairCount)", label: "In Repair", valueColor: Color(hex: "ff6b6b"), fontSize: 24)
-                    }
-                    Divider().background(Color.white.opacity(0.1)).padding(.vertical, 2)
-                    ForEach(statusBarsData(data.byStatus), id: \.label) { bar in
-                        StatusBarRow(label: bar.label, fraction: bar.fraction, color: bar.color)
-                    }
-                } else {
-                    StatsPlaceholderText()
-                }
-            }
-            .padding(16)
         }
     }
 
