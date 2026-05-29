@@ -173,17 +173,21 @@ struct StatsLargeView: View {
     private func statusBarsData(_ buckets: [WidgetStatsData.StatusBucket]) -> [BarData] {
         let total = max(1, buckets.reduce(0) { $0 + $1.count })
         let colorMap: [String: Color] = [
-            "COLLECTION": Color(hex: "4d96ff"), "FOR_SALE": Color(hex: "ffd93d"),
-            "SOLD": Color(hex: "6bcb77"), "IN_REPAIR": Color(hex: "ff6b6b"),
-            "PENDING_SALE": Color(hex: "ffa07a")
+            "In Collection": Color(hex: "4d96ff"),
+            "For Sale": Color(hex: "ffd93d"),
+            "Sold": Color(hex: "6bcb77"),
+            "In Repair": Color(hex: "ff6b6b"),
+            "Pending Sale": Color(hex: "ffa07a"),
+            "Donated": Color(hex: "888888"),
+            "Returned": Color(hex: "888888"),
+            "Repaired": Color(hex: "888888"),
+            "Loaned": Color(hex: "a78bfa")
         ]
-        let labelMap = ["COLLECTION": "Collection", "FOR_SALE": "For Sale", "SOLD": "Sold",
-                        "IN_REPAIR": "In Repair", "PENDING_SALE": "Pending"]
         return buckets
             .filter { $0.count > 0 }
             .sorted { $0.count > $1.count }
             .prefix(4)
-            .map { BarData(label: labelMap[$0.label] ?? $0.label,
+            .map { BarData(label: $0.label,
                            fraction: Double($0.count) / Double(total),
                            color: colorMap[$0.label] ?? .gray) }
     }

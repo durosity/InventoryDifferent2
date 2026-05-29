@@ -41,9 +41,9 @@ extension WidgetStatsData {
         self.totalDevices = stats.totalDevices
         self.estimatedValue = fin.estimatedValueOwned
         self.workingPercent = stats.workingPercent
-        self.forSaleCount = stats.byStatus.first(where: { $0.label == "FOR_SALE" })?.count ?? 0
+        self.forSaleCount = stats.byStatus.first(where: { $0.label == "For Sale" })?.count ?? 0
         self.totalSpent = fin.totalSpent
-        self.inRepairCount = stats.byStatus.first(where: { $0.label == "IN_REPAIR" })?.count ?? 0
+        self.inRepairCount = stats.byStatus.first(where: { $0.label == "In Repair" })?.count ?? 0
         self.byStatus = stats.byStatus.map { StatusBucket(label: $0.label, count: $0.count) }
         self.lastUpdated = Date()
     }

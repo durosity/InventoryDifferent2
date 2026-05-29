@@ -33,7 +33,7 @@ final class WidgetAPIService {
           devices(where: { deleted: { equals: false } }) {
             id name manufacturer releaseYear estimatedValue
             functionalStatus isFavorite cpu ram
-            images(where: { isThumbnail: true }) { thumbnailPath }
+            images { thumbnailPath }
             status
           }
         }
@@ -54,7 +54,7 @@ final class WidgetAPIService {
         query WidgetRecent {
           devices(orderBy: { dateAcquired: desc }, take: 5, where: { deleted: { equals: false } }) {
             id name manufacturer releaseYear dateAcquired
-            images(where: { isThumbnail: true }) { thumbnailPath }
+            images { thumbnailPath }
           }
         }
         """
