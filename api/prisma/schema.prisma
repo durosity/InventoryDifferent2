@@ -57,10 +57,11 @@ model Device {
   displayType         String?
   displayVariant      String?
   nativeResolution    String?
-  storage             String?
-  operatingSystem     String?
   isWifiEnabled       Boolean?
-  isPramBatteryRemoved Boolean?
+  isRetroBrited       Boolean?
+  isRecapped          Boolean?
+  pramBatteryInstalled  Boolean?
+  pramBatteryExpiryDate DateTime?
   deleted             Boolean   @default(false)
 
   // Historical / descriptive
@@ -82,6 +83,8 @@ model Device {
   pageViews           DevicePageView[]
   accessories         DeviceAccessory[]
   links               DeviceLink[]
+  storageEntries      DeviceStorage[]
+  osEntries           DeviceOS[]
   showcaseDevices     ShowcaseDevice[]
   relationsFrom       DeviceRelationship[] @relation("RelationFrom")
   relationsTo         DeviceRelationship[] @relation("RelationTo")
@@ -117,6 +120,22 @@ model DeviceLink {
   label     String
   url       String
   createdAt DateTime @default(now())
+}
+
+model DeviceStorage {
+  id        Int    @id @default(autoincrement())
+  deviceId  Int
+  device    Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  value     String
+  sortOrder Int    @default(0)
+}
+
+model DeviceOS {
+  id        Int    @id @default(autoincrement())
+  deviceId  Int
+  device    Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  value     String
+  sortOrder Int    @default(0)
 }
 
 model Category {
@@ -158,7 +177,8 @@ model WishlistItem {
   operatingSystem      String?
   externalUrl          String?
   isWifiEnabled        Boolean?
-  isPramBatteryRemoved Boolean?
+  pramBatteryInstalled  Boolean?
+  pramBatteryExpiryDate DateTime?
   category             Category? @relation(fields: [categoryId], references: [id])
   categoryId           Int?
 }
