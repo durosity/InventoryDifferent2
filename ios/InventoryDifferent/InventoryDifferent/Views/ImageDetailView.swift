@@ -17,6 +17,7 @@ struct ImageDetailView: View {
     @State private var offset: CGSize = .zero
     @State private var lastOffset: CGSize = .zero
     
+    
     init(image: DeviceImage, allImages: [DeviceImage]) {
         self.image = image
         self.allImages = allImages
@@ -29,8 +30,13 @@ struct ImageDetailView: View {
             
             TabView(selection: $currentIndex) {
                 ForEach(Array(allImages.enumerated()), id: \.element.id) { index, img in
-                    ZoomableImageView(imageURL: APIService.shared.imageURL(for: img.path))
-                        .tag(index)
+                    ZoomableImageView(
+                        imageURL: APIService.shared.imageURL(for: img.path),
+                        isCurrentPage: index == currentIndex,
+                        onNavigateNext: { if currentIndex < allImages.count - 1 { currentIndex += 1 } },
+                        onNavigatePrevious: { if currentIndex > 0 { currentIndex -= 1 } }
+                    )
+                    .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .automatic))
@@ -57,12 +63,26 @@ struct ImageDetailView: View {
 
 struct ZoomableImageView: View {
     let imageURL: URL?
-    
+    var isCurrentPage: Bool = true
+    var onNavigateNext: (() -> Void)? = nil
+    var onNavigatePrevious: (() -> Void)? = nil
+
     @State private var scale: CGFloat = 1.0
     @State private var lastScale: CGFloat = 1.0
     @State private var offset: CGSize = .zero
     @State private var lastOffset: CGSize = .zero
-    
+    @State private var imageSize: CGSize = .zero
+
+    private func clampedOffset(_ proposed: CGSize, in container: CGSize) -> CGSize {
+        guard imageSize != .zero else { return proposed }
+        let maxX = max(0, (imageSize.width * scale - container.width) / 2)
+        let maxY = max(0, (imageSize.height * scale - container.height) / 2)
+        return CGSize(
+            width: min(max(proposed.width, -maxX), maxX),
+            height: min(max(proposed.height, -maxY), maxY)
+        )
+    }
+
     var body: some View {
         GeometryReader { geometry in
             AsyncImage(url: imageURL) { phase in
@@ -75,6 +95,7 @@ struct ZoomableImageView: View {
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fit)
+                        .onGeometryChange(for: CGSize.self) { $0.size } action: { imageSize = $0 }
                         .scaleEffect(scale)
                         .offset(offset)
                         .gesture(
@@ -82,43 +103,49 @@ struct ZoomableImageView: View {
                                 .onChanged { value in
                                     let delta = value / lastScale
                                     lastScale = value
-                                    scale = min(max(scale * delta, 1), 4)
+                                    scale = min(max(scale * delta, 1), 6)
+                                    offset = clampedOffset(offset, in: geometry.size)
                                 }
                                 .onEnded { _ in
                                     lastScale = 1.0
-                                    if scale < 1 {
-                                        withAnimation {
+                                    withAnimation {
+                                        if scale < 1 {
                                             scale = 1
                                             offset = .zero
+                                        } else {
+                                            offset = clampedOffset(offset, in: geometry.size)
                                         }
+                                        lastOffset = offset
                                     }
                                 }
                         )
                         .simultaneousGesture(
                             DragGesture()
                                 .onChanged { value in
-                                    if scale > 1 {
-                                        offset = CGSize(
-                                            width: lastOffset.width + value.translation.width,
-                                            height: lastOffset.height + value.translation.height
-                                        )
-                                    }
+                                    let proposed = CGSize(
+                                        width: lastOffset.width + value.translation.width,
+                                        height: lastOffset.height + value.translation.height
+                                    )
+                                    offset = clampedOffset(proposed, in: geometry.size)
                                 }
-                                .onEnded { _ in
+                                .onEnded { value in
+                                    let proposed = CGSize(
+                                        width: lastOffset.width + value.translation.width,
+                                        height: lastOffset.height + value.translation.height
+                                    )
                                     lastOffset = offset
-                                }
+                                    // Edge navigation: if the drag overshoots the clamped boundary,
+                                    // treat it as a swipe to the next/previous image.
+                                    let maxX = max(0, (imageSize.width * scale - geometry.size.width) / 2)
+                                    let swipeThreshold: CGFloat = 225
+                                    if proposed.width < -(maxX + swipeThreshold) {
+                                        onNavigateNext?()
+                                    } else if proposed.width > maxX + swipeThreshold {
+                                        onNavigatePrevious?()
+                                    }
+                                },
+                            including: scale > 1 ? .gesture : .none
                         )
-                        .onTapGesture(count: 2) {
-                            withAnimation {
-                                if scale > 1 {
-                                    scale = 1
-                                    offset = .zero
-                                    lastOffset = .zero
-                                } else {
-                                    scale = 2
-                                }
-                            }
-                        }
                 case .failure:
                     VStack {
                         Image(systemName: "photo")
@@ -133,6 +160,33 @@ struct ZoomableImageView: View {
                 }
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
+            .contentShape(Rectangle())
+            .onTapGesture(count: 2) {
+                withAnimation {
+                    if scale > 1 {
+                        scale = 1
+                        offset = .zero
+                        lastOffset = .zero
+                    } else {
+                        scale = 2
+                    }
+                }
+            }
+            .onChange(of: isCurrentPage) { _, nowCurrent in
+                if nowCurrent {
+                    scale = 1.0
+                    offset = .zero
+                    lastOffset = .zero
+                    lastScale = 1.0
+                } else {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        scale = 1.0
+                        offset = .zero
+                        lastOffset = .zero
+                        lastScale = 1.0
+                    }
+                }
+            }
         }
     }
 }

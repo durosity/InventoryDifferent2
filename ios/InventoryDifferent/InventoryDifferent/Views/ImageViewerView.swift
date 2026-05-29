@@ -51,8 +51,13 @@ struct ImageViewerView: View {
                         VideoPlayerContainerView(url: videoURL, isActive: index == currentIndex)
                             .tag(index)
                     } else {
-                        ZoomableImageView(imageURL: APIService.shared.imageURL(for: image.path))
-                            .tag(index)
+                        ZoomableImageView(
+                            imageURL: APIService.shared.imageURL(for: image.path),
+                            isCurrentPage: index == currentIndex,
+                            onNavigateNext: { if currentIndex < images.count - 1 { currentIndex += 1 } },
+                            onNavigatePrevious: { if currentIndex > 0 { currentIndex -= 1 } }
+                        )
+                        .tag(index)
                     }
                 }
             }
