@@ -45,9 +45,10 @@ final class SpotlightSelectionTests: XCTestCase {
     }
 
     func test_pickDevice_favoritesBiased() {
+        // Sample consecutive 4-hour blocks so every pool slot is reachable.
         let pool = [nonFavorite, favorite]
         let results = (0..<100).compactMap { offset -> Int? in
-            let date = Date(timeIntervalSince1970: Double(offset) * 86400)
+            let date = Date(timeIntervalSince1970: Double(offset) * SpotlightProvider.rotationInterval)
             return SpotlightProvider.pickDevice(from: pool, for: date)?.id
         }
         let favoriteCount = results.filter { $0 == favorite.id }.count

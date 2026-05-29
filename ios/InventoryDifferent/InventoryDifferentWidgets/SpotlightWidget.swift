@@ -28,17 +28,20 @@ struct SpotlightProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<SpotlightEntry>) -> Void) {
         Task {
             let pool = await WidgetAPIService.shared.fetchSpotlightPool() ?? []
-            let today = Calendar.current.startOfDay(for: Date())
+            let now = Date()
+            // Snap to the start of the current 4-hour block
+            let blockStart = Date(timeIntervalSince1970: (now.timeIntervalSince1970 / Self.rotationInterval).rounded(.down) * Self.rotationInterval)
 
             var entries: [SpotlightEntry] = []
-            for offset in 0..<7 {
-                let date = Calendar.current.date(byAdding: .day, value: offset, to: today)!
+            for offset in 0..<6 {
+                let date = blockStart.addingTimeInterval(TimeInterval(offset) * Self.rotationInterval)
                 let device = Self.pickDevice(from: pool, for: date)
                 let thumb = offset == 0 ? await fetchThumb(device) : nil
                 entries.append(SpotlightEntry(date: date, device: device, thumbnailData: thumb))
             }
 
-            let refresh = Calendar.current.date(byAdding: .day, value: 7, to: today)!
+            // Refresh after 24 hours to pull fresh pool data from the server
+            let refresh = blockStart.addingTimeInterval(6 * Self.rotationInterval)
             completion(Timeline(entries: entries, policy: .after(refresh)))
         }
     }
@@ -48,7 +51,11 @@ struct SpotlightProvider: TimelineProvider {
         return await WidgetAPIService.shared.fetchThumbnail(urlString: url)
     }
 
-    /// Deterministic weighted random selection — `internal` so tests can call it directly.
+    /// 4-hour rotation interval — device changes at midnight, 4am, 8am, noon, 4pm, 8pm.
+    internal static let rotationInterval: TimeInterval = 4 * 60 * 60
+
+    /// Deterministic weighted selection — same time block always yields the same device.
+    /// `internal` so tests can call it directly.
     internal static func pickDevice(from devices: [SpotlightDevice], for date: Date) -> SpotlightDevice? {
         guard !devices.isEmpty else { return nil }
         var pool: [SpotlightDevice] = []
@@ -56,8 +63,8 @@ struct SpotlightProvider: TimelineProvider {
             pool.append(d)
             if d.isFavorite { pool.append(d); pool.append(d) }
         }
-        let dayOrdinal = Calendar.current.ordinality(of: .day, in: .era, for: date) ?? 1
-        return pool[dayOrdinal % pool.count]
+        let blockIndex = Int(date.timeIntervalSince1970 / rotationInterval)
+        return pool[abs(blockIndex) % pool.count]
     }
 }
 
@@ -72,7 +79,7 @@ struct SpotlightWidget: Widget {
                 .widgetURL(entry.device.map { URL(string: "inventorydifferent://devices/\($0.id)") } ?? nil)
         }
         .configurationDisplayName("Device Spotlight")
-        .description("A daily highlight from your collection.")
+        .description("Rotates every few hours to spotlight different devices.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
