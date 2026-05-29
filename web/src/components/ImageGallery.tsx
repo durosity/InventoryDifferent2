@@ -221,7 +221,7 @@ export function ImageGallery({ images, onImagesChanged }: ImageGalleryProps) {
                         )}
 
                         {/* Hover overlay with actions - 2x2 grid */}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors opacity-0 group-hover:opacity-100 p-2">
+                        <div className={`absolute inset-0 transition-colors p-2 ${thumbnailChoiceId === image.id || deleteConfirmId === image.id ? 'opacity-0 pointer-events-none' : 'bg-black/0 group-hover:bg-black/40 opacity-0 group-hover:opacity-100'}`}>
                             {/* Centered edit button */}
                             {image.mediaType !== 'VIDEO' && (
                                 <button

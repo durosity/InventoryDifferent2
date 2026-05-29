@@ -4,6 +4,9 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+### Fixed
+- Photos page: edit button no longer appears on top of the thumbnail mode picker and delete confirmation dialogs
+
 ---
 
 ## [2.8.4] - 2026-05-29

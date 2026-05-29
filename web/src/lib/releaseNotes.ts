@@ -14,7 +14,9 @@ export const releaseNotes: ReleaseEntry[] = [
     date: '',
     added: [],
     changed: [],
-    fixed: [],
+    fixed: [
+      'Photos page: edit button no longer appears on top of the thumbnail mode picker and delete confirmation dialogs',
+    ],
   },
   {
     version: '2.8.4',
