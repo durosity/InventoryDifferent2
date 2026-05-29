@@ -259,12 +259,22 @@ struct SpotlightLargeView: View {
             }
             .frame(maxHeight: .infinity)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 3) {
                 if let device = entry.device {
-                    Text(device.name)
-                        .font(.system(size: 20, weight: .light))
-                        .foregroundColor(.primary)
-                        .tracking(0.6)
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(device.name)
+                            .font(.system(size: 17, weight: .light))
+                            .foregroundColor(.primary)
+                            .tracking(0.5)
+                            .lineLimit(1)
+                        Spacer()
+                        if let value = device.estimatedValue {
+                            Text("$\(Int(value).formatted())")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color(hex: "6bcb77").opacity(0.85))
+                                .tracking(0.8)
+                        }
+                    }
                     Text([device.manufacturer, device.releaseYear.map(String.init)]
                             .compactMap { $0 }.joined(separator: " · ").uppercased())
                         .font(.system(size: 10, weight: .light))
@@ -276,20 +286,12 @@ struct SpotlightLargeView: View {
                             if let ram = device.ram { SpecChip(text: ram) }
                             if device.functionalStatus == "YES" { SpecChip(text: "Working", isGreen: true) }
                         }
-                        .padding(.top, 2)
-                    }
-                    if let value = device.estimatedValue {
-                        Text("$\(Int(value).formatted())")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(Color(hex: "6bcb77").opacity(0.85))
-                            .tracking(0.8)
-                            .padding(.top, 4)
                     }
                 } else {
                     SpotlightPlaceholder()
                 }
             }
-            .padding(14)
+            .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.ultraThinMaterial)
         }
