@@ -20,7 +20,12 @@ struct SpotlightProvider: TimelineProvider {
         Task {
             let pool = await WidgetAPIService.shared.fetchSpotlightPool() ?? []
             let device = Self.pickDevice(from: pool, for: Date())
-            let thumb = await fetchThumb(device)
+            let thumb: Data?
+            if let url = device?.thumbnailURL {
+                thumb = await WidgetAPIService.shared.fetchThumbnail(urlString: url)
+            } else {
+                thumb = nil
+            }
             completion(SpotlightEntry(date: Date(), device: device, thumbnailData: thumb))
         }
     }
@@ -29,30 +34,47 @@ struct SpotlightProvider: TimelineProvider {
         Task {
             let pool = await WidgetAPIService.shared.fetchSpotlightPool() ?? []
             let now = Date()
-            // Snap to the start of the current 4-hour block
             let blockStart = Date(timeIntervalSince1970: (now.timeIntervalSince1970 / Self.rotationInterval).rounded(.down) * Self.rotationInterval)
 
-            var entries: [SpotlightEntry] = []
-            for offset in 0..<6 {
+            // Determine the next N devices up front so we can fetch thumbnails in parallel.
+            let devices = (0..<Self.entryCount).map { offset -> SpotlightDevice? in
                 let date = blockStart.addingTimeInterval(TimeInterval(offset) * Self.rotationInterval)
-                let device = Self.pickDevice(from: pool, for: date)
-                let thumb = offset == 0 ? await fetchThumb(device) : nil
-                entries.append(SpotlightEntry(date: date, device: device, thumbnailData: thumb))
+                return Self.pickDevice(from: pool, for: date)
             }
 
-            // Refresh after 24 hours to pull fresh pool data from the server
-            let refresh = blockStart.addingTimeInterval(6 * Self.rotationInterval)
+            // Fetch all thumbnails concurrently — each is ~20-60 KB WebP, well within widget memory budget.
+            let thumbnails: [Data?] = await withTaskGroup(of: (Int, Data?).self, returning: [Data?].self) { group in
+                for (i, device) in devices.enumerated() {
+                    let url = device?.thumbnailURL
+                    group.addTask {
+                        guard let url else { return (i, nil) }
+                        return (i, await WidgetAPIService.shared.fetchThumbnail(urlString: url))
+                    }
+                }
+                var result = [Data?](repeating: nil, count: Self.entryCount)
+                for await (i, data) in group { result[i] = data }
+                return result
+            }
+
+            let entries = (0..<Self.entryCount).map { offset in
+                SpotlightEntry(
+                    date: blockStart.addingTimeInterval(TimeInterval(offset) * Self.rotationInterval),
+                    device: devices[offset],
+                    thumbnailData: thumbnails[offset]
+                )
+            }
+
+            // Refresh from server once this batch is exhausted.
+            let refresh = blockStart.addingTimeInterval(TimeInterval(Self.entryCount) * Self.rotationInterval)
             completion(Timeline(entries: entries, policy: .after(refresh)))
         }
     }
 
-    private func fetchThumb(_ device: SpotlightDevice?) async -> Data? {
-        guard let url = device?.thumbnailURL else { return nil }
-        return await WidgetAPIService.shared.fetchThumbnail(urlString: url)
-    }
+    /// Rotation interval — device changes every 30 minutes.
+    internal static let rotationInterval: TimeInterval = 30 * 60
 
-    /// 4-hour rotation interval — device changes at midnight, 4am, 8am, noon, 4pm, 8pm.
-    internal static let rotationInterval: TimeInterval = 4 * 60 * 60
+    /// Number of pre-fetched entries per timeline batch (~5 hours of coverage).
+    private static let entryCount = 10
 
     /// Deterministic weighted selection — same time block always yields the same device.
     /// `internal` so tests can call it directly.
