@@ -169,18 +169,25 @@ class AuthService: ObservableObject {
         setKeychainString(key: accessTokenKey, value: accessToken)
         setKeychainString(key: refreshTokenKey, value: refreshToken)
         setKeychainString(key: tokenExpiryKey, value: String(expiry.timeIntervalSince1970))
-        mirrorTokenForWidget(accessToken)
+        mirrorTokensForWidget(accessToken: accessToken, refreshToken: refreshToken)
     }
 
     private func clearTokens() {
         deleteKeychainItem(key: accessTokenKey)
         deleteKeychainItem(key: refreshTokenKey)
         deleteKeychainItem(key: tokenExpiryKey)
-        UserDefaults(suiteName: AppSettings.appGroupSuite)?.removeObject(forKey: "widget_access_token")
+        let suite = UserDefaults(suiteName: AppSettings.appGroupSuite)
+        suite?.removeObject(forKey: "widget_access_token")
+        suite?.removeObject(forKey: "widget_refresh_token")
     }
 
-    // Write a copy of the access token to shared UserDefaults so the widget extension can read it.
-    // Tokens are short-lived (1h) so UserDefaults storage is acceptable for this use case.
+    // Mirror both tokens to shared UserDefaults so the widget can authenticate independently.
+    private func mirrorTokensForWidget(accessToken: String, refreshToken: String) {
+        let suite = UserDefaults(suiteName: AppSettings.appGroupSuite)
+        suite?.set(accessToken, forKey: "widget_access_token")
+        suite?.set(refreshToken, forKey: "widget_refresh_token")
+    }
+
     private func mirrorTokenForWidget(_ token: String) {
         UserDefaults(suiteName: AppSettings.appGroupSuite)?.set(token, forKey: "widget_access_token")
     }
@@ -222,12 +229,14 @@ class AuthService: ObservableObject {
             let expiryDate = Date().addingTimeInterval(TimeInterval(expiresIn))
             setKeychainString(key: accessTokenKey, value: accessToken)
             setKeychainString(key: tokenExpiryKey, value: String(expiryDate.timeIntervalSince1970))
-            mirrorTokenForWidget(accessToken)
 
-            // Store rolling refresh token if present
-            if let newRefreshToken = json["refreshToken"] as? String {
+            // Store rolling refresh token if present, then mirror both to widget
+            let newRefreshToken = json["refreshToken"] as? String
+            if let newRefreshToken {
                 setKeychainString(key: refreshTokenKey, value: newRefreshToken)
             }
+            let currentRefresh = newRefreshToken ?? getRefreshToken() ?? ""
+            mirrorTokensForWidget(accessToken: accessToken, refreshToken: currentRefresh)
 
             return true
         } catch {

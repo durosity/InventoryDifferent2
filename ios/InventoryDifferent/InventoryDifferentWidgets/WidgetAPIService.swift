@@ -87,9 +87,12 @@ final class WidgetAPIService {
 
         guard let (data, response) = try? await URLSession.shared.data(for: request) else { return nil }
 
-        // On 401 the mirrored token is stale — fall back to cache rather than trying to refresh.
-        // The main app will refresh and re-mirror the token next time it's opened.
-        guard (response as? HTTPURLResponse)?.statusCode != 401 else { return nil }
+        if (response as? HTTPURLResponse)?.statusCode == 401 {
+            guard let newToken = await auth.refreshTokens() else { return nil }
+            request.setValue("Bearer \(newToken)", forHTTPHeaderField: "Authorization")
+            guard let (retryData, _) = try? await URLSession.shared.data(for: request) else { return nil }
+            return parseGQL(data: retryData)
+        }
 
         return parseGQL(data: data)
     }
