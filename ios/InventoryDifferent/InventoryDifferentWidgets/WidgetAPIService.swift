@@ -33,7 +33,7 @@ final class WidgetAPIService {
           devices(where: { deleted: { equals: false } }) {
             id name manufacturer releaseYear estimatedValue
             functionalStatus isFavorite cpu ram
-            images { thumbnailPath }
+            images { thumbnailPath isThumbnail }
             status
           }
         }

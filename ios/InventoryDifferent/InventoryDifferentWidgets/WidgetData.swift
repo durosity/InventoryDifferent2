@@ -79,7 +79,7 @@ struct WidgetSpotlightAPIResponse: Decodable {
         let ram: String?
         let status: String?
         let images: [APIImage]?
-        struct APIImage: Decodable { let thumbnailPath: String? }
+        struct APIImage: Decodable { let thumbnailPath: String?; let isThumbnail: Bool? }
     }
 }
 
@@ -94,11 +94,10 @@ extension SpotlightDevice {
         self.isFavorite = device.isFavorite
         self.cpu = device.cpu
         self.ram = device.ram
-        if let thumbPath = device.images?.first(where: { $0.thumbnailPath != nil })?.thumbnailPath {
-            self.thumbnailURL = "\(serverURL)\(thumbPath)"
-        } else {
-            self.thumbnailURL = nil
-        }
+        let images = device.images ?? []
+        let preferred = images.first(where: { $0.isThumbnail == true && $0.thumbnailPath != nil })
+                     ?? images.first(where: { $0.thumbnailPath != nil })
+        self.thumbnailURL = preferred?.thumbnailPath.map { "\(serverURL)\($0)" }
     }
 }
 
