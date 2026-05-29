@@ -121,7 +121,7 @@ struct StatsMediumView: View {
                     StatsCell(value: "\(data.totalDevices)", label: "Devices")
                     StatsCell(value: "$\(Int(data.estimatedValue).formatted())", label: "Est. Value")
                     StatsCell(value: "\(Int(data.workingPercent))%", label: "Working", valueColor: Color(hex: "6bcb77"))
-                    StatsCell(value: "\(data.forSaleCount)", label: "For Sale", valueColor: Color(hex: "ffd93d"))
+                    StatsCell(value: "\(data.forSaleCount)", label: "For Sale", valueColor: Color(hex: "c8900a"))
                 }
             } else {
                 StatsPlaceholderText()
@@ -156,7 +156,7 @@ struct StatsLargeView: View {
                     StatsCell(value: "\(data.totalDevices)", label: "Total Devices", fontSize: 24)
                     StatsCell(value: "$\(Int(data.estimatedValue).formatted())", label: "Est. Value", fontSize: 20)
                     StatsCell(value: "\(Int(data.workingPercent))%", label: "Working", valueColor: Color(hex: "6bcb77"), fontSize: 24)
-                    StatsCell(value: "\(data.forSaleCount)", label: "For Sale", valueColor: Color(hex: "ffd93d"), fontSize: 24)
+                    StatsCell(value: "\(data.forSaleCount)", label: "For Sale", valueColor: Color(hex: "c8900a"), fontSize: 24)
                     StatsCell(value: "$\(Int(data.netCash).formatted())", label: "Net Cash", valueColor: Color(hex: "4d96ff"), fontSize: 18)
                     StatsCell(value: "\(data.inRepairCount)", label: "In Repair", valueColor: Color(hex: "ff6b6b"), fontSize: 24)
                 }
@@ -180,7 +180,7 @@ struct StatsLargeView: View {
         let total = max(1, buckets.reduce(0) { $0 + $1.count })
         let colorMap: [String: Color] = [
             "In Collection": Color(hex: "4d96ff"),
-            "For Sale": Color(hex: "ffd93d"),
+            "For Sale": Color(hex: "c8900a"),
             "Sold": Color(hex: "6bcb77"),
             "In Repair": Color(hex: "ff6b6b"),
             "Pending Sale": Color(hex: "ffa07a"),
