@@ -47,6 +47,8 @@ const GET_DEVICE = gql`
       displayVariant
       nativeResolution
       isWifiEnabled
+      isRetroBrited
+      isRecapped
       pramBatteryInstalled
       pramBatteryExpiryDate
       lastPowerOnDate
