@@ -287,7 +287,7 @@ struct SpotlightLargeView: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color("WidgetBackground"))
+            .background(.ultraThinMaterial)
         }
         .widgetBackground {
             SpotlightBackground(thumbnailData: entry.thumbnailData)
