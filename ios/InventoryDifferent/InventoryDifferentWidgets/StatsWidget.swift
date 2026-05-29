@@ -70,7 +70,10 @@ struct StatsSmallView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            RainbowDot()
+            Image("AppIconImage")
+                .resizable()
+                .frame(width: 26, height: 26)
+                .cornerRadius(6)
             Spacer()
             if let data {
                 Text("\(data.totalDevices)")
@@ -91,8 +94,7 @@ struct StatsSmallView: View {
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .widgetBackground {
-            LinearGradient(colors: [Color(hex: "1a1a2e"), Color(hex: "16213e")],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            Color(hex: "1c1c1e")
         }
     }
 }
@@ -105,7 +107,10 @@ struct StatsMediumView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                RainbowDot()
+                Image("AppIconImage")
+                    .resizable()
+                    .frame(width: 20, height: 20)
+                    .cornerRadius(5)
                 Text("INVENTORY DIFFERENT")
                     .font(.system(size: 9, weight: .bold))
                     .foregroundColor(.white.opacity(0.5))
@@ -124,8 +129,7 @@ struct StatsMediumView: View {
         }
         .padding(14)
         .widgetBackground {
-            LinearGradient(colors: [Color(hex: "1a1a2e"), Color(hex: "16213e")],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            Color(hex: "1c1c1e")
         }
     }
 }
@@ -138,7 +142,10 @@ struct StatsLargeView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                RainbowDot()
+                Image("AppIconImage")
+                    .resizable()
+                    .frame(width: 20, height: 20)
+                    .cornerRadius(5)
                 Text("INVENTORY DIFFERENT")
                     .font(.system(size: 9, weight: .bold))
                     .foregroundColor(.white.opacity(0.5))
@@ -163,8 +170,7 @@ struct StatsLargeView: View {
         }
         .padding(16)
         .widgetBackground {
-            LinearGradient(colors: [Color(hex: "1a1a2e"), Color(hex: "0d1117")],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            Color(hex: "1c1c1e")
         }
     }
 
