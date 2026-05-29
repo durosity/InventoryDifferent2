@@ -4,6 +4,9 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+### Added
+- iOS home screen widgets: Stats (small/medium/large), Device Spotlight (small/medium/large), and Recent Additions (medium)
+
 ---
 
 ## [2.8.2] - 2026-05-28

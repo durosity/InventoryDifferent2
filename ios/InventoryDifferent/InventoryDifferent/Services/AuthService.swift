@@ -258,13 +258,12 @@ class AuthService: ObservableObject {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
+            kSecAttrAccessGroup as String: "group.com.wottle.InventoryDifferent",
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
         ]
 
-        // Delete existing item first
         SecItemDelete(query as CFDictionary)
 
-        // Add new item
         var newItem = query
         newItem[kSecValueData as String] = data
 
@@ -275,6 +274,7 @@ class AuthService: ObservableObject {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
+            kSecAttrAccessGroup as String: "group.com.wottle.InventoryDifferent",
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
         ]
@@ -294,7 +294,8 @@ class AuthService: ObservableObject {
     private func deleteKeychainItem(key: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrAccount as String: key
+            kSecAttrAccount as String: key,
+            kSecAttrAccessGroup as String: "group.com.wottle.InventoryDifferent"
         ]
 
         SecItemDelete(query as CFDictionary)

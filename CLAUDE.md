@@ -448,7 +448,7 @@ A comprehensive list of all implemented features, organized by platform. Use thi
 
 **Device detail** (tabbed): Overview, Specs, Images, Notes, Tasks tabs; favorite toggle; share QR code; edit/delete; value history chart (when ≥ 2 snapshots)
 
-**Image management**: gallery with full-size view, set thumbnail/shop/listing flags, delete with confirmation
+**Image management**: gallery with full-size viewer; set thumbnail/shop/listing flags; delete with confirmation. Full-screen viewer supports: pinch-to-zoom (up to 6×), double-tap to zoom in/reset (works on image and black letterbox area), bounded pan (can't drag image off-screen), swipe on image at 1× to navigate prev/next, swipe past the edge boundary while zoomed to navigate prev/next, zoom resets to fit-to-screen when switching images
 
 **Add/Edit device**: full form with all fields, template selection, category picker, custom field values
 
@@ -514,15 +514,15 @@ Potential future features, roughly prioritized. These have not been started — 
 ### Medium Effort
 
 - **Maintenance reminders**: add an optional due date to maintenance tasks; surface overdue/upcoming tasks on the dashboard and iOS home screen.
-- **CSV export**: export the current filtered device list as CSV from the web admin (no images, just data).
+- ~~**CSV export**: export the current filtered device list as CSV from the web admin (no images, just data).~~ **Implemented** — see Feature Catalog.
 - **Duplicate detection**: warn when adding a device whose name + manufacturer closely matches an existing one.
 - **Storefront inquiry form**: replace the contact email CTA with an in-app inquiry form that logs messages to the database.
 
 ### Larger / Exploratory
 
 - **Multi-user / roles**: expand auth beyond single-password to named users with viewer vs. editor roles.
-- **Public collection page**: a read-only view of the entire collection (not just for-sale items) for sharing with other collectors.
-- **Mobile barcode add**: from the iOS barcode scanner, if no match is found, pre-fill a new device form using the barcode to look up make/model from an external database (e.g., Open Library / Barcode Lookup API).
+- ~~**Public collection page**: a read-only view of the entire collection (not just for-sale items) for sharing with other collectors.~~ **Implemented** (The Archive showcase app) — see Feature Catalog.
+- ~~**Mobile barcode add**: from the iOS barcode scanner, if no match is found, pre-fill a new device form using the barcode to look up make/model from an external database (e.g., Open Library / Barcode Lookup API).~~ **Implemented** — see Feature Catalog.
 
 ---
 

@@ -12,7 +12,9 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
-    added: [],
+    added: [
+      'iOS home screen widgets: Stats (small/medium/large), Device Spotlight (small/medium/large), and Recent Additions (medium)',
+    ],
     changed: [],
     fixed: [
       'iOS image viewer now responds to swipe gestures directly on the image when zoomed out, not just the surrounding black area',
