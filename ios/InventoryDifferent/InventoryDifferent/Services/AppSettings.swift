@@ -30,8 +30,12 @@ final class AppSettings: ObservableObject {
             suite.set(existing, forKey: "serverURL")
             suite.set(UserDefaults.standard.bool(forKey: "isConfigured"), forKey: "isConfigured")
         }
-        self.serverURL = suite.string(forKey: "serverURL") ?? ""
+        let url = suite.string(forKey: "serverURL") ?? ""
+        self.serverURL = url
         self.isConfigured = suite.bool(forKey: "isConfigured")
+        if !url.isEmpty {
+            APIService.shared.updateBaseURL(url)
+        }
     }
 
     func configure(serverURL: String) {

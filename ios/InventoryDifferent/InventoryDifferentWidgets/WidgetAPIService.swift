@@ -30,7 +30,7 @@ final class WidgetAPIService {
     func fetchSpotlightPool() async -> [SpotlightDevice]? {
         let query = """
         query WidgetSpotlight {
-          devices(where: { deleted: false }) {
+          devices(where: { deleted: { equals: false } }) {
             id name manufacturer releaseYear estimatedValue
             functionalStatus isFavorite cpu ram
             images(where: { isThumbnail: true }) { thumbnailPath }
@@ -52,7 +52,7 @@ final class WidgetAPIService {
     func fetchRecent() async -> WidgetRecentData? {
         let query = """
         query WidgetRecent {
-          devices(orderBy: { dateAcquired: desc }, take: 5, where: { deleted: false }) {
+          devices(orderBy: { dateAcquired: desc }, take: 5, where: { deleted: { equals: false } }) {
             id name manufacturer releaseYear dateAcquired
             images(where: { isThumbnail: true }) { thumbnailPath }
           }
