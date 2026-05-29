@@ -15,7 +15,7 @@ final class WidgetAPIService {
             byStatus { label count }
           }
           financialOverview {
-            estimatedValueOwned totalSpent
+            estimatedValueOwned netCash
           }
         }
         """

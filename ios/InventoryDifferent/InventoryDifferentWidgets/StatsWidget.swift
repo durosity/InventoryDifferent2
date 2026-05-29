@@ -157,7 +157,7 @@ struct StatsLargeView: View {
                     StatsCell(value: "$\(Int(data.estimatedValue).formatted())", label: "Est. Value", fontSize: 20)
                     StatsCell(value: "\(Int(data.workingPercent))%", label: "Working", valueColor: Color(hex: "6bcb77"), fontSize: 24)
                     StatsCell(value: "\(data.forSaleCount)", label: "For Sale", valueColor: Color(hex: "ffd93d"), fontSize: 24)
-                    StatsCell(value: "$\(Int(data.totalSpent).formatted())", label: "Total Spent", valueColor: Color(hex: "4d96ff"), fontSize: 18)
+                    StatsCell(value: "$\(Int(data.netCash).formatted())", label: "Net Cash", valueColor: Color(hex: "4d96ff"), fontSize: 18)
                     StatsCell(value: "\(data.inRepairCount)", label: "In Repair", valueColor: Color(hex: "ff6b6b"), fontSize: 24)
                 }
                 Divider().padding(.vertical, 2)

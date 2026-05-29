@@ -7,7 +7,7 @@ struct WidgetStatsData: Codable {
     let estimatedValue: Double
     let workingPercent: Double
     let forSaleCount: Int
-    let totalSpent: Double
+    let netCash: Double
     let inRepairCount: Int
     let byStatus: [StatusBucket]
     let lastUpdated: Date
@@ -30,7 +30,7 @@ struct WidgetStatsAPIResponse: Decodable {
     }
     struct APIFinancialOverview: Decodable {
         let estimatedValueOwned: Double
-        let totalSpent: Double
+        let netCash: Double
     }
 }
 
@@ -42,7 +42,7 @@ extension WidgetStatsData {
         self.estimatedValue = fin.estimatedValueOwned
         self.workingPercent = stats.workingPercent
         self.forSaleCount = stats.byStatus.first(where: { $0.label == "For Sale" })?.count ?? 0
-        self.totalSpent = fin.totalSpent
+        self.netCash = fin.netCash
         self.inRepairCount = stats.byStatus.first(where: { $0.label == "In Repair" })?.count ?? 0
         self.byStatus = stats.byStatus.map { StatusBucket(label: $0.label, count: $0.count) }
         self.lastUpdated = Date()
