@@ -169,51 +169,55 @@ struct SpotlightSmallView: View {
 
 struct SpotlightMediumView: View {
     let entry: SpotlightEntry
-    @Environment(\.colorScheme) var colorScheme
-
-    private var hasThumbnail: Bool { entry.thumbnailData != nil }
 
     var body: some View {
-        ZStack {
-            if hasThumbnail {
-                LinearGradient(
-                    colors: [.clear, Color.black.opacity(colorScheme == .dark ? 0.95 : 0.65)],
-                    startPoint: .top, endPoint: .bottom
-                )
-            }
-            if let device = entry.device {
-                VStack(alignment: .leading, spacing: 4) {
-                    Spacer()
-                    Text("TODAY'S HIGHLIGHT")
-                        .font(.system(size: 8, weight: .light))
-                        .foregroundColor(hasThumbnail ? .white.opacity(0.35) : .secondary)
-                        .tracking(3.5)
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("SPOTLIGHT")
+                    .font(.system(size: 8, weight: .light))
+                    .foregroundColor(.secondary)
+                    .tracking(3.5)
+                Spacer()
+                if let device = entry.device {
                     Text(device.name)
-                        .font(.system(size: 19, weight: .light))
-                        .foregroundColor(hasThumbnail ? .white : .primary)
-                        .tracking(0.6)
-                        .lineLimit(1)
+                        .font(.system(size: 17, weight: .light))
+                        .foregroundColor(.primary)
+                        .tracking(0.5)
+                        .lineLimit(2)
                     Text(metaLine(device).uppercased())
                         .font(.system(size: 10, weight: .light))
-                        .foregroundColor(hasThumbnail ? .white.opacity(0.4) : .secondary)
+                        .foregroundColor(.secondary)
                         .tracking(1.8)
+                        .lineLimit(1)
+                        .padding(.top, 3)
                     if let value = device.estimatedValue {
                         Text("$\(Int(value).formatted())")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color(hex: "6bcb77").opacity(0.85))
                             .tracking(0.8)
-                            .padding(.top, 2)
+                            .padding(.top, 4)
                     }
+                } else {
+                    SpotlightPlaceholder()
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-            } else {
-                SpotlightPlaceholder()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+
+            Group {
+                if let data = entry.thumbnailData, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Color.primary.opacity(0.08)
+                }
+            }
+            .frame(width: 90, height: 90)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
+        .padding(16)
         .widgetBackground {
-            SpotlightBackground(thumbnailData: entry.thumbnailData)
+            Color("WidgetBackground")
         }
     }
 
