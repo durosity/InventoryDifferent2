@@ -196,8 +196,14 @@ struct AddDeviceView: View {
                 if let v = prefillCpuSpeed, !v.isEmpty { cpuSpeed = v }
                 if let v = prefillRam, !v.isEmpty { ram = v }
                 if let v = prefillGraphicsChip, !v.isEmpty { graphicsChip = v }
-                if let v = prefillStorage, !v.isEmpty { storageEntries = [DeviceStorageEntry(id: -1, value: v, sortOrder: 0)] }
-                if let v = prefillOperatingSystem, !v.isEmpty { osEntries = [DeviceOSEntry(id: -1, value: v, sortOrder: 0)] }
+                if let v = prefillStorage, !v.isEmpty {
+                    let parts = v.components(separatedBy: "+").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                    storageEntries = parts.enumerated().map { DeviceStorageEntry(id: -(($0.offset) + 1), value: $0.element, sortOrder: $0.offset) }
+                }
+                if let v = prefillOperatingSystem, !v.isEmpty {
+                    let parts = v.components(separatedBy: "+").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                    osEntries = parts.enumerated().map { DeviceOSEntry(id: -(($0.offset) + 1), value: $0.element, sortOrder: $0.offset) }
+                }
                 if let v = prefillIsWifiEnabled { isWifiEnabled = v }
                 if let v = prefillPramBatteryInstalled { pramBatteryInstalled = v }
                 if let v = prefillEstimatedValue { estimatedValue = String(format: "%.2f", v) }
@@ -637,10 +643,12 @@ struct AddDeviceView: View {
         displayVariant = template.displayVariant ?? ""
         nativeResolution = template.nativeResolution ?? ""
         if let stor = template.storage, !stor.isEmpty {
-            storageEntries = [DeviceStorageEntry(id: -1, value: stor, sortOrder: 0)]
+            let parts = stor.components(separatedBy: "+").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            storageEntries = parts.enumerated().map { DeviceStorageEntry(id: -(($0.offset) + 1), value: $0.element, sortOrder: $0.offset) }
         }
         if let os = template.operatingSystem, !os.isEmpty {
-            osEntries = [DeviceOSEntry(id: -1, value: os, sortOrder: 0)]
+            let parts = os.components(separatedBy: "+").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            osEntries = parts.enumerated().map { DeviceOSEntry(id: -(($0.offset) + 1), value: $0.element, sortOrder: $0.offset) }
         }
         isWifiEnabled = template.isWifiEnabled ?? false
         pramBatteryInstalled = true
