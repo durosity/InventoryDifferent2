@@ -166,8 +166,13 @@ class DeviceService {
                 soldPrice
                 soldDate
                 cpuType
+                cpuSpeed
                 ram
                 graphicsChip
+                screenSize
+                displayType
+                displayVariant
+                nativeResolution
                 storageEntries { id value sortOrder }
                 osEntries { id value sortOrder }
                 isWifiEnabled
@@ -267,8 +272,13 @@ class DeviceService {
                 soldPrice
                 soldDate
                 cpuType
+                cpuSpeed
                 ram
                 graphicsChip
+                screenSize
+                displayType
+                displayVariant
+                nativeResolution
                 storageEntries { id value sortOrder }
                 osEntries { id value sortOrder }
                 isWifiEnabled
@@ -551,8 +561,13 @@ class DeviceService {
                 soldPrice
                 soldDate
                 cpuType
+                cpuSpeed
                 ram
                 graphicsChip
+                screenSize
+                displayType
+                displayVariant
+                nativeResolution
                 storageEntries { id value sortOrder }
                 osEntries { id value sortOrder }
                 isWifiEnabled
@@ -1021,8 +1036,13 @@ class DeviceService {
                 soldPrice
                 soldDate
                 cpuType
+                cpuSpeed
                 ram
                 graphicsChip
+                screenSize
+                displayType
+                displayVariant
+                nativeResolution
                 storageEntries { id value sortOrder }
                 osEntries { id value sortOrder }
                 isWifiEnabled
@@ -1190,8 +1210,13 @@ class DeviceService {
                 soldPrice
                 soldDate
                 cpuType
+                cpuSpeed
                 ram
                 graphicsChip
+                screenSize
+                displayType
+                displayVariant
+                nativeResolution
                 storageEntries { id value sortOrder }
                 osEntries { id value sortOrder }
                 isWifiEnabled
@@ -1285,14 +1310,17 @@ class DeviceService {
                 createdAt
                 categoryId
                 cpuType
+                cpuSpeed
                 ram
                 graphicsChip
-                storageEntries { id value sortOrder }
-                osEntries { id value sortOrder }
+                screenSize
+                displayType
+                displayVariant
+                nativeResolution
+                storage
+                operatingSystem
                 externalUrl
                 isWifiEnabled
-                isRetroBrited
-                isRecapped
                 pramBatteryInstalled
                 category {
                     id
@@ -1357,14 +1385,17 @@ class DeviceService {
                 createdAt
                 categoryId
                 cpuType
+                cpuSpeed
                 ram
                 graphicsChip
-                storageEntries { id value sortOrder }
-                osEntries { id value sortOrder }
+                screenSize
+                displayType
+                displayVariant
+                nativeResolution
+                storage
+                operatingSystem
                 externalUrl
                 isWifiEnabled
-                isRetroBrited
-                isRecapped
                 pramBatteryInstalled
                 category {
                     id
@@ -1457,14 +1488,17 @@ class DeviceService {
                 createdAt
                 categoryId
                 cpuType
+                cpuSpeed
                 ram
                 graphicsChip
-                storageEntries { id value sortOrder }
-                osEntries { id value sortOrder }
+                screenSize
+                displayType
+                displayVariant
+                nativeResolution
+                storage
+                operatingSystem
                 externalUrl
                 isWifiEnabled
-                isRetroBrited
-                isRecapped
                 pramBatteryInstalled
                 category {
                     id
