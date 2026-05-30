@@ -1,6 +1,6 @@
 # Contributing to InventoryDifferent
 
-Thanks for your interest in contributing! This is a personal project I've open-sourced, so contributions are welcome but expectations are relaxed — no CI pipeline, no formal review process, just good-faith collaboration.
+Thanks for your interest in contributing! This is a personal project I've open-sourced, so contributions are welcome but expectations are relaxed — just good-faith collaboration.
 
 ## Reporting Bugs
 
@@ -17,7 +17,7 @@ Open a [GitHub issue](../../issues/new?template=feature_request.md) describing t
 
 1. Fork the repo and create a branch from `main`
 2. Make your changes — see [Development Setup](#development-setup) below
-3. Test your changes manually (there's no automated test suite currently)
+3. Run tests in the packages you changed (see [Running Tests](#running-tests) below)
 4. Keep the PR focused — one feature or fix per PR makes review much easier
 5. Open the PR with a clear description of what changed and why
 
@@ -77,6 +77,29 @@ Open `ios/InventoryDifferent/InventoryDifferent.xcodeproj` in Xcode. You'll need
 - Set your own Apple Developer Team ID in the project settings
 - Update the bundle identifier from `com.yourorg.InventoryDifferent` to your own
 - Update `InventoryDifferent.entitlements` with your own domain for Universal Links (or remove those entries if you don't need deep linking)
+
+## Running Tests
+
+```bash
+# Unit tests — run in each package you changed
+cd api && npm test
+cd web && npm test
+cd mcp-server && npm test
+
+# End-to-end tests (requires Docker)
+docker compose -f docker-compose.test.yml up -d
+npx playwright test
+```
+
+## CI Pipeline
+
+Every PR runs tests automatically. Merging requires all checks to pass.
+
+| Event | What runs |
+|-------|-----------|
+| Pull request | Unit tests, TypeScript check, E2E tests |
+| Merge to `main` | All tests, then Docker images publish as `:latest` |
+| Push to `dev` | All tests, then Docker images publish as `:dev` |
 
 ## Code Style
 
