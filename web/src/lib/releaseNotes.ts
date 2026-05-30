@@ -14,6 +14,13 @@ export const releaseNotes: ReleaseEntry[] = [
     date: '',
     added: [],
     changed: [],
+    fixed: [],
+  },
+  {
+    version: '2.8.3',
+    date: '2026-05-28',
+    added: [],
+    changed: [],
     fixed: [
       'Photos page: edit button no longer appears on top of the thumbnail mode picker and delete confirmation dialogs',
     ],
@@ -28,6 +35,8 @@ export const releaseNotes: ReleaseEntry[] = [
     fixed: [
       'iOS image viewer now responds to swipe gestures directly on the image when zoomed out, not just the surrounding black area',
       'iOS image viewer resets zoom to fit-to-screen when swiping to a different image',
+      'iOS image viewer pinch-to-zoom now zooms toward the pinch center instead of always zooming from the image center',
+      'iOS image viewer double-tap now zooms to 3× centered on the tapped point instead of the image center',
     ],
   },
   {

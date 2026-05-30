@@ -72,6 +72,7 @@ struct ZoomableImageView: View {
     @State private var offset: CGSize = .zero
     @State private var lastOffset: CGSize = .zero
     @State private var imageSize: CGSize = .zero
+    @State private var pinchAnchor: CGPoint? = nil
 
     private func clampedOffset(_ proposed: CGSize, in container: CGSize) -> CGSize {
         guard imageSize != .zero else { return proposed }
@@ -99,15 +100,42 @@ struct ZoomableImageView: View {
                         .scaleEffect(scale)
                         .offset(offset)
                         .gesture(
-                            MagnificationGesture()
+                            MagnifyGesture()
                                 .onChanged { value in
-                                    let delta = value / lastScale
-                                    lastScale = value
-                                    scale = min(max(scale * delta, 1), 6)
-                                    offset = clampedOffset(offset, in: geometry.size)
+                                    let delta = value.magnification / lastScale
+                                    lastScale = value.magnification
+
+                                    // Capture the pinch centroid in container-centered coords once per gesture
+                                    if pinchAnchor == nil {
+                                        let lx = value.startLocation.x
+                                        let ly = value.startLocation.y
+                                        pinchAnchor = CGPoint(
+                                            x: (lx - imageSize.width / 2) * scale + offset.width,
+                                            y: (ly - imageSize.height / 2) * scale + offset.height
+                                        )
+                                    }
+
+                                    let newScale = min(max(scale * delta, 1), 6)
+                                    let effectiveDelta = newScale / scale
+
+                                    let newOffset: CGSize
+                                    if newScale <= 1 {
+                                        newOffset = .zero
+                                    } else if let anchor = pinchAnchor {
+                                        newOffset = CGSize(
+                                            width:  anchor.x * (1 - effectiveDelta) + offset.width  * effectiveDelta,
+                                            height: anchor.y * (1 - effectiveDelta) + offset.height * effectiveDelta
+                                        )
+                                    } else {
+                                        newOffset = offset
+                                    }
+
+                                    scale = newScale
+                                    offset = clampedOffset(newOffset, in: geometry.size)
                                 }
                                 .onEnded { _ in
                                     lastScale = 1.0
+                                    pinchAnchor = nil
                                     withAnimation {
                                         if scale < 1 {
                                             scale = 1
@@ -161,14 +189,26 @@ struct ZoomableImageView: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
             .contentShape(Rectangle())
-            .onTapGesture(count: 2) {
+            .onTapGesture(count: 2, coordinateSpace: .local) { location in
                 withAnimation {
                     if scale > 1 {
                         scale = 1
                         offset = .zero
                         lastOffset = .zero
                     } else {
-                        scale = 2
+                        let targetScale: CGFloat = 3.0
+                        let anchor = CGPoint(
+                            x: location.x - geometry.size.width / 2,
+                            y: location.y - geometry.size.height / 2
+                        )
+                        let rawOffset = CGSize(
+                            width:  anchor.x * (1 - targetScale) + offset.width  * targetScale,
+                            height: anchor.y * (1 - targetScale) + offset.height * targetScale
+                        )
+                        scale = targetScale  // must set scale before clamping so maxX/maxY use new scale
+                        let newOffset = clampedOffset(rawOffset, in: geometry.size)
+                        offset = newOffset
+                        lastOffset = newOffset
                     }
                 }
             }
