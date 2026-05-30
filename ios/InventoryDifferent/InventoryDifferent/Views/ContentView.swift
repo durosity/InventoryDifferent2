@@ -11,6 +11,7 @@ struct ContentView: View {
     @EnvironmentObject var deviceStore: DeviceStore
     @Binding var deepLinkDeviceId: Int?
     @Binding var deepLinkLocationId: Int?
+    @Binding var deepLinkToStats: Bool
     @State private var navigationPath = NavigationPath()
     
     var body: some View {
@@ -67,11 +68,17 @@ struct ContentView: View {
                 deepLinkLocationId = nil
             }
         }
+        .onChange(of: deepLinkToStats) { _, newValue in
+            if newValue {
+                navigationPath.append(MenuDestination.stats)
+                deepLinkToStats = false
+            }
+        }
     }
 }
 
 #Preview {
-    ContentView(deepLinkDeviceId: .constant(nil), deepLinkLocationId: .constant(nil))
+    ContentView(deepLinkDeviceId: .constant(nil), deepLinkLocationId: .constant(nil), deepLinkToStats: .constant(false))
         .environmentObject(DeviceStore())
         .environmentObject(AppSettings.shared)
         .environmentObject(AuthService.shared)

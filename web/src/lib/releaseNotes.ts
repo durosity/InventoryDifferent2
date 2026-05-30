@@ -1,4 +1,4 @@
-export const APP_VERSION = '2.8.3';
+export const APP_VERSION = '2.8.4';
 
 export interface ReleaseEntry {
   version: string;
@@ -20,6 +20,17 @@ export const releaseNotes: ReleaseEntry[] = [
     version: '2.8.3',
     date: '2026-05-28',
     added: [],
+    changed: [],
+    fixed: [
+      'Photos page: edit button no longer appears on top of the thumbnail mode picker and delete confirmation dialogs',
+    ],
+  },
+  {
+    version: '2.8.4',
+    date: '2026-05-29',
+    added: [
+      'iOS home screen widgets: Stats (small/medium/large), Device Spotlight (small/medium/large), and Recent Additions (medium)',
+    ],
     changed: [],
     fixed: [
       'iOS image viewer now responds to swipe gestures directly on the image when zoomed out, not just the surrounding black area',

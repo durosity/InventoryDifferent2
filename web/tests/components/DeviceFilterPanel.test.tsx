@@ -19,6 +19,7 @@ const defaultProps = {
         { id: 1, name: 'Computers', type: 'COMPUTER' },
         { id: 2, name: 'Peripherals', type: 'PERIPHERAL' },
     ],
+    locations: [],
     sortColumn: 'category' as const,
     sortDirection: 'asc' as const,
     onSortChange: vi.fn(),

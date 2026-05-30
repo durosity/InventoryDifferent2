@@ -353,6 +353,16 @@ var DATA = {
         { title:'Image record created in DB', desc:'createImage called internally; thumbnailPath generated via sharp. Showcase flag set if this is a showcase image.', packages:['p-api'], edges:['e-api-db'] },
         { title:'Client polls for completion', desc:'Web polls GET /generate-image/status/:jobId. On completion, the new image appears in the device\'s photo gallery.', packages:['p-web'], edges:['e-web-api'] }
       ]
+    },
+    {
+      id:'widget-data', icon:'📱', name:'Widget Data Fetch', path:'iOS Widget → API → PostgreSQL',
+      steps: [
+        { title:'WidgetKit triggers timeline refresh', desc:'iOS schedules a timeline refresh (every 30 min for Stats/Recent; daily for Spotlight). WidgetAPIService.shared is called by the TimelineProvider.', packages:['p-ios'], edges:[] },
+        { title:'Widget reads token from shared Keychain', desc:'WidgetAuthService reads the access token via kSecAttrAccessGroup = "group.com.wottle.InventoryDifferent". Server URL is read from shared UserDefaults suite.', packages:['p-ios'], edges:[] },
+        { title:'GraphQL POST to /graphql', desc:'WidgetAPIService sends a targeted query (collectionStats + financialOverview for Stats; devices list for Spotlight/Recent). Bearer token in Authorization header.', packages:['p-ios'], edges:['e-ios-api'] },
+        { title:'API resolves query', desc:'Apollo resolver authenticates the JWT, queries PostgreSQL, and returns the compact response shape.', packages:['p-api'], edges:['e-api-db'] },
+        { title:'Widget renders entry and caches response', desc:'Decoded data is stored in shared UserDefaults as JSON. Widget entry is constructed and handed to WidgetKit. If the fetch fails, the last cached response is used as fallback.', packages:['p-ios'], edges:[] }
+      ]
     }
   ]
 };

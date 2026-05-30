@@ -1,6 +1,8 @@
 name: Publish Docker Images
 
-# Builds and pushes multi-arch images to Docker Hub after tests pass on main.
+# Builds and pushes multi-arch images to Docker Hub after tests pass on main or dev.
+# Pushing to main publishes :latest; pushing to dev publishes :dev.
+# Trigger manually via workflow_dispatch to publish any custom tag.
 #
 # Required GitHub secrets:
 #   DOCKERHUB_TOKEN   — Docker Hub access token (Account Settings → Security)
@@ -10,14 +12,19 @@ on:
   workflow_run:
     workflows: [Tests]
     types: [completed]
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag (e.g. staging, pr-42). Defaults to latest.'
+        required: false
+        default: 'latest'
 
 jobs:
   publish:
     name: Build and Push ${{ matrix.name }}
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     strategy:
       matrix:
@@ -53,12 +60,27 @@ jobs:
           username: wottle
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Resolve image tag
+        id: tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.image_tag }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "value=$INPUT_TAG" >> $GITHUB_OUTPUT
+          elif [ "$HEAD_BRANCH" = "dev" ]; then
+            echo "value=dev" >> $GITHUB_OUTPUT
+          else
+            echo "value=latest" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push ${{ matrix.name }}
         uses: docker/build-push-action@v5
         with:
           context: ${{ matrix.context }}
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ matrix.image }}:latest
+          tags: ${{ matrix.image }}:${{ steps.tag.outputs.value }}
           cache-from: type=registry,ref=${{ matrix.image }}:buildcache
           cache-to: type=registry,ref=${{ matrix.image }}:buildcache,mode=max
