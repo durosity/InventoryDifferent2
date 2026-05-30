@@ -252,7 +252,7 @@ export const typeDefs = gql`
     externalUrl: String
     externalLinkLabel: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
     rarity: Rarity
     historicalNotes: String
     categoryId: Int!
@@ -343,7 +343,8 @@ export const typeDefs = gql`
     operatingSystem: String
     externalUrl: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
+    pramBatteryExpiryDate: DateTime
     category: Category
     categoryId: Int
   }
@@ -450,7 +451,7 @@ export const typeDefs = gql`
     externalUrl: String
     externalLinkLabel: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
     rarity: Rarity
     historicalNotes: String
   }
@@ -477,7 +478,7 @@ export const typeDefs = gql`
     externalUrl: String
     externalLinkLabel: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
     rarity: Rarity
     historicalNotes: String
   }

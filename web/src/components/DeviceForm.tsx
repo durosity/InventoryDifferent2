@@ -637,8 +637,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
             if (typeof tpl.displayType === 'string') next.displayType = tpl.displayType;
             if (typeof tpl.displayVariant === 'string') next.displayVariant = tpl.displayVariant;
             if (typeof tpl.nativeResolution === 'string') next.nativeResolution = tpl.nativeResolution;
-            if (typeof tpl.storage === 'string') next.storage = tpl.storage;
-            if (typeof tpl.operatingSystem === 'string') next.operatingSystem = tpl.operatingSystem;
+            // Don't set storage/operatingSystem on formData — they're handled via storageEntries/osEntries below
 
             if (typeof tpl.categoryId === 'number') next.categoryId = tpl.categoryId;
             if (typeof tpl.releaseYear === 'number') next.releaseYear = tpl.releaseYear;
@@ -651,6 +650,22 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
 
             return next;
         });
+
+        // Split template storage string into individual storageEntries
+        if (tpl.storage) {
+            const entries = tpl.storage.split('+').map((s: string) => s.trim()).filter(Boolean);
+            setStorageEntries(entries.map((value: string) => ({ value })));
+        } else {
+            setStorageEntries([]);
+        }
+
+        // Split template operatingSystem string into individual osEntries
+        if (tpl.operatingSystem) {
+            const entries = tpl.operatingSystem.split('+').map((s: string) => s.trim()).filter(Boolean);
+            setOsEntries(entries.map((value: string) => ({ value })));
+        } else {
+            setOsEntries([]);
+        }
 
         // Add the template's reference link to the pending links list so it shows in the form
         if (tpl.externalUrl) {
@@ -785,13 +800,19 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                 }
             }
 
-            // Save accessories (create mode only — edit mode is handled inline)
+            // Save accessories, links, storage entries, OS entries (create mode only — edit mode is handled inline)
             if (mode === "create") {
                 for (const acc of accessories) {
                     await addDeviceAccessory({ variables: { deviceId, name: acc.name } });
                 }
                 for (const link of links) {
                     await addDeviceLink({ variables: { deviceId, label: link.label, url: link.url } });
+                }
+                for (const entry of storageEntries) {
+                    await addDeviceStorage({ variables: { deviceId, value: entry.value } });
+                }
+                for (const entry of osEntries) {
+                    await addDeviceOS({ variables: { deviceId, value: entry.value } });
                 }
             }
 

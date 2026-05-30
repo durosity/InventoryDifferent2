@@ -64,10 +64,9 @@ const GET_WISHLIST = gql`
       displayType
       displayVariant
       nativeResolution
-      storage
-      operatingSystem
       externalUrl
       isWifiEnabled
+      pramBatteryInstalled
       categoryId
     }
   }
