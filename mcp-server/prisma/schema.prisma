@@ -38,13 +38,19 @@ model Device {
   soldPrice           Decimal?  @db.Decimal(10, 2)
   soldDate            DateTime?
 
-  cpu                 String?
+  cpuType             String?
+  cpuSpeed            String?
   ram                 String?
-  graphics            String?
-  storage             String?
-  operatingSystem     String?
+  graphicsChip        String?
+  screenSize          String?
+  displayType         String?
+  displayVariant      String?
+  nativeResolution    String?
   isWifiEnabled       Boolean?
-  isPramBatteryRemoved Boolean?
+  isRetroBrited       Boolean   @default(false)
+  isRecapped          Boolean   @default(false)
+  pramBatteryInstalled  Boolean?
+  pramBatteryExpiryDate DateTime?
   deleted             Boolean   @default(false)
 
   historicalNotes     String?   @db.Text
@@ -147,14 +153,15 @@ model Template {
   modelNumber     String?
   releaseYear     Int?
   estimatedValue  Decimal?  @db.Decimal(10, 2)
-  cpu             String?
+  cpuType         String?
+  cpuSpeed        String?
   ram             String?
-  graphics        String?
+  graphicsChip    String?
   storage         String?
   operatingSystem String?
   externalUrl     String?
   isWifiEnabled       Boolean?
-  isPramBatteryRemoved Boolean?
+  pramBatteryInstalled Boolean?
   rarity          Rarity?
 
   categoryId  Int
