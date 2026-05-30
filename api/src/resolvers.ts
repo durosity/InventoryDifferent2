@@ -1393,21 +1393,23 @@ export const resolvers = {
         createDevice: async (_parent: any, args: { input: any }, context: Context) => {
             requireAuth(context);
             const { input } = args;
+            // Strip legacy fields that no longer exist on Device model
+            const { storage, operatingSystem, ...deviceData } = input;
             const device = await context.prisma.device.create({
                 data: {
-                    ...input,
+                    ...deviceData,
                 },
                 include: DEVICE_INCLUDE,
             });
             // Activity log: acquisition event
-            if (input.dateAcquired) {
+            if (deviceData.dateAcquired) {
                 await (context.prisma as any).activityLog.create({
                     data: {
                         deviceId: device.id,
                         type: 'DEVICE_ACQUIRED',
                         metadata: {
-                            whereAcquired: input.whereAcquired ?? null,
-                            priceAcquired: input.priceAcquired != null ? Number(input.priceAcquired) : null,
+                            whereAcquired: deviceData.whereAcquired ?? null,
+                            priceAcquired: deviceData.priceAcquired != null ? Number(deviceData.priceAcquired) : null,
                         },
                     },
                 });
@@ -1416,7 +1418,7 @@ export const resolvers = {
         },
         updateDevice: async (_parent: any, args: { input: any }, context: Context) => {
             requireAuth(context);
-            const { id, ...data } = args.input;
+            const { id, storage, operatingSystem, ...data } = args.input;
             // Remove undefined values to avoid overwriting with null
             const cleanData = Object.fromEntries(
                 Object.entries(data).filter(([_, v]) => v !== undefined)
