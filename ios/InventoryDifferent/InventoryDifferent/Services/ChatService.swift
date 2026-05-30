@@ -26,7 +26,7 @@ class ChatService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let token = await AuthService.shared.getAccessToken() {
+        if let token = AuthService.shared.getAccessToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 

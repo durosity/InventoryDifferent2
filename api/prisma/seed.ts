@@ -157,15 +157,13 @@ type ParsedTemplate = {
     modelNumber?: string;
     releaseYear?: number;
     estimatedValue?: number;
-    cpu?: string;
+    cpuType?: string;
     ram?: string;
-    graphics?: string;
-    storage?: string;
-    operatingSystem?: string;
+    graphicsChip?: string;
     externalUrl?: string;
     externalLinkLabel?: string;
     isWifiEnabled?: boolean;
-    isPramBatteryRemoved?: boolean;
+    pramBatteryInstalled?: boolean;
     rarity?: string;
 };
 
@@ -392,10 +390,9 @@ function parseTemplatesFromSql(sql: string, oldCategoryIdToNewId: Map<number, nu
         }
         // processorType exists in the source SQL but we are intentionally not storing it on Template for now.
         void processorType;
-        if (typeof cpu === 'string' && cpu.trim()) tpl.cpu = cpu.trim();
+        if (typeof cpu === 'string' && cpu.trim()) tpl.cpuType = cpu.trim();
         if (typeof ram === 'string' && ram.trim()) tpl.ram = ram.trim();
-        if (typeof graphics === 'string' && graphics.trim()) tpl.graphics = graphics.trim();
-        if (typeof storage === 'string' && storage.trim()) tpl.storage = storage.trim();
+        if (typeof graphics === 'string' && graphics.trim()) tpl.graphicsChip = graphics.trim();
 
         const rarity = TEMPLATE_RARITY[tpl.name];
         if (rarity) tpl.rarity = rarity;
@@ -488,15 +485,13 @@ async function main() {
                         modelNumber: tpl.modelNumber,
                         releaseYear: tpl.releaseYear,
                         estimatedValue: tpl.estimatedValue,
-                        cpu: tpl.cpu,
+                        cpuType: tpl.cpuType,
                         ram: tpl.ram,
-                        graphics: tpl.graphics,
-                        storage: tpl.storage,
-                        operatingSystem: tpl.operatingSystem,
+                        graphicsChip: tpl.graphicsChip,
                         externalUrl: tpl.externalUrl,
                         externalLinkLabel: tpl.externalLinkLabel,
                         isWifiEnabled: tpl.isWifiEnabled,
-                        isPramBatteryRemoved: tpl.isPramBatteryRemoved,
+                        pramBatteryInstalled: tpl.pramBatteryInstalled,
                         rarity: tpl.rarity as any,
                         categoryId: tpl.categoryId,
                     },
@@ -508,15 +503,13 @@ async function main() {
                         modelNumber: tpl.modelNumber,
                         releaseYear: tpl.releaseYear,
                         estimatedValue: tpl.estimatedValue,
-                        cpu: tpl.cpu,
+                        cpuType: tpl.cpuType,
                         ram: tpl.ram,
-                        graphics: tpl.graphics,
-                        storage: tpl.storage,
-                        operatingSystem: tpl.operatingSystem,
+                        graphicsChip: tpl.graphicsChip,
                         externalUrl: tpl.externalUrl,
                         externalLinkLabel: tpl.externalLinkLabel,
                         isWifiEnabled: tpl.isWifiEnabled,
-                        isPramBatteryRemoved: tpl.isPramBatteryRemoved,
+                        pramBatteryInstalled: tpl.pramBatteryInstalled,
                         rarity: tpl.rarity as any,
                         categoryId: tpl.categoryId,
                     },

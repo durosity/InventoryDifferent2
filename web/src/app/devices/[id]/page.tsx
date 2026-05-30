@@ -48,14 +48,20 @@ const GET_DEVICE = gql`
       listPrice
       soldPrice
       soldDate
-      cpu
+      cpuType
+      cpuSpeed
       ram
-      graphics
-      storage
-      operatingSystem
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       isWifiEnabled
-      isPramBatteryRemoved
+      pramBatteryInstalled
+      pramBatteryExpiryDate
       lastPowerOnDate
+      storageEntries { id value sortOrder }
+      osEntries { id value sortOrder }
       category {
         id
         name
@@ -1243,9 +1249,9 @@ export default function DeviceDetailNew() {
             {device.category?.type === 'COMPUTER' && (
               <IndicatorCard
                 iconName="battery_alert"
-                color={device.isPramBatteryRemoved ? 'emerald' : 'red'}
+                color={device.pramBatteryInstalled ? 'emerald' : 'red'}
                 label={t.detail.pramLabel}
-                value={device.isPramBatteryRemoved ? t.detail.pramRemoved : t.detail.pramInstalled}
+                value={device.pramBatteryInstalled ? 'Battery Installed' : 'Battery Removed'}
                 active={true}
               />
             )}
@@ -1413,16 +1419,21 @@ export default function DeviceDetailNew() {
           })()}
 
           {/* Technical Specs */}
-          {(device.cpu || device.ram || device.storage || device.graphics || device.operatingSystem) && (
+          {(device.cpuType || device.cpuSpeed || device.ram || (device.storageEntries?.length > 0) || device.graphicsChip || device.screenSize || device.displayType || device.nativeResolution || (device.osEntries?.length > 0)) && (
             <section className="bg-[var(--card)] rounded-xl p-8 shadow-sm">
               <h2 className="text-on-surface font-bold text-sm uppercase tracking-widest mb-6">{t.detail.technicalSpecs}</h2>
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                {device.cpu && <SpecField label={t.detail.processor} value={device.cpu} />}
+                {device.cpuType && <SpecField label="CPU" value={device.cpuType + (device.cpuSpeed ? ` @ ${device.cpuSpeed}` : '')} />}
                 {device.ram && <SpecField label={t.detail.memoryRam} value={device.ram} />}
-                {device.storage && <SpecField label={t.detail.storage} value={device.storage} />}
-                {device.graphics && <SpecField label={t.detail.graphics} value={device.graphics} />}
-                {device.operatingSystem && <SpecField label={t.detail.operatingSystem} value={device.operatingSystem} />}
+                {device.storageEntries?.length > 0 && <SpecField label={t.detail.storage} value={device.storageEntries.map((s: any) => s.value).join(', ')} />}
+                {device.graphicsChip && <SpecField label="Graphics" value={device.graphicsChip} />}
+                {device.screenSize && <SpecField label="Screen Size" value={device.screenSize} />}
+                {device.displayType && <SpecField label="Display Type" value={device.displayType + (device.displayVariant ? ` · ${device.displayVariant}` : '')} />}
+                {device.nativeResolution && <SpecField label="Resolution" value={device.nativeResolution} />}
+                {device.osEntries?.length > 0 && <SpecField label={t.detail.operatingSystem} value={device.osEntries.map((o: any) => o.value).join(', ')} />}
                 {device.isWifiEnabled != null && <SpecField label={t.detail.wifi} value={device.isWifiEnabled ? t.common.yes : t.common.no} />}
+                {device.pramBatteryInstalled != null && <SpecField label="PRAM Battery" value={device.pramBatteryInstalled ? 'Installed' : 'Removed'} />}
+                {device.pramBatteryExpiryDate && <SpecField label="PRAM Expiry" value={new Date(device.pramBatteryExpiryDate).toLocaleDateString()} />}
               </div>
             </section>
           )}

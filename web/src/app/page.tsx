@@ -33,7 +33,8 @@ const GET_DEVICES = gql`
       hasOriginalBox
       isAssetTagged
       isWifiEnabled
-      isPramBatteryRemoved
+      pramBatteryInstalled
+      pramBatteryExpiryDate
       estimatedValue
       listPrice
       soldPrice
@@ -55,7 +56,8 @@ const GET_DEVICES = gql`
         isThumbnail
         thumbnailMode
       }
-      cpu
+      cpuType
+      cpuSpeed
       ram
       notes {
         id
@@ -205,7 +207,7 @@ export default function ListNewPage() {
     }
     if (healthFilters.noImages) result = result.filter((d: any) => !d.images || d.images.length === 0);
     if (healthFilters.noNotes) result = result.filter((d: any) => !d.notes || d.notes.length === 0);
-    if (healthFilters.missingSpecs) result = result.filter((d: any) => !d.cpu && !d.ram);
+    if (healthFilters.missingSpecs) result = result.filter((d: any) => !d.cpuType && !d.ram);
     return result;
   }, [data?.devices, filters, searchQuery, healthFilters]);
 

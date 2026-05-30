@@ -21,9 +21,14 @@ function NewDeviceFormWithParams() {
         const catId = parseInt(searchParams.get("categoryId")!, 10);
         if (!isNaN(catId)) prefill.categoryId = catId;
     }
-    if (searchParams.get("cpu")) prefill.cpu = searchParams.get("cpu")!;
+    if (searchParams.get("cpuType")) prefill.cpuType = searchParams.get("cpuType")!;
+    if (searchParams.get("cpuSpeed")) prefill.cpuSpeed = searchParams.get("cpuSpeed")!;
     if (searchParams.get("ram")) prefill.ram = searchParams.get("ram")!;
-    if (searchParams.get("graphics")) prefill.graphics = searchParams.get("graphics")!;
+    if (searchParams.get("graphicsChip")) prefill.graphicsChip = searchParams.get("graphicsChip")!;
+    if (searchParams.get("screenSize")) prefill.screenSize = searchParams.get("screenSize")!;
+    if (searchParams.get("displayType")) prefill.displayType = searchParams.get("displayType")!;
+    if (searchParams.get("displayVariant")) prefill.displayVariant = searchParams.get("displayVariant")!;
+    if (searchParams.get("nativeResolution")) prefill.nativeResolution = searchParams.get("nativeResolution")!;
     if (searchParams.get("storage")) prefill.storage = searchParams.get("storage")!;
     if (searchParams.get("operatingSystem")) prefill.operatingSystem = searchParams.get("operatingSystem")!;
     if (searchParams.get("externalUrl")) prefill.externalUrl = searchParams.get("externalUrl")!;
@@ -33,7 +38,7 @@ function NewDeviceFormWithParams() {
         if (!isNaN(tplId)) prefill.templateId = tplId;
     }
     if (searchParams.get("isWifiEnabled")) prefill.isWifiEnabled = true;
-    if (searchParams.get("isPramBatteryRemoved")) prefill.isPramBatteryRemoved = true;
+    if (searchParams.get("pramBatteryInstalled")) prefill.pramBatteryInstalled = searchParams.get("pramBatteryInstalled") === "1";
 
     return <DeviceForm mode="create" prefill={prefill} />;
 }

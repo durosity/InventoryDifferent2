@@ -43,7 +43,9 @@ class DeviceService {
                 rarity
                 lastPowerOnDate
                 isAssetTagged
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 accessories { id name }
                 dateAcquired
                 estimatedValue
@@ -95,7 +97,9 @@ class DeviceService {
                 rarity
                 lastPowerOnDate
                 isAssetTagged
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 accessories { id name }
                 dateAcquired
                 estimatedValue
@@ -161,13 +165,15 @@ class DeviceService {
                 listPrice
                 soldPrice
                 soldDate
-                cpu
+                cpuType
                 ram
-                graphics
-                storage
-                operatingSystem
+                graphicsChip
+                storageEntries { id value sortOrder }
+                osEntries { id value sortOrder }
                 isWifiEnabled
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 category {
                     id
                     name
@@ -260,13 +266,15 @@ class DeviceService {
                 listPrice
                 soldPrice
                 soldDate
-                cpu
+                cpuType
                 ram
-                graphics
-                storage
-                operatingSystem
+                graphicsChip
+                storageEntries { id value sortOrder }
+                osEntries { id value sortOrder }
                 isWifiEnabled
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 category {
                     id
                     name
@@ -542,13 +550,15 @@ class DeviceService {
                 listPrice
                 soldPrice
                 soldDate
-                cpu
+                cpuType
                 ram
-                graphics
-                storage
-                operatingSystem
+                graphicsChip
+                storageEntries { id value sortOrder }
+                osEntries { id value sortOrder }
                 isWifiEnabled
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 category {
                     id
                     name
@@ -781,7 +791,7 @@ class DeviceService {
         uploadRequest.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
         // Add Authorization header if we have a token
-        if let token = await AuthService.shared.getAccessToken() {
+        if let token = AuthService.shared.getAccessToken() {
             uploadRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
@@ -896,7 +906,7 @@ class DeviceService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let token = await AuthService.shared.getAccessToken() {
+        if let token = AuthService.shared.getAccessToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
@@ -945,7 +955,7 @@ class DeviceService {
             try await Task.sleep(nanoseconds: 2_000_000_000)
 
             var statusRequest = URLRequest(url: statusURL)
-            if let token = await AuthService.shared.getAccessToken() {
+            if let token = AuthService.shared.getAccessToken() {
                 statusRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             let (statusData, _) = try await URLSession.shared.data(for: statusRequest)
@@ -1010,13 +1020,15 @@ class DeviceService {
                 listPrice
                 soldPrice
                 soldDate
-                cpu
+                cpuType
                 ram
-                graphics
-                storage
-                operatingSystem
+                graphicsChip
+                storageEntries { id value sortOrder }
+                osEntries { id value sortOrder }
                 isWifiEnabled
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 category {
                     id
                     name
@@ -1177,13 +1189,15 @@ class DeviceService {
                 listPrice
                 soldPrice
                 soldDate
-                cpu
+                cpuType
                 ram
-                graphics
-                storage
-                operatingSystem
+                graphicsChip
+                storageEntries { id value sortOrder }
+                osEntries { id value sortOrder }
                 isWifiEnabled
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 category {
                     id
                     name
@@ -1270,14 +1284,16 @@ class DeviceService {
                 deleted
                 createdAt
                 categoryId
-                cpu
+                cpuType
                 ram
-                graphics
-                storage
-                operatingSystem
+                graphicsChip
+                storageEntries { id value sortOrder }
+                osEntries { id value sortOrder }
                 externalUrl
                 isWifiEnabled
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 category {
                     id
                     name
@@ -1308,14 +1324,19 @@ class DeviceService {
         priority: Int,
         group: String?,
         categoryId: Int?,
-        cpu: String?,
+        cpuType: String?,
+        cpuSpeed: String?,
         ram: String?,
-        graphics: String?,
+        graphicsChip: String?,
+        screenSize: String?,
+        displayType: String?,
+        displayVariant: String?,
+        nativeResolution: String?,
         storage: String?,
         operatingSystem: String?,
         externalUrl: String?,
         isWifiEnabled: Bool?,
-        isPramBatteryRemoved: Bool?
+        pramBatteryInstalled: Bool?
     ) async throws -> WishlistItem {
         let mutation = """
         mutation CreateWishlistItem($data: WishlistItemCreateInput!) {
@@ -1335,14 +1356,16 @@ class DeviceService {
                 deleted
                 createdAt
                 categoryId
-                cpu
+                cpuType
                 ram
-                graphics
-                storage
-                operatingSystem
+                graphicsChip
+                storageEntries { id value sortOrder }
+                osEntries { id value sortOrder }
                 externalUrl
                 isWifiEnabled
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 category {
                     id
                     name
@@ -1363,14 +1386,19 @@ class DeviceService {
         if let v = notes { data["notes"] = v }
         if let v = group { data["group"] = v }
         if let v = categoryId { data["categoryId"] = v }
-        if let v = cpu { data["cpu"] = v }
+        if let v = cpuType { data["cpuType"] = v }
+        if let v = cpuSpeed { data["cpuSpeed"] = v }
         if let v = ram { data["ram"] = v }
-        if let v = graphics { data["graphics"] = v }
+        if let v = graphicsChip { data["graphicsChip"] = v }
+        if let v = screenSize { data["screenSize"] = v }
+        if let v = displayType { data["displayType"] = v }
+        if let v = displayVariant { data["displayVariant"] = v }
+        if let v = nativeResolution { data["nativeResolution"] = v }
         if let v = storage { data["storage"] = v }
         if let v = operatingSystem { data["operatingSystem"] = v }
         if let v = externalUrl { data["externalUrl"] = v }
         if let v = isWifiEnabled { data["isWifiEnabled"] = v }
-        if let v = isPramBatteryRemoved { data["isPramBatteryRemoved"] = v }
+        if let v = pramBatteryInstalled { data["pramBatteryInstalled"] = v }
 
         let variables: [String: Any] = ["data": data]
 
@@ -1396,14 +1424,19 @@ class DeviceService {
         priority: Int?,
         group: String?,
         categoryId: Int?,
-        cpu: String?,
+        cpuType: String?,
+        cpuSpeed: String?,
         ram: String?,
-        graphics: String?,
+        graphicsChip: String?,
+        screenSize: String?,
+        displayType: String?,
+        displayVariant: String?,
+        nativeResolution: String?,
         storage: String?,
         operatingSystem: String?,
         externalUrl: String?,
         isWifiEnabled: Bool?,
-        isPramBatteryRemoved: Bool?
+        pramBatteryInstalled: Bool?
     ) async throws -> WishlistItem {
         let mutation = """
         mutation UpdateWishlistItem($id: Int!, $data: WishlistItemUpdateInput!) {
@@ -1423,14 +1456,16 @@ class DeviceService {
                 deleted
                 createdAt
                 categoryId
-                cpu
+                cpuType
                 ram
-                graphics
-                storage
-                operatingSystem
+                graphicsChip
+                storageEntries { id value sortOrder }
+                osEntries { id value sortOrder }
                 externalUrl
                 isWifiEnabled
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 category {
                     id
                     name
@@ -1453,14 +1488,19 @@ class DeviceService {
         if let v = priority { data["priority"] = v }
         if let v = group { data["group"] = v }
         if let v = categoryId { data["categoryId"] = v }
-        if let v = cpu { data["cpu"] = v }
+        if let v = cpuType { data["cpuType"] = v }
+        if let v = cpuSpeed { data["cpuSpeed"] = v }
         if let v = ram { data["ram"] = v }
-        if let v = graphics { data["graphics"] = v }
+        if let v = graphicsChip { data["graphicsChip"] = v }
+        if let v = screenSize { data["screenSize"] = v }
+        if let v = displayType { data["displayType"] = v }
+        if let v = displayVariant { data["displayVariant"] = v }
+        if let v = nativeResolution { data["nativeResolution"] = v }
         if let v = storage { data["storage"] = v }
         if let v = operatingSystem { data["operatingSystem"] = v }
         if let v = externalUrl { data["externalUrl"] = v }
         if let v = isWifiEnabled { data["isWifiEnabled"] = v }
-        if let v = isPramBatteryRemoved { data["isPramBatteryRemoved"] = v }
+        if let v = pramBatteryInstalled { data["pramBatteryInstalled"] = v }
 
         let variables: [String: Any] = ["id": id, "data": data]
 
@@ -1627,5 +1667,53 @@ class DeviceService {
         }
 
         let _: Response = try await api.execute(query: mutation)
+    }
+
+    // MARK: - Storage & OS entries
+
+    func addDeviceStorageEntry(deviceId: Int, value: String, sortOrder: Int = 0) async throws -> DeviceStorageEntry {
+        let mutation = """
+        mutation AddDeviceStorageEntry($deviceId: Int!, $value: String!, $sortOrder: Int) {
+            addDeviceStorageEntry(deviceId: $deviceId, value: $value, sortOrder: $sortOrder) {
+                id value sortOrder
+            }
+        }
+        """
+        struct Response: Decodable { let addDeviceStorageEntry: DeviceStorageEntry }
+        let response: Response = try await api.execute(query: mutation, variables: ["deviceId": deviceId, "value": value, "sortOrder": sortOrder])
+        return response.addDeviceStorageEntry
+    }
+
+    func removeDeviceStorageEntry(id: Int) async throws {
+        let mutation = """
+        mutation RemoveDeviceStorageEntry($id: Int!) {
+            removeDeviceStorageEntry(id: $id)
+        }
+        """
+        struct Response: Decodable { let removeDeviceStorageEntry: Bool }
+        let _: Response = try await api.execute(query: mutation, variables: ["id": id])
+    }
+
+    func addDeviceOSEntry(deviceId: Int, value: String, sortOrder: Int = 0) async throws -> DeviceOSEntry {
+        let mutation = """
+        mutation AddDeviceOSEntry($deviceId: Int!, $value: String!, $sortOrder: Int) {
+            addDeviceOSEntry(deviceId: $deviceId, value: $value, sortOrder: $sortOrder) {
+                id value sortOrder
+            }
+        }
+        """
+        struct Response: Decodable { let addDeviceOSEntry: DeviceOSEntry }
+        let response: Response = try await api.execute(query: mutation, variables: ["deviceId": deviceId, "value": value, "sortOrder": sortOrder])
+        return response.addDeviceOSEntry
+    }
+
+    func removeDeviceOSEntry(id: Int) async throws {
+        let mutation = """
+        mutation RemoveDeviceOSEntry($id: Int!) {
+            removeDeviceOSEntry(id: $id)
+        }
+        """
+        struct Response: Decodable { let removeDeviceOSEntry: Bool }
+        let _: Response = try await api.execute(query: mutation, variables: ["id": id])
     }
 }
