@@ -11,7 +11,7 @@ import Charts
 
 struct ImageIndex: Identifiable {
     let id = UUID()
-    let value: Int
+    let imageId: Int
 }
 
 // MARK: - Design Tokens
@@ -318,7 +318,9 @@ struct DeviceDetailRedesignView: View {
             }
         }
         .fullScreenCover(item: $selectedImageIndex) { idx in
-            ImageViewerView(images: images.sorted(by: { $0.id > $1.id }), initialIndex: idx.value)
+            let sorted = images.sorted(by: { $0.id > $1.id })
+            let startIndex = sorted.firstIndex(where: { $0.id == idx.imageId }) ?? 0
+            ImageViewerView(images: sorted, initialIndex: startIndex)
         }
         .sheet(isPresented: $showAddTagSheet) {
             AddTagView(deviceId: device.id, existingTags: tags) { updated in
@@ -1005,7 +1007,7 @@ struct DeviceDetailRedesignView: View {
                                 }
                             }
                         }
-                        .onTapGesture { selectedImageIndex = ImageIndex(value: index) }
+                        .onTapGesture { selectedImageIndex = ImageIndex(imageId: image.id) }
                 }
 
                 if showAdd {
@@ -2187,7 +2189,9 @@ struct DevicePhotosChildView: View {
             }
         }
         .fullScreenCover(item: $selectedImageIndex) { idx in
-            ImageViewerView(images: images.sorted(by: { $0.id > $1.id }), initialIndex: idx.value)
+            let sorted = images.sorted(by: { $0.id > $1.id })
+            let startIndex = sorted.firstIndex(where: { $0.id == idx.imageId }) ?? 0
+            ImageViewerView(images: sorted, initialIndex: startIndex)
         }
         .sheet(isPresented: $showImagePicker) {
             ImageUploadView(deviceId: deviceId) { newImages in
@@ -2353,7 +2357,7 @@ struct DevicePhotosChildView: View {
         .frame(height: 120)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .onTapGesture {
-            if !isImageManagementMode { selectedImageIndex = ImageIndex(value: index) }
+            if !isImageManagementMode { selectedImageIndex = ImageIndex(imageId: image.id) }
         }
     }
 

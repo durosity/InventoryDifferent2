@@ -61,7 +61,7 @@ struct AddDeviceView: View {
     @State private var showAddAccessorySheet = false
     @State private var showAddLinkSheet = false
     
-    @State private var dateAcquired: Date?
+    @State private var dateAcquired: Date? = Date()
     @State private var whereAcquired = ""
     @State private var priceAcquired = ""
     @State private var estimatedValue = ""
