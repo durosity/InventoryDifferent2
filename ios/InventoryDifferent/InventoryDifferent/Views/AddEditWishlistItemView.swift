@@ -29,14 +29,19 @@ struct AddEditWishlistItemView: View {
     @State private var selectedCategoryId: Int?
 
     // Spec fields
-    @State private var cpu = ""
+    @State private var cpuType = ""
+    @State private var cpuSpeed = ""
     @State private var ram = ""
-    @State private var graphics = ""
+    @State private var graphicsChip = ""
+    @State private var screenSize = ""
+    @State private var displayType = ""
+    @State private var displayVariant = ""
+    @State private var nativeResolution = ""
     @State private var storage = ""
     @State private var operatingSystem = ""
     @State private var externalUrl = ""
     @State private var isWifiEnabled = false
-    @State private var isPramBatteryRemoved = false
+    @State private var pramBatteryInstalled = true
 
     // Template picker
     @State private var templates: [Template] = []
@@ -165,14 +170,19 @@ struct AddEditWishlistItemView: View {
                 }
 
                 Section(t.addEditWishlist.specifications) {
-                    LabeledField(label: t.addEditWishlist.cpu, text: $cpu)
+                    LabeledField(label: "CPU Type", text: $cpuType)
+                    LabeledField(label: "CPU Speed", text: $cpuSpeed)
                     LabeledField(label: t.addEditWishlist.ram, text: $ram)
-                    LabeledField(label: t.addEditWishlist.graphics, text: $graphics)
+                    LabeledField(label: "Graphics Chip", text: $graphicsChip)
+                    LabeledField(label: "Screen Size", text: $screenSize)
+                    LabeledField(label: "Display Type", text: $displayType)
+                    LabeledField(label: "Display Variant", text: $displayVariant)
+                    LabeledField(label: "Native Resolution", text: $nativeResolution)
                     LabeledField(label: t.addEditWishlist.storage, text: $storage)
                     LabeledField(label: t.addEditWishlist.os, text: $operatingSystem)
                     LabeledField(label: t.addEditWishlist.externalURL, text: $externalUrl, keyboardType: .URL)
                     Toggle(t.addEditWishlist.wifiEnabled, isOn: $isWifiEnabled)
-                    Toggle(t.addEditWishlist.pramRemoved, isOn: $isPramBatteryRemoved)
+                    Toggle("PRAM Battery Installed", isOn: $pramBatteryInstalled)
                 }
 
                 if isEditing {
@@ -221,14 +231,15 @@ struct AddEditWishlistItemView: View {
                 prefillModelNumber: modelNumber.isEmpty ? nil : modelNumber,
                 prefillReleaseYear: Int(releaseYear),
                 prefillCategoryId: selectedCategoryId,
-                prefillCpu: cpu.isEmpty ? nil : cpu,
+                prefillCpuType: cpuType.isEmpty ? nil : cpuType,
+                prefillCpuSpeed: cpuSpeed.isEmpty ? nil : cpuSpeed,
                 prefillRam: ram.isEmpty ? nil : ram,
-                prefillGraphics: graphics.isEmpty ? nil : graphics,
+                prefillGraphicsChip: graphicsChip.isEmpty ? nil : graphicsChip,
                 prefillStorage: storage.isEmpty ? nil : storage,
                 prefillOperatingSystem: operatingSystem.isEmpty ? nil : operatingSystem,
                 prefillExternalUrl: externalUrl.isEmpty ? nil : externalUrl,
                 prefillIsWifiEnabled: isWifiEnabled ? true : nil,
-                prefillIsPramBatteryRemoved: isPramBatteryRemoved ? true : nil,
+                prefillPramBatteryInstalled: pramBatteryInstalled,
                 prefillEstimatedValue: nil
             )
             .environmentObject(deviceStore)
@@ -242,14 +253,19 @@ struct AddEditWishlistItemView: View {
         manufacturer = template.manufacturer ?? ""
         modelNumber = template.modelNumber ?? ""
         releaseYear = template.releaseYear.map { String($0) } ?? ""
-        cpu = template.cpu ?? ""
+        cpuType = template.cpuType ?? ""
+        cpuSpeed = template.cpuSpeed ?? ""
         ram = template.ram ?? ""
-        graphics = template.graphics ?? ""
+        graphicsChip = template.graphicsChip ?? ""
+        screenSize = template.screenSize ?? ""
+        displayType = template.displayType ?? ""
+        displayVariant = template.displayVariant ?? ""
+        nativeResolution = template.nativeResolution ?? ""
         storage = template.storage ?? ""
         operatingSystem = template.operatingSystem ?? ""
         externalUrl = template.externalUrl ?? ""
         isWifiEnabled = template.isWifiEnabled ?? false
-        isPramBatteryRemoved = template.isPramBatteryRemoved ?? false
+        pramBatteryInstalled = true
         selectedCategoryId = template.categoryId
         templateSearchText = ""
     }
@@ -268,14 +284,19 @@ struct AddEditWishlistItemView: View {
         priority = item.priority
         group = item.group ?? ""
         selectedCategoryId = item.categoryId
-        cpu = item.cpu ?? ""
+        cpuType = item.cpuType ?? ""
+        cpuSpeed = item.cpuSpeed ?? ""
         ram = item.ram ?? ""
-        graphics = item.graphics ?? ""
+        graphicsChip = item.graphicsChip ?? ""
+        screenSize = item.screenSize ?? ""
+        displayType = item.displayType ?? ""
+        displayVariant = item.displayVariant ?? ""
+        nativeResolution = item.nativeResolution ?? ""
         storage = item.storage ?? ""
         operatingSystem = item.operatingSystem ?? ""
         externalUrl = item.externalUrl ?? ""
         isWifiEnabled = item.isWifiEnabled ?? false
-        isPramBatteryRemoved = item.isPramBatteryRemoved ?? false
+        pramBatteryInstalled = item.pramBatteryInstalled ?? true
     }
 
     private func loadTemplates() async {
@@ -291,14 +312,18 @@ struct AddEditWishlistItemView: View {
                     modelNumber
                     releaseYear
                     estimatedValue
-                    cpu
+                    cpuType
+                    cpuSpeed
                     ram
-                    graphics
+                    graphicsChip
+                    screenSize
+                    displayType
+                    displayVariant
+                    nativeResolution
                     storage
                     operatingSystem
                     externalUrl
                     isWifiEnabled
-                    isPramBatteryRemoved
                     categoryId
                     category {
                         id
@@ -334,9 +359,7 @@ struct AddEditWishlistItemView: View {
         let srcNotes = sourceNotes.isEmpty ? nil : sourceNotes
         let notesTrimmed = notes.isEmpty ? nil : notes
         let grp = group.isEmpty ? nil : group
-        let cpuVal = cpu.isEmpty ? nil : cpu
         let ramVal = ram.isEmpty ? nil : ram
-        let gfxVal = graphics.isEmpty ? nil : graphics
         let storVal = storage.isEmpty ? nil : storage
         let osVal = operatingSystem.isEmpty ? nil : operatingSystem
         let extUrl = externalUrl.isEmpty ? nil : externalUrl
@@ -357,14 +380,19 @@ struct AddEditWishlistItemView: View {
                     priority: priority,
                     group: grp,
                     categoryId: selectedCategoryId,
-                    cpu: cpuVal,
+                    cpuType: cpuType.isEmpty ? nil : cpuType,
+                    cpuSpeed: cpuSpeed.isEmpty ? nil : cpuSpeed,
                     ram: ramVal,
-                    graphics: gfxVal,
+                    graphicsChip: graphicsChip.isEmpty ? nil : graphicsChip,
+                    screenSize: screenSize.isEmpty ? nil : screenSize,
+                    displayType: displayType.isEmpty ? nil : displayType,
+                    displayVariant: displayVariant.isEmpty ? nil : displayVariant,
+                    nativeResolution: nativeResolution.isEmpty ? nil : nativeResolution,
                     storage: storVal,
                     operatingSystem: osVal,
                     externalUrl: extUrl,
                     isWifiEnabled: isWifiEnabled ? isWifiEnabled : nil,
-                    isPramBatteryRemoved: isPramBatteryRemoved ? isPramBatteryRemoved : nil
+                    pramBatteryInstalled: pramBatteryInstalled
                 )
             } else {
                 _ = try await DeviceService.shared.createWishlistItem(
@@ -380,14 +408,19 @@ struct AddEditWishlistItemView: View {
                     priority: priority,
                     group: grp,
                     categoryId: selectedCategoryId,
-                    cpu: cpuVal,
+                    cpuType: cpuType.isEmpty ? nil : cpuType,
+                    cpuSpeed: cpuSpeed.isEmpty ? nil : cpuSpeed,
                     ram: ramVal,
-                    graphics: gfxVal,
+                    graphicsChip: graphicsChip.isEmpty ? nil : graphicsChip,
+                    screenSize: screenSize.isEmpty ? nil : screenSize,
+                    displayType: displayType.isEmpty ? nil : displayType,
+                    displayVariant: displayVariant.isEmpty ? nil : displayVariant,
+                    nativeResolution: nativeResolution.isEmpty ? nil : nativeResolution,
                     storage: storVal,
                     operatingSystem: osVal,
                     externalUrl: extUrl,
                     isWifiEnabled: isWifiEnabled ? isWifiEnabled : nil,
-                    isPramBatteryRemoved: isPramBatteryRemoved ? isPramBatteryRemoved : nil
+                    pramBatteryInstalled: pramBatteryInstalled
                 )
             }
             onSaved()

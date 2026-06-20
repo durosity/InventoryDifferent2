@@ -96,13 +96,19 @@ export const typeDefs = gql`
     soldPrice: Float
     soldDate: DateTime
     
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
-    storage: String
-    operatingSystem: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    isRetroBrited: Boolean
+    isRecapped: Boolean
+    pramBatteryInstalled: Boolean
+    pramBatteryExpiryDate: DateTime
     historicalNotes: String
 
     externalUrl: String
@@ -117,8 +123,24 @@ export const typeDefs = gql`
     customFieldValues: [CustomFieldValue!]!
     accessories: [DeviceAccessory!]!
     links: [DeviceLink!]!
+    storageEntries: [DeviceStorage!]!
+    osEntries: [DeviceOS!]!
     relationsFrom: [DeviceRelationship!]!
     relationsTo: [DeviceRelationship!]!
+  }
+
+  type DeviceStorage {
+    id: Int!
+    deviceId: Int!
+    value: String!
+    sortOrder: Int!
+  }
+
+  type DeviceOS {
+    id: Int!
+    deviceId: Int!
+    value: String!
+    sortOrder: Int!
   }
 
   type DeviceRelationship {
@@ -217,15 +239,20 @@ export const typeDefs = gql`
     modelNumber: String
     releaseYear: Int
     estimatedValue: Float
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
     externalLinkLabel: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
     rarity: Rarity
     historicalNotes: String
     categoryId: Int!
@@ -304,14 +331,20 @@ export const typeDefs = gql`
     group: String
     deleted: Boolean!
     createdAt: String!
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
+    pramBatteryExpiryDate: DateTime
     category: Category
     categoryId: Int
   }
@@ -333,14 +366,20 @@ export const typeDefs = gql`
     priority: Int
     group: String
     categoryId: Int
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
+    pramBatteryExpiryDate: DateTime
   }
 
   input WishlistItemUpdateInput {
@@ -356,14 +395,20 @@ export const typeDefs = gql`
     priority: Int
     group: String
     categoryId: Int
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
+    pramBatteryExpiryDate: DateTime
   }
 
   type StatsBucket {
@@ -393,15 +438,20 @@ export const typeDefs = gql`
     modelNumber: String
     releaseYear: Int
     estimatedValue: Float
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
     externalLinkLabel: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
     rarity: Rarity
     historicalNotes: String
   }
@@ -415,15 +465,20 @@ export const typeDefs = gql`
     modelNumber: String
     releaseYear: Int
     estimatedValue: Float
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     externalUrl: String
     externalLinkLabel: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    pramBatteryInstalled: Boolean
     rarity: Rarity
     historicalNotes: String
   }
@@ -647,13 +702,21 @@ export const typeDefs = gql`
     soldDate: DateTime
 
     # Optional - Computer Specs
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    isRetroBrited: Boolean
+    isRecapped: Boolean
+    pramBatteryInstalled: Boolean
+    pramBatteryExpiryDate: DateTime
     lastPowerOnDate: DateTime
   }
 
@@ -692,13 +755,21 @@ export const typeDefs = gql`
     soldPrice: Float
     soldDate: DateTime
 
-    cpu: String
+    cpuType: String
+    cpuSpeed: String
     ram: String
-    graphics: String
+    graphicsChip: String
+    screenSize: String
+    displayType: String
+    displayVariant: String
+    nativeResolution: String
     storage: String
     operatingSystem: String
     isWifiEnabled: Boolean
-    isPramBatteryRemoved: Boolean
+    isRetroBrited: Boolean
+    isRecapped: Boolean
+    pramBatteryInstalled: Boolean
+    pramBatteryExpiryDate: DateTime
     lastPowerOnDate: DateTime
     deleted: Boolean
   }
@@ -887,6 +958,12 @@ export const typeDefs = gql`
     removeShowcaseDevice(id: ID!): Boolean!
     upsertShowcaseQuote(input: ShowcaseQuoteInput!): ShowcaseQuote!
     deleteShowcaseQuote(id: ID!): Boolean!
+    addDeviceStorageEntry(deviceId: Int!, value: String!, sortOrder: Int): DeviceStorage!
+    updateDeviceStorageEntry(id: Int!, value: String!, sortOrder: Int): DeviceStorage!
+    removeDeviceStorageEntry(id: Int!): Boolean!
+    addDeviceOSEntry(deviceId: Int!, value: String!, sortOrder: Int): DeviceOS!
+    updateDeviceOSEntry(id: Int!, value: String!, sortOrder: Int): DeviceOS!
+    removeDeviceOSEntry(id: Int!): Boolean!
     deleteOrphanedFiles(paths: [String!]!): Int!
   }
 `;

@@ -49,13 +49,19 @@ model Device {
   soldDate            DateTime?
 
   // Computer Specs
-  cpu                 String?
+  cpuType             String?
+  cpuSpeed            String?
   ram                 String?
-  graphics            String?
-  storage             String?
-  operatingSystem     String?
+  graphicsChip        String?
+  screenSize          String?
+  displayType         String?
+  displayVariant      String?
+  nativeResolution    String?
   isWifiEnabled       Boolean?
-  isPramBatteryRemoved Boolean?
+  isRetroBrited       Boolean?
+  isRecapped          Boolean?
+  pramBatteryInstalled  Boolean?
+  pramBatteryExpiryDate DateTime?
   deleted             Boolean   @default(false)
 
   // Historical / descriptive
@@ -77,6 +83,8 @@ model Device {
   pageViews           DevicePageView[]
   accessories         DeviceAccessory[]
   links               DeviceLink[]
+  storageEntries      DeviceStorage[]
+  osEntries           DeviceOS[]
   showcaseDevices     ShowcaseDevice[]
   relationsFrom       DeviceRelationship[] @relation("RelationFrom")
   relationsTo         DeviceRelationship[] @relation("RelationTo")
@@ -114,6 +122,22 @@ model DeviceLink {
   createdAt DateTime @default(now())
 }
 
+model DeviceStorage {
+  id        Int    @id @default(autoincrement())
+  deviceId  Int
+  device    Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  value     String
+  sortOrder Int    @default(0)
+}
+
+model DeviceOS {
+  id        Int    @id @default(autoincrement())
+  deviceId  Int
+  device    Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  value     String
+  sortOrder Int    @default(0)
+}
+
 model Category {
   id      Int      @id @default(autoincrement())
   name    String   @unique
@@ -141,14 +165,20 @@ model WishlistItem {
   deleted              Boolean   @default(false)
   createdAt            DateTime  @default(now())
   // Spec fields (populated via template or manually)
-  cpu                  String?
+  cpuType              String?
+  cpuSpeed             String?
   ram                  String?
-  graphics             String?
+  graphicsChip         String?
+  screenSize           String?
+  displayType          String?
+  displayVariant       String?
+  nativeResolution     String?
   storage              String?
   operatingSystem      String?
   externalUrl          String?
   isWifiEnabled        Boolean?
-  isPramBatteryRemoved Boolean?
+  pramBatteryInstalled  Boolean?
+  pramBatteryExpiryDate DateTime?
   category             Category? @relation(fields: [categoryId], references: [id])
   categoryId           Int?
 }
@@ -210,9 +240,14 @@ model Template {
   modelNumber     String?
   releaseYear     Int?
   estimatedValue  Decimal?  @db.Decimal(10, 2)
-  cpu             String?
+  cpuType         String?
+  cpuSpeed        String?
   ram             String?
-  graphics        String?
+  graphicsChip    String?
+  screenSize      String?
+  displayType     String?
+  displayVariant  String?
+  nativeResolution String?
   storage         String?
   operatingSystem String?
   externalUrl     String?

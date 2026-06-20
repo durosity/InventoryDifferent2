@@ -55,7 +55,7 @@ struct ChatView: View {
                     }
                     .padding()
                 }
-                .onChange(of: messages.count) { _ in
+                .onChange(of: messages.count) { _, _ in
                     if let lastMessage = messages.last {
                         withAnimation {
                             proxy.scrollTo(lastMessage.id, anchor: .bottom)
@@ -112,7 +112,7 @@ struct ChatView: View {
                     .cornerRadius(20)
                     .focused($isInputFocused)
                     .lineLimit(1...5)
-                    .onChange(of: inputText) { _ in
+                    .onChange(of: inputText) { _, _ in
                         voice.stopSpeaking()
                     }
 
@@ -143,24 +143,24 @@ struct ChatView: View {
             }
         }
         // Animate mic button while recording
-        .onChange(of: voice.isRecording) { recording in
+        .onChange(of: voice.isRecording) { _, recording in
             micPulse = recording
         }
         // Live transcript → input field
-        .onChange(of: voice.transcript) { newTranscript in
+        .onChange(of: voice.transcript) { _, newTranscript in
             if !newTranscript.isEmpty {
                 inputText = newTranscript
             }
         }
         // Auto-send when STT finishes naturally (silence / isFinal)
-        .onChange(of: voice.finalTranscript) { finalTranscript in
+        .onChange(of: voice.finalTranscript) { _, finalTranscript in
             guard let text = finalTranscript, !text.isEmpty else { return }
             voice.finalTranscript = nil
             inputText = text
             sendMessage(fromVoice: true)
         }
         // Auto-restart mic in conversation mode after TTS ends
-        .onChange(of: voice.isSpeaking) { speaking in
+        .onChange(of: voice.isSpeaking) { _, speaking in
             if !speaking && isConversationMode && !isLoading {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                     if isConversationMode && !voice.isRecording {

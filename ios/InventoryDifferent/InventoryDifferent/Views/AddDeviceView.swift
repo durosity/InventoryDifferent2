@@ -25,14 +25,15 @@ struct AddDeviceView: View {
     var prefillModelNumber: String?
     var prefillReleaseYear: Int?
     var prefillCategoryId: Int?
-    var prefillCpu: String?
+    var prefillCpuType: String?
+    var prefillCpuSpeed: String?
     var prefillRam: String?
-    var prefillGraphics: String?
+    var prefillGraphicsChip: String?
     var prefillStorage: String?
     var prefillOperatingSystem: String?
     var prefillExternalUrl: String?
     var prefillIsWifiEnabled: Bool?
-    var prefillIsPramBatteryRemoved: Bool?
+    var prefillPramBatteryInstalled: Bool?
     var prefillEstimatedValue: Double?
 
     @State private var name = ""
@@ -61,7 +62,7 @@ struct AddDeviceView: View {
     @State private var showAddAccessorySheet = false
     @State private var showAddLinkSheet = false
     
-    @State private var dateAcquired: Date?
+    @State private var dateAcquired: Date? = Date()
     @State private var whereAcquired = ""
     @State private var priceAcquired = ""
     @State private var estimatedValue = ""
@@ -70,13 +71,22 @@ struct AddDeviceView: View {
     @State private var soldPrice = ""
     @State private var soldDate: Date?
     
-    @State private var cpu = ""
+    @State private var cpuType = ""
+    @State private var cpuSpeed = ""
     @State private var ram = ""
-    @State private var graphics = ""
-    @State private var storage = ""
-    @State private var operatingSystem = ""
+    @State private var graphicsChip = ""
+    @State private var screenSize = ""
+    @State private var displayType = ""
+    @State private var displayVariant = ""
+    @State private var nativeResolution = ""
+    @State private var storageEntries: [DeviceStorageEntry] = []
+    @State private var newStorageValue = ""
+    @State private var osEntries: [DeviceOSEntry] = []
+    @State private var newOsValue = ""
     @State private var isWifiEnabled = false
-    @State private var isPramBatteryRemoved = false
+    @State private var isRetroBrited = false
+    @State private var isRecapped = false
+    @State private var pramBatteryInstalled = true
     @State private var lastPowerOnDate: Date?
     
     @State private var selectedCategoryId: Int?
@@ -182,13 +192,20 @@ struct AddDeviceView: View {
                 if let v = prefillModelNumber, !v.isEmpty { modelNumber = v }
                 if let v = prefillReleaseYear { releaseYear = String(v) }
                 if let v = prefillCategoryId { selectedCategoryId = v }
-                if let v = prefillCpu, !v.isEmpty { cpu = v }
+                if let v = prefillCpuType, !v.isEmpty { cpuType = v }
+                if let v = prefillCpuSpeed, !v.isEmpty { cpuSpeed = v }
                 if let v = prefillRam, !v.isEmpty { ram = v }
-                if let v = prefillGraphics, !v.isEmpty { graphics = v }
-                if let v = prefillStorage, !v.isEmpty { storage = v }
-                if let v = prefillOperatingSystem, !v.isEmpty { operatingSystem = v }
+                if let v = prefillGraphicsChip, !v.isEmpty { graphicsChip = v }
+                if let v = prefillStorage, !v.isEmpty {
+                    let parts = v.components(separatedBy: "+").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                    storageEntries = parts.enumerated().map { DeviceStorageEntry(id: -(($0.offset) + 1), value: $0.element, sortOrder: $0.offset) }
+                }
+                if let v = prefillOperatingSystem, !v.isEmpty {
+                    let parts = v.components(separatedBy: "+").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                    osEntries = parts.enumerated().map { DeviceOSEntry(id: -(($0.offset) + 1), value: $0.element, sortOrder: $0.offset) }
+                }
                 if let v = prefillIsWifiEnabled { isWifiEnabled = v }
-                if let v = prefillIsPramBatteryRemoved { isPramBatteryRemoved = v }
+                if let v = prefillPramBatteryInstalled { pramBatteryInstalled = v }
                 if let v = prefillEstimatedValue { estimatedValue = String(format: "%.2f", v) }
             }
         }
@@ -325,6 +342,8 @@ struct AddDeviceView: View {
         return Section {
             Toggle(t.addEditDevice.favorite, isOn: $isFavorite)
             Toggle(t.addEditDevice.assetTagged, isOn: $isAssetTagged)
+            Toggle("Retr0brited", isOn: $isRetroBrited)
+            Toggle("Recapped", isOn: $isRecapped)
         } header: {
             Text(t.addEditDevice.flags)
         }
@@ -457,19 +476,56 @@ struct AddDeviceView: View {
     private var computerSpecsSection: some View {
         let t = lm.t
         return Section {
-            LabeledField(label: t.addEditDevice.cpu, text: $cpu)
+            LabeledField(label: "CPU Type", text: $cpuType)
+            LabeledField(label: "CPU Speed", text: $cpuSpeed)
             LabeledField(label: t.addEditDevice.ram, text: $ram)
-            LabeledField(label: t.addEditDevice.graphics, text: $graphics)
-            LabeledField(label: t.addEditDevice.storage, text: $storage)
-            LabeledField(label: t.addEditDevice.os, text: $operatingSystem)
+            LabeledField(label: "Graphics Chip", text: $graphicsChip)
+            LabeledField(label: "Screen Size", text: $screenSize)
+            LabeledField(label: "Display Type", text: $displayType)
+            LabeledField(label: "Display Variant", text: $displayVariant)
+            LabeledField(label: "Native Resolution", text: $nativeResolution)
+            ForEach(storageEntries) { entry in
+                HStack {
+                    Text(entry.value).font(.subheadline)
+                    Spacer()
+                    Button { storageEntries.removeAll { $0.id == entry.id } } label: {
+                        Image(systemName: "trash").foregroundColor(.red)
+                    }
+                }
+            }
+            HStack {
+                TextField("Add storage (e.g. 1.44 MB Floppy)", text: $newStorageValue)
+                Button("Add") {
+                    let v = newStorageValue.trimmingCharacters(in: .whitespaces)
+                    guard !v.isEmpty else { return }
+                    storageEntries.append(DeviceStorageEntry(id: -(storageEntries.count + 1), value: v, sortOrder: storageEntries.count))
+                    newStorageValue = ""
+                }.disabled(newStorageValue.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            ForEach(osEntries) { entry in
+                HStack {
+                    Text(entry.value).font(.subheadline)
+                    Spacer()
+                    Button { osEntries.removeAll { $0.id == entry.id } } label: {
+                        Image(systemName: "trash").foregroundColor(.red)
+                    }
+                }
+            }
+            HStack {
+                TextField("Add OS (e.g. System 7.5)", text: $newOsValue)
+                Button("Add") {
+                    let v = newOsValue.trimmingCharacters(in: .whitespaces)
+                    guard !v.isEmpty else { return }
+                    osEntries.append(DeviceOSEntry(id: -(osEntries.count + 1), value: v, sortOrder: osEntries.count))
+                    newOsValue = ""
+                }.disabled(newOsValue.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
             Toggle(t.addEditDevice.wifiEnabled, isOn: $isWifiEnabled)
-            Toggle(t.addEditDevice.pramRemoved, isOn: $isPramBatteryRemoved)
-
+            Toggle("PRAM Battery Installed", isOn: $pramBatteryInstalled)
             DatePicker(t.addEditDevice.lastPowerOn, selection: Binding(
                 get: { lastPowerOnDate ?? Date() },
                 set: { lastPowerOnDate = $0 }
             ), displayedComponents: .date)
-
             Button(lastPowerOnDate == nil ? t.addEditDevice.setLastPowerOn : t.addEditDevice.clearLastPowerOn) {
                 lastPowerOnDate = lastPowerOnDate == nil ? Date() : nil
             }
@@ -533,15 +589,19 @@ struct AddDeviceView: View {
                     modelNumber
                     releaseYear
                     estimatedValue
-                    cpu
+                    cpuType
+                    cpuSpeed
                     ram
-                    graphics
+                    graphicsChip
+                    screenSize
+                    displayType
+                    displayVariant
+                    nativeResolution
                     storage
                     operatingSystem
                     externalUrl
                     externalLinkLabel
                     isWifiEnabled
-                    isPramBatteryRemoved
                     rarity
                     categoryId
                     category {
@@ -574,13 +634,24 @@ struct AddDeviceView: View {
         modelNumber = template.modelNumber ?? ""
         releaseYear = template.releaseYear.map { String($0) } ?? ""
         estimatedValue = template.estimatedValue.map { String(format: "%.2f", $0) } ?? ""
-        cpu = template.cpu ?? ""
+        cpuType = template.cpuType ?? ""
+        cpuSpeed = template.cpuSpeed ?? ""
         ram = template.ram ?? ""
-        graphics = template.graphics ?? ""
-        storage = template.storage ?? ""
-        operatingSystem = template.operatingSystem ?? ""
+        graphicsChip = template.graphicsChip ?? ""
+        screenSize = template.screenSize ?? ""
+        displayType = template.displayType ?? ""
+        displayVariant = template.displayVariant ?? ""
+        nativeResolution = template.nativeResolution ?? ""
+        if let stor = template.storage, !stor.isEmpty {
+            let parts = stor.components(separatedBy: "+").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            storageEntries = parts.enumerated().map { DeviceStorageEntry(id: -(($0.offset) + 1), value: $0.element, sortOrder: $0.offset) }
+        }
+        if let os = template.operatingSystem, !os.isEmpty {
+            let parts = os.components(separatedBy: "+").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            osEntries = parts.enumerated().map { DeviceOSEntry(id: -(($0.offset) + 1), value: $0.element, sortOrder: $0.offset) }
+        }
         isWifiEnabled = template.isWifiEnabled ?? false
-        isPramBatteryRemoved = template.isPramBatteryRemoved ?? false
+        pramBatteryInstalled = true
         if let r = template.rarity { rarity = r }
         selectedCategoryId = template.categoryId
 
@@ -647,17 +718,20 @@ struct AddDeviceView: View {
             }
             
             if isComputerCategory {
-                if !cpu.isEmpty { input["cpu"] = cpu }
+                if !cpuType.isEmpty { input["cpuType"] = cpuType }
+                if !cpuSpeed.isEmpty { input["cpuSpeed"] = cpuSpeed }
                 if !ram.isEmpty { input["ram"] = ram }
-                if !graphics.isEmpty { input["graphics"] = graphics }
-                if !storage.isEmpty { input["storage"] = storage }
-                if !operatingSystem.isEmpty { input["operatingSystem"] = operatingSystem }
+                if !graphicsChip.isEmpty { input["graphicsChip"] = graphicsChip }
+                if !screenSize.isEmpty { input["screenSize"] = screenSize }
+                if !displayType.isEmpty { input["displayType"] = displayType }
+                if !displayVariant.isEmpty { input["displayVariant"] = displayVariant }
+                if !nativeResolution.isEmpty { input["nativeResolution"] = nativeResolution }
                 input["isWifiEnabled"] = isWifiEnabled
-                input["isPramBatteryRemoved"] = isPramBatteryRemoved
-                if let date = lastPowerOnDate {
-                    input["lastPowerOnDate"] = formatDate(date)
-                }
+                input["pramBatteryInstalled"] = pramBatteryInstalled
+                if let date = lastPowerOnDate { input["lastPowerOnDate"] = formatDate(date) }
             }
+            input["isRetroBrited"] = isRetroBrited
+            input["isRecapped"] = isRecapped
             
             struct Response: Decodable {
                 struct CreateDevice: Decodable {
@@ -673,14 +747,28 @@ struct AddDeviceView: View {
             )
             let newDeviceId = response.createDevice.id
 
+            // Add storage and OS entries
+            if isComputerCategory {
+                for (i, entry) in storageEntries.enumerated() {
+                    do { _ = try await DeviceService.shared.addDeviceStorageEntry(deviceId: newDeviceId, value: entry.value, sortOrder: i) }
+                    catch { print("Failed to add storage entry: \(error)") }
+                }
+                for (i, entry) in osEntries.enumerated() {
+                    do { _ = try await DeviceService.shared.addDeviceOSEntry(deviceId: newDeviceId, value: entry.value, sortOrder: i) }
+                    catch { print("Failed to add OS entry: \(error)") }
+                }
+            }
+
             // Add accessories
             for accessoryName in localAccessories {
-                try? await DeviceService.shared.addDeviceAccessory(deviceId: newDeviceId, name: accessoryName)
+                do { _ = try await DeviceService.shared.addDeviceAccessory(deviceId: newDeviceId, name: accessoryName) }
+                catch { print("Failed to add accessory: \(error)") }
             }
 
             // Add links
             for linkEntry in localLinks {
-                try? await DeviceService.shared.addDeviceLink(deviceId: newDeviceId, label: linkEntry.label, url: linkEntry.url)
+                do { _ = try await DeviceService.shared.addDeviceLink(deviceId: newDeviceId, label: linkEntry.label, url: linkEntry.url) }
+                catch { print("Failed to add link: \(error)") }
             }
 
             await MainActor.run {

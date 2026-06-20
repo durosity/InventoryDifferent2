@@ -19,10 +19,15 @@ const GET_TEMPLATES = gql`
       estimatedValue
       externalUrl
       externalLinkLabel
-      cpu
+      cpuType
+      cpuSpeed
       ram
       storage
-      graphics
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       rarity
       historicalNotes
       categoryId
@@ -52,10 +57,15 @@ const CREATE_TEMPLATE = gql`
       estimatedValue
       externalUrl
       externalLinkLabel
-      cpu
+      cpuType
+      cpuSpeed
       ram
       storage
-      graphics
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       rarity
       historicalNotes
       categoryId
@@ -80,10 +90,15 @@ const UPDATE_TEMPLATE = gql`
       estimatedValue
       externalUrl
       externalLinkLabel
-      cpu
+      cpuType
+      cpuSpeed
       ram
       storage
-      graphics
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       rarity
       historicalNotes
       categoryId
@@ -120,10 +135,15 @@ type Template = {
   estimatedValue?: number | null;
   externalUrl?: string | null;
   externalLinkLabel?: string | null;
-  cpu?: string | null;
+  cpuType?: string | null;
+  cpuSpeed?: string | null;
   ram?: string | null;
   storage?: string | null;
-  graphics?: string | null;
+  graphicsChip?: string | null;
+  screenSize?: string | null;
+  displayType?: string | null;
+  displayVariant?: string | null;
+  nativeResolution?: string | null;
   rarity?: string | null;
   historicalNotes?: string | null;
   categoryId: number;
@@ -139,10 +159,15 @@ type TemplateFormState = {
   estimatedValue: string;
   externalUrl: string;
   externalLinkLabel: string;
-  cpu: string;
+  cpuType: string;
+  cpuSpeed: string;
   ram: string;
   storage: string;
-  graphics: string;
+  graphicsChip: string;
+  screenSize: string;
+  displayType: string;
+  displayVariant: string;
+  nativeResolution: string;
   rarity: string;
   historicalNotes: string;
   categoryId: number;
@@ -157,10 +182,15 @@ const emptyFormState: TemplateFormState = {
   estimatedValue: "",
   externalUrl: "",
   externalLinkLabel: "",
-  cpu: "",
+  cpuType: "",
+  cpuSpeed: "",
   ram: "",
   storage: "",
-  graphics: "",
+  graphicsChip: "",
+  screenSize: "",
+  displayType: "",
+  displayVariant: "",
+  nativeResolution: "",
   rarity: "",
   historicalNotes: "",
   categoryId: 0,
@@ -219,10 +249,15 @@ export default function TemplatesPage() {
       estimatedValue: tpl.estimatedValue != null ? String(tpl.estimatedValue) : "",
       externalUrl: tpl.externalUrl ?? "",
       externalLinkLabel: tpl.externalLinkLabel ?? "",
-      cpu: tpl.cpu ?? "",
+      cpuType: tpl.cpuType ?? "",
+      cpuSpeed: tpl.cpuSpeed ?? "",
       ram: tpl.ram ?? "",
       storage: tpl.storage ?? "",
-      graphics: tpl.graphics ?? "",
+      graphicsChip: tpl.graphicsChip ?? "",
+      screenSize: tpl.screenSize ?? "",
+      displayType: tpl.displayType ?? "",
+      displayVariant: tpl.displayVariant ?? "",
+      nativeResolution: tpl.nativeResolution ?? "",
       rarity: tpl.rarity ?? "",
       historicalNotes: tpl.historicalNotes ?? "",
       categoryId: tpl.categoryId ?? 0,
@@ -257,15 +292,25 @@ export default function TemplatesPage() {
     };
 
     if (isComputer) {
-      input.cpu = form.cpu.trim() || null;
+      input.cpuType = form.cpuType.trim() || null;
+      input.cpuSpeed = form.cpuSpeed.trim() || null;
       input.ram = form.ram.trim() || null;
       input.storage = form.storage.trim() || null;
-      input.graphics = form.graphics.trim() || null;
+      input.graphicsChip = form.graphicsChip.trim() || null;
+      input.screenSize = form.screenSize.trim() || null;
+      input.displayType = form.displayType.trim() || null;
+      input.displayVariant = form.displayVariant.trim() || null;
+      input.nativeResolution = form.nativeResolution.trim() || null;
     } else {
-      input.cpu = null;
+      input.cpuType = null;
+      input.cpuSpeed = null;
       input.ram = null;
       input.storage = null;
-      input.graphics = null;
+      input.graphicsChip = null;
+      input.screenSize = null;
+      input.displayType = null;
+      input.displayVariant = null;
+      input.nativeResolution = null;
     }
 
     if (modalMode === "create") {
@@ -523,37 +568,84 @@ export default function TemplatesPage() {
 
               {isComputer && (
                 <div className="mt-4">
-                  <div className="mb-2 text-xs font-semibold text-[var(--foreground)]">{t.pages.templates.computerSpecs}</div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="mb-2 text-xs font-semibold text-[var(--foreground)]">{t.pages.templates.computerSpecs}</div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">CPU Type</label>
+                <input
+                value={form.cpuType}
+                onChange={(e) => setForm((prev) => ({ ...prev, cpuType: e.target.value }))}
+                placeholder="e.g. Motorola 68000"
+                  className="input-retro w-full px-3 py-2 text-sm text-[var(--foreground)]"
+                  />
+                </div>
+                <div>
+                <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">CPU Speed</label>
+                <input
+                value={form.cpuSpeed}
+                onChange={(e) => setForm((prev) => ({ ...prev, cpuSpeed: e.target.value }))}
+                  placeholder="e.g. 8 MHz"
+                    className="input-retro w-full px-3 py-2 text-sm text-[var(--foreground)]"
+                  />
+                </div>
+                <div>
+                <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">{t.detail.ram}</label>
+                <input
+                value={form.ram}
+                  onChange={(e) => setForm((prev) => ({ ...prev, ram: e.target.value }))}
+                    className="input-retro w-full px-3 py-2 text-sm text-[var(--foreground)]"
+                  />
+                </div>
+                <div>
+                <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">{t.detail.storage}</label>
+                <input
+                value={form.storage}
+                  onChange={(e) => setForm((prev) => ({ ...prev, storage: e.target.value }))}
+                    className="input-retro w-full px-3 py-2 text-sm text-[var(--foreground)]"
+                    />
+                    </div>
                     <div>
-                      <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">{t.detail.cpu}</label>
+                      <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">Graphics Chip</label>
                       <input
-                        value={form.cpu}
-                        onChange={(e) => setForm((prev) => ({ ...prev, cpu: e.target.value }))}
+                        value={form.graphicsChip}
+                        onChange={(e) => setForm((prev) => ({ ...prev, graphicsChip: e.target.value }))}
+                        placeholder="e.g. ATI Rage 128 GL"
                         className="input-retro w-full px-3 py-2 text-sm text-[var(--foreground)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">{t.detail.ram}</label>
+                      <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">Screen Size</label>
                       <input
-                        value={form.ram}
-                        onChange={(e) => setForm((prev) => ({ ...prev, ram: e.target.value }))}
+                        value={form.screenSize}
+                        onChange={(e) => setForm((prev) => ({ ...prev, screenSize: e.target.value }))}
+                        placeholder='e.g. 9"'
                         className="input-retro w-full px-3 py-2 text-sm text-[var(--foreground)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">{t.detail.storage}</label>
+                      <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">Display Type</label>
                       <input
-                        value={form.storage}
-                        onChange={(e) => setForm((prev) => ({ ...prev, storage: e.target.value }))}
+                        value={form.displayType}
+                        onChange={(e) => setForm((prev) => ({ ...prev, displayType: e.target.value }))}
+                        placeholder="e.g. LCD, CRT, Monochrome"
                         className="input-retro w-full px-3 py-2 text-sm text-[var(--foreground)]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">{t.detail.graphics}</label>
+                      <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">Display Variant</label>
                       <input
-                        value={form.graphics}
-                        onChange={(e) => setForm((prev) => ({ ...prev, graphics: e.target.value }))}
+                        value={form.displayVariant}
+                        onChange={(e) => setForm((prev) => ({ ...prev, displayVariant: e.target.value }))}
+                        placeholder="e.g. Active Matrix, Sony Trinitron"
+                        className="input-retro w-full px-3 py-2 text-sm text-[var(--foreground)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted-foreground)] mb-1">Native Resolution</label>
+                      <input
+                        value={form.nativeResolution}
+                        onChange={(e) => setForm((prev) => ({ ...prev, nativeResolution: e.target.value }))}
+                        placeholder="e.g. 640x480"
                         className="input-retro w-full px-3 py-2 text-sm text-[var(--foreground)]"
                       />
                     </div>

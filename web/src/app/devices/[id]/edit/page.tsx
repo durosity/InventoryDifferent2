@@ -38,13 +38,22 @@ const GET_DEVICE = gql`
       listPrice
       soldPrice
       soldDate
-      cpu
+      cpuType
+      cpuSpeed
       ram
-      graphics
-      storage
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       isWifiEnabled
-      isPramBatteryRemoved
+      isRetroBrited
+      isRecapped
+      pramBatteryInstalled
+      pramBatteryExpiryDate
       lastPowerOnDate
+      storageEntries { id value sortOrder }
+      osEntries { id value sortOrder }
       category {
         id
         name

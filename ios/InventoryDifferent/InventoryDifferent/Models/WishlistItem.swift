@@ -23,14 +23,19 @@ struct WishlistItem: Codable, Identifiable {
     let categoryId: Int?
     let category: WishlistCategory?
     // Spec fields
-    let cpu: String?
+    let cpuType: String?
+    let cpuSpeed: String?
     let ram: String?
-    let graphics: String?
+    let graphicsChip: String?
+    let screenSize: String?
+    let displayType: String?
+    let displayVariant: String?
+    let nativeResolution: String?
     let storage: String?
     let operatingSystem: String?
     let externalUrl: String?
     let isWifiEnabled: Bool?
-    let isPramBatteryRemoved: Bool?
+    let pramBatteryInstalled: Bool?
 
     var priorityLabel: String {
         let p = LocalizationManager.shared.t.priority

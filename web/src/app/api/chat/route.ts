@@ -136,7 +136,8 @@ Be enthusiastic about vintage computing while staying concise and helpful!`,
                       releaseYear
                       status
                       functionalStatus
-                      cpu
+                      cpuType
+                      cpuSpeed
                       ram
                       storage
                       operatingSystem
@@ -258,7 +259,7 @@ Be enthusiastic about vintage computing while staying concise and helpful!`,
               functionalStatus: d.functionalStatus,
               category: d.category?.name,
               categoryType: d.category?.type,
-              cpu: d.cpu,
+              cpu: d.cpuType,
               ram: d.ram,
               storage: d.storage,
               operatingSystem: d.operatingSystem,
@@ -321,13 +322,16 @@ Be enthusiastic about vintage computing while staying concise and helpful!`,
                       listPrice
                       soldPrice
                       soldDate
-                      cpu
+                      cpuType
+                      cpuSpeed
                       ram
-                      graphics
+                      graphicsChip
+                      screenSize
                       storage
                       operatingSystem
                       isWifiEnabled
-                      isPramBatteryRemoved
+                      pramBatteryInstalled
+                      pramBatteryExpiryDate
                       externalUrl
                       category {
                         id
@@ -384,13 +388,15 @@ Be enthusiastic about vintage computing while staying concise and helpful!`,
               isAssetTagged: device.isAssetTagged,
               category: device.category,
               specs: {
-                cpu: device.cpu,
+                cpu: device.cpuType,
+                cpuSpeed: device.cpuSpeed,
                 ram: device.ram,
-                graphics: device.graphics,
+                graphics: device.graphicsChip,
                 storage: device.storage,
                 operatingSystem: device.operatingSystem,
                 isWifiEnabled: device.isWifiEnabled,
-                isPramBatteryRemoved: device.isPramBatteryRemoved,
+                pramBatteryInstalled: device.pramBatteryInstalled,
+                pramBatteryExpiryDate: device.pramBatteryExpiryDate,
               },
               acquisition: {
                 dateAcquired: device.dateAcquired,
@@ -421,7 +427,7 @@ Be enthusiastic about vintage computing while staying concise and helpful!`,
           status: z.enum(['COLLECTION', 'FOR_SALE', 'PENDING_SALE', 'SOLD', 'DONATED', 'IN_REPAIR', 'RETURNED']).optional().describe('Filter by device status'),
           functionalStatus: z.enum(['YES', 'PARTIAL', 'NO']).optional().describe('Filter by whether the device is functional'),
           categoryType: z.enum(['COMPUTER', 'PERIPHERAL', 'ACCESSORY', 'OTHER']).optional().describe('Filter by category type'),
-          fields: z.array(z.string()).optional().describe('Array of field names to include. Available: id, name, additionalName, manufacturer, modelNumber, serialNumber, releaseYear, location, info, isFavorite, status, functionalStatus, hasOriginalBox, isAssetTagged, dateAcquired, whereAcquired, priceAcquired, estimatedValue, listPrice, soldPrice, soldDate, cpu, ram, graphics, storage, operatingSystem, isWifiEnabled, isPramBatteryRemoved, lastPowerOnDate, externalUrl, category, tags, notes, maintenanceTasks'),
+          fields: z.array(z.string()).optional().describe('Array of field names to include. Available: id, name, additionalName, manufacturer, modelNumber, serialNumber, releaseYear, location, info, isFavorite, status, functionalStatus, hasOriginalBox, isAssetTagged, dateAcquired, whereAcquired, priceAcquired, estimatedValue, listPrice, soldPrice, soldDate, cpu, ram, graphics, storage, operatingSystem, isWifiEnabled, pramBatteryInstalled, pramBatteryExpiryDate, lastPowerOnDate, externalUrl, category, tags, notes, maintenanceTasks'),
           limit: z.number().optional().describe('Maximum number of results (default 100)'),
         }),
         execute: async (params) => {
@@ -452,13 +458,16 @@ Be enthusiastic about vintage computing while staying concise and helpful!`,
               listPrice: 'listPrice',
               soldPrice: 'soldPrice',
               soldDate: 'soldDate',
-              cpu: 'cpu',
+              cpu: 'cpuType',
+              cpuSpeed: 'cpuSpeed',
               ram: 'ram',
-              graphics: 'graphics',
+              graphics: 'graphicsChip',
+              graphicsChip: 'graphicsChip',
               storage: 'storage',
               operatingSystem: 'operatingSystem',
               isWifiEnabled: 'isWifiEnabled',
-              isPramBatteryRemoved: 'isPramBatteryRemoved',
+              pramBatteryInstalled: 'pramBatteryInstalled',
+              pramBatteryExpiryDate: 'pramBatteryExpiryDate',
               lastPowerOnDate: 'lastPowerOnDate',
               historicalNotes: 'historicalNotes',
               externalUrl: 'externalUrl',
@@ -575,14 +584,15 @@ Be enthusiastic about vintage computing while staying concise and helpful!`,
                       releaseYear
                       status
                       functionalStatus
-                      cpu
+                      cpuType
+                      cpuSpeed
                       ram
                       storage
                       operatingSystem
                       estimatedValue
                       category { name type }
                       tags { name }
-                    }
+                      }
                   }
                 `,
                 variables: {
@@ -611,7 +621,7 @@ Be enthusiastic about vintage computing while staying concise and helpful!`,
                 condition: d.functionalStatus,
                 category: d.category?.name,
                 categoryType: d.category?.type,
-                cpu: d.cpu,
+                cpu: d.cpuType,
                 ram: d.ram,
                 storage: d.storage,
                 os: d.operatingSystem,

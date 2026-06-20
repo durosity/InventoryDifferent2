@@ -41,7 +41,7 @@ class APIService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         // Add Authorization header if we have a token
-        if let token = await AuthService.shared.getAccessToken() {
+        if let token = AuthService.shared.getAccessToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 

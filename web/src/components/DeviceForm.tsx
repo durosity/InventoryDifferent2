@@ -67,6 +67,38 @@ const REMOVE_DEVICE_LINK = gql`
   }
 `;
 
+const ADD_DEVICE_STORAGE = gql`
+  mutation AddDeviceStorageEntry($deviceId: Int!, $value: String!) {
+    addDeviceStorageEntry(deviceId: $deviceId, value: $value) {
+      id
+      value
+      sortOrder
+    }
+  }
+`;
+
+const REMOVE_DEVICE_STORAGE = gql`
+  mutation RemoveDeviceStorageEntry($id: Int!) {
+    removeDeviceStorageEntry(id: $id)
+  }
+`;
+
+const ADD_DEVICE_OS = gql`
+  mutation AddDeviceOSEntry($deviceId: Int!, $value: String!) {
+    addDeviceOSEntry(deviceId: $deviceId, value: $value) {
+      id
+      value
+      sortOrder
+    }
+  }
+`;
+
+const REMOVE_DEVICE_OS = gql`
+  mutation RemoveDeviceOSEntry($id: Int!) {
+    removeDeviceOSEntry(id: $id)
+  }
+`;
+
 const GET_CATEGORIES = gql`
   query GetCategories {
     categories {
@@ -105,15 +137,19 @@ const GET_TEMPLATES = gql`
       modelNumber
       releaseYear
       estimatedValue
-      cpu
+      cpuType
+      cpuSpeed
       ram
-      graphics
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       storage
       operatingSystem
       externalUrl
       externalLinkLabel
       isWifiEnabled
-      isPramBatteryRemoved
       rarity
       historicalNotes
       categoryId
@@ -159,14 +195,22 @@ const UPDATE_DEVICE = gql`
       listPrice
       soldPrice
       soldDate
-      cpu
+      cpuType
+      cpuSpeed
       ram
-      graphics
-      storage
-      operatingSystem
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       isWifiEnabled
-      isPramBatteryRemoved
+      isRetroBrited
+      isRecapped
+      pramBatteryInstalled
+      pramBatteryExpiryDate
       lastPowerOnDate
+      storageEntries { id value sortOrder }
+      osEntries { id value sortOrder }
       category {
         id
         name
@@ -201,15 +245,21 @@ interface Template {
     modelNumber?: string;
     releaseYear?: number;
     estimatedValue?: number;
-    cpu?: string;
+    cpuType?: string;
+    cpuSpeed?: string;
     ram?: string;
-    graphics?: string;
+    graphicsChip?: string;
+    screenSize?: string;
+    displayType?: string;
+    displayVariant?: string;
+    nativeResolution?: string;
     storage?: string;
     operatingSystem?: string;
     externalUrl?: string;
     externalLinkLabel?: string;
     isWifiEnabled?: boolean;
-    isPramBatteryRemoved?: boolean;
+    pramBatteryInstalled?: boolean;
+    pramBatteryExpiryDate?: string;
     rarity?: string;
     historicalNotes?: string;
     categoryId: number;
@@ -234,6 +284,8 @@ interface DeviceData {
     rarity?: string;
     hasOriginalBox: boolean;
     isAssetTagged: boolean;
+    isRetroBrited?: boolean;
+    isRecapped?: boolean;
     dateAcquired?: string;
     whereAcquired?: string;
     priceAcquired?: number;
@@ -242,15 +294,25 @@ interface DeviceData {
     soldPrice?: number;
     soldDate?: string;
     cpu?: string;
+    cpuType?: string;
+    cpuSpeed?: string;
     ram?: string;
     graphics?: string;
+    graphicsChip?: string;
+    screenSize?: string;
+    displayType?: string;
+    displayVariant?: string;
+    nativeResolution?: string;
     storage?: string;
     operatingSystem?: string;
     isWifiEnabled?: boolean;
-    isPramBatteryRemoved?: boolean;
+    pramBatteryInstalled?: boolean;
+    pramBatteryExpiryDate?: string;
     lastPowerOnDate?: string;
     accessories?: DeviceAccessory[];
     links?: DeviceLink[];
+    storageEntries?: { id: number; value: string; sortOrder: number }[];
+    osEntries?: { id: number; value: string; sortOrder: number }[];
     category: {
         id: number;
         type: string;
@@ -273,14 +335,20 @@ interface DevicePrefill {
     templateId?: number;
     releaseYear?: number;
     categoryId?: number;
-    cpu?: string;
+    cpuType?: string;
+    cpuSpeed?: string;
     ram?: string;
-    graphics?: string;
+    graphicsChip?: string;
+    screenSize?: string;
+    displayType?: string;
+    displayVariant?: string;
+    nativeResolution?: string;
     storage?: string;
     operatingSystem?: string;
     externalUrl?: string;
     isWifiEnabled?: boolean;
-    isPramBatteryRemoved?: boolean;
+    pramBatteryInstalled?: boolean;
+    pramBatteryExpiryDate?: string;
 }
 
 interface DeviceFormProps {
@@ -335,6 +403,10 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
     const [removeDeviceAccessory] = useMutation(REMOVE_DEVICE_ACCESSORY);
     const [addDeviceLink] = useMutation(ADD_DEVICE_LINK);
     const [removeDeviceLink] = useMutation(REMOVE_DEVICE_LINK);
+    const [addDeviceStorage] = useMutation(ADD_DEVICE_STORAGE);
+    const [removeDeviceStorage] = useMutation(REMOVE_DEVICE_STORAGE);
+    const [addDeviceOS] = useMutation(ADD_DEVICE_OS);
+    const [removeDeviceOS] = useMutation(REMOVE_DEVICE_OS);
 
     const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false);
     const [barcodeSupported, setBarcodeSupported] = useState(false);
@@ -358,6 +430,8 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
         rarity: "" as string,
         hasOriginalBox: false,
         isAssetTagged: false,
+        isRetroBrited: false,
+        isRecapped: false,
         dateAcquired: getLocalDateInputValue(),
         whereAcquired: "",
         priceAcquired: "",
@@ -365,13 +439,21 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
         listPrice: "",
         soldPrice: "",
         soldDate: "",
-        cpu: prefill?.cpu ?? "",
+        cpu: prefill?.cpuType ?? "",
+        cpuType: prefill?.cpuType ?? "",
+        cpuSpeed: prefill?.cpuSpeed ?? "",
         ram: prefill?.ram ?? "",
-        graphics: prefill?.graphics ?? "",
+        graphics: prefill?.graphicsChip ?? "",
+        graphicsChip: prefill?.graphicsChip ?? "",
+        screenSize: prefill?.screenSize ?? "",
+        displayType: prefill?.displayType ?? "",
+        displayVariant: prefill?.displayVariant ?? "",
+        nativeResolution: prefill?.nativeResolution ?? "",
         storage: prefill?.storage ?? "",
         operatingSystem: prefill?.operatingSystem ?? "",
         isWifiEnabled: prefill?.isWifiEnabled ?? false,
-        isPramBatteryRemoved: prefill?.isPramBatteryRemoved ?? false,
+        pramBatteryInstalled: prefill?.pramBatteryInstalled ?? true,
+        pramBatteryExpiryDate: "",
         lastPowerOnDate: "",
     });
 
@@ -394,6 +476,18 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
     );
     const [newLinkLabel, setNewLinkLabel] = useState("");
     const [newLinkUrl, setNewLinkUrl] = useState("");
+
+    // Storage entries state
+    const [storageEntries, setStorageEntries] = useState<Array<{id?: number, value: string}>>(
+        device?.storageEntries?.map(s => ({ id: s.id, value: s.value })) ?? []
+    );
+    const [newStorageValue, setNewStorageValue] = useState("");
+
+    // OS entries state
+    const [osEntries, setOsEntries] = useState<Array<{id?: number, value: string}>>(
+        device?.osEntries?.map(o => ({ id: o.id, value: o.value })) ?? []
+    );
+    const [newOsValue, setNewOsValue] = useState("");
 
     useEffect(() => {
         const BarcodeDetectorCtor = typeof window !== "undefined" ? (window as any).BarcodeDetector : undefined;
@@ -421,6 +515,8 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                 rarity: device.rarity || "",
                 hasOriginalBox: device.hasOriginalBox || false,
                 isAssetTagged: device.isAssetTagged || false,
+                isRetroBrited: device.isRetroBrited || false,
+                isRecapped: device.isRecapped || false,
                 dateAcquired: device.dateAcquired ? device.dateAcquired.split("T")[0] : "",
                 whereAcquired: device.whereAcquired || "",
                 priceAcquired: device.priceAcquired?.toString() || "",
@@ -428,18 +524,28 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                 listPrice: device.listPrice?.toString() || "",
                 soldPrice: device.soldPrice?.toString() || "",
                 soldDate: device.soldDate ? device.soldDate.split("T")[0] : "",
-                cpu: device.cpu || "",
+                cpu: device.cpuType || device.cpu || "",
+                cpuType: device.cpuType || device.cpu || "",
+                cpuSpeed: device.cpuSpeed || "",
                 ram: device.ram || "",
-                graphics: device.graphics || "",
+                graphics: device.graphicsChip || device.graphics || "",
+                graphicsChip: device.graphicsChip || device.graphics || "",
+                screenSize: device.screenSize || "",
+                displayType: device.displayType || "",
+                displayVariant: device.displayVariant || "",
+                nativeResolution: device.nativeResolution || "",
                 storage: device.storage || "",
                 operatingSystem: device.operatingSystem || "",
                 isWifiEnabled: device.isWifiEnabled || false,
-                isPramBatteryRemoved: device.isPramBatteryRemoved || false,
+                pramBatteryInstalled: device.pramBatteryInstalled ?? true,
+                pramBatteryExpiryDate: device.pramBatteryExpiryDate ? device.pramBatteryExpiryDate.split("T")[0] : "",
                 lastPowerOnDate: device.lastPowerOnDate ? device.lastPowerOnDate.split("T")[0] : "",
             });
 
             setAccessories(device.accessories?.map(a => ({ id: a.id, name: a.name })) ?? []);
             setLinks(device.links?.map(l => ({ id: l.id, label: l.label, url: l.url })) ?? []);
+            setStorageEntries(device.storageEntries?.map(s => ({ id: s.id, value: s.value })) ?? []);
+            setOsEntries(device.osEntries?.map(o => ({ id: o.id, value: o.value })) ?? []);
 
             // Populate custom field values
             if (device.customFieldValues) {
@@ -521,11 +627,17 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
             if (typeof tpl.additionalName === 'string') next.additionalName = tpl.additionalName;
             if (typeof tpl.manufacturer === 'string') next.manufacturer = tpl.manufacturer;
             if (typeof tpl.modelNumber === 'string') next.modelNumber = tpl.modelNumber;
-            if (typeof tpl.cpu === 'string') next.cpu = tpl.cpu;
+            if (typeof tpl.cpuType === 'string') next.cpuType = tpl.cpuType;
+            if (typeof tpl.cpuType === 'string') next.cpu = tpl.cpuType;
+            if (typeof tpl.cpuSpeed === 'string') next.cpuSpeed = tpl.cpuSpeed;
             if (typeof tpl.ram === 'string') next.ram = tpl.ram;
-            if (typeof tpl.graphics === 'string') next.graphics = tpl.graphics;
-            if (typeof tpl.storage === 'string') next.storage = tpl.storage;
-            if (typeof tpl.operatingSystem === 'string') next.operatingSystem = tpl.operatingSystem;
+            if (typeof tpl.graphicsChip === 'string') next.graphicsChip = tpl.graphicsChip;
+            if (typeof tpl.graphicsChip === 'string') next.graphics = tpl.graphicsChip;
+            if (typeof tpl.screenSize === 'string') next.screenSize = tpl.screenSize;
+            if (typeof tpl.displayType === 'string') next.displayType = tpl.displayType;
+            if (typeof tpl.displayVariant === 'string') next.displayVariant = tpl.displayVariant;
+            if (typeof tpl.nativeResolution === 'string') next.nativeResolution = tpl.nativeResolution;
+            // Don't set storage/operatingSystem on formData — they're handled via storageEntries/osEntries below
 
             if (typeof tpl.categoryId === 'number') next.categoryId = tpl.categoryId;
             if (typeof tpl.releaseYear === 'number') next.releaseYear = tpl.releaseYear;
@@ -533,12 +645,27 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
             if (typeof tpl.estimatedValue === 'number') next.estimatedValue = tpl.estimatedValue.toString();
 
             if (typeof tpl.isWifiEnabled === 'boolean') next.isWifiEnabled = tpl.isWifiEnabled;
-            if (typeof tpl.isPramBatteryRemoved === 'boolean') next.isPramBatteryRemoved = tpl.isPramBatteryRemoved;
             if (typeof tpl.rarity === 'string') next.rarity = tpl.rarity;
             if (typeof tpl.historicalNotes === 'string') next.historicalNotes = tpl.historicalNotes;
 
             return next;
         });
+
+        // Split template storage string into individual storageEntries
+        if (tpl.storage) {
+            const entries = tpl.storage.split('+').map((s: string) => s.trim()).filter(Boolean);
+            setStorageEntries(entries.map((value: string) => ({ value })));
+        } else {
+            setStorageEntries([]);
+        }
+
+        // Split template operatingSystem string into individual osEntries
+        if (tpl.operatingSystem) {
+            const entries = tpl.operatingSystem.split('+').map((s: string) => s.trim()).filter(Boolean);
+            setOsEntries(entries.map((value: string) => ({ value })));
+        } else {
+            setOsEntries([]);
+        }
 
         // Add the template's reference link to the pending links list so it shows in the form
         if (tpl.externalUrl) {
@@ -585,6 +712,8 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
             isFavorite: formData.isFavorite,
             hasOriginalBox: formData.hasOriginalBox,
             isAssetTagged: formData.isAssetTagged,
+            isRetroBrited: formData.isRetroBrited,
+            isRecapped: formData.isRecapped,
         };
 
         // Add optional string fields if not empty
@@ -618,13 +747,19 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
 
         // Add computer specs if applicable
         if (isComputerCategory) {
-            if (formData.cpu) input.cpu = formData.cpu;
+            if (formData.cpuType) input.cpuType = formData.cpuType;
+            if (formData.cpuSpeed) input.cpuSpeed = formData.cpuSpeed;
             if (formData.ram) input.ram = formData.ram;
-            if (formData.graphics) input.graphics = formData.graphics;
+            if (formData.graphicsChip) input.graphicsChip = formData.graphicsChip;
+            if (formData.screenSize) input.screenSize = formData.screenSize;
+            if (formData.displayType) input.displayType = formData.displayType;
+            if (formData.displayVariant) input.displayVariant = formData.displayVariant;
+            if (formData.nativeResolution) input.nativeResolution = formData.nativeResolution;
             if (formData.storage) input.storage = formData.storage;
             if (formData.operatingSystem) input.operatingSystem = formData.operatingSystem;
             input.isWifiEnabled = formData.isWifiEnabled;
-            input.isPramBatteryRemoved = formData.isPramBatteryRemoved;
+            input.pramBatteryInstalled = formData.pramBatteryInstalled;
+            if (formData.pramBatteryExpiryDate) input.pramBatteryExpiryDate = parseLocalDate(formData.pramBatteryExpiryDate);
         }
 
         try {
@@ -665,13 +800,19 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                 }
             }
 
-            // Save accessories (create mode only — edit mode is handled inline)
+            // Save accessories, links, storage entries, OS entries (create mode only — edit mode is handled inline)
             if (mode === "create") {
                 for (const acc of accessories) {
                     await addDeviceAccessory({ variables: { deviceId, name: acc.name } });
                 }
                 for (const link of links) {
                     await addDeviceLink({ variables: { deviceId, label: link.label, url: link.url } });
+                }
+                for (const entry of storageEntries) {
+                    await addDeviceStorage({ variables: { deviceId, value: entry.value } });
+                }
+                for (const entry of osEntries) {
+                    await addDeviceOS({ variables: { deviceId, value: entry.value } });
                 }
             }
 
@@ -727,6 +868,46 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
             await removeDeviceLink({ variables: { id: link.id } });
         }
         setLinks(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleAddStorage = async (value: string) => {
+        const trimmed = value.trim();
+        if (!trimmed || storageEntries.some(s => s.value === trimmed)) return;
+        if (mode === 'edit' && device?.id) {
+            const res = await addDeviceStorage({ variables: { deviceId: device.id, value: trimmed } });
+            setStorageEntries(prev => [...prev, { id: res.data.addDeviceStorageEntry.id, value: trimmed }]);
+        } else {
+            setStorageEntries(prev => [...prev, { value: trimmed }]);
+        }
+        setNewStorageValue("");
+    };
+
+    const handleRemoveStorage = async (index: number) => {
+        const entry = storageEntries[index];
+        if (mode === 'edit' && entry.id) {
+            await removeDeviceStorage({ variables: { id: entry.id } });
+        }
+        setStorageEntries(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleAddOS = async (value: string) => {
+        const trimmed = value.trim();
+        if (!trimmed || osEntries.some(o => o.value === trimmed)) return;
+        if (mode === 'edit' && device?.id) {
+            const res = await addDeviceOS({ variables: { deviceId: device.id, value: trimmed } });
+            setOsEntries(prev => [...prev, { id: res.data.addDeviceOSEntry.id, value: trimmed }]);
+        } else {
+            setOsEntries(prev => [...prev, { value: trimmed }]);
+        }
+        setNewOsValue("");
+    };
+
+    const handleRemoveOS = async (index: number) => {
+        const entry = osEntries[index];
+        if (mode === 'edit' && entry.id) {
+            await removeDeviceOS({ variables: { id: entry.id } });
+        }
+        setOsEntries(prev => prev.filter((_, i) => i !== index));
     };
 
     return (
@@ -1057,6 +1238,28 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                         />
                         <span className="text-sm text-[var(--foreground)]">{t.form.assetTaggedLabel}</span>
                     </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            name="isRetroBrited"
+                            checked={formData.isRetroBrited}
+                            onChange={handleChange}
+                            className="w-4 h-4 rounded border-[var(--border)] text-[var(--apple-blue)] focus:ring-[var(--apple-blue)]"
+                        />
+                        <span className="text-sm text-[var(--foreground)]">Retr0brited</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            name="isRecapped"
+                            checked={formData.isRecapped}
+                            onChange={handleChange}
+                            className="w-4 h-4 rounded border-[var(--border)] text-[var(--apple-blue)] focus:ring-[var(--apple-blue)]"
+                        />
+                        <span className="text-sm text-[var(--foreground)]">Recapped</span>
+                    </label>
                 </div>
             </div>
 
@@ -1192,14 +1395,25 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                 <>
                     <SectionHeader>{t.detail.computerSpecs}</SectionHeader>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField label="CPU">
+                        <FormField label="CPU Type">
                             <input
                                 type="text"
-                                name="cpu"
-                                value={formData.cpu}
+                                name="cpuType"
+                                value={formData.cpuType}
                                 onChange={handleChange}
                                 className={inputClass}
-                                placeholder={t.form.cpuPlaceholder}
+                                placeholder="e.g. Motorola 68000"
+                            />
+                        </FormField>
+
+                        <FormField label="CPU Speed">
+                            <input
+                                type="text"
+                                name="cpuSpeed"
+                                value={formData.cpuSpeed}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="e.g. 8 MHz"
                             />
                         </FormField>
 
@@ -1214,37 +1428,109 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                             />
                         </FormField>
 
-                        <FormField label="Graphics">
+                        <FormField label="Graphics Chip">
                             <input
                                 type="text"
-                                name="graphics"
-                                value={formData.graphics}
+                                name="graphicsChip"
+                                value={formData.graphicsChip}
                                 onChange={handleChange}
                                 className={inputClass}
-                                placeholder={t.form.graphicsPlaceholder}
+                                placeholder="e.g. ATI Rage 128 GL"
+                            />
+                        </FormField>
+
+                        <FormField label="Screen Size">
+                            <input
+                                type="text"
+                                name="screenSize"
+                                value={formData.screenSize}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder='e.g. 9" or 12.1"/14.1"'
+                            />
+                        </FormField>
+
+                        <FormField label="Display Type">
+                            <input
+                                type="text"
+                                name="displayType"
+                                value={formData.displayType}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="e.g. LCD, CRT, Monochrome, OLED"
+                            />
+                        </FormField>
+
+                        <FormField label="Display Variant">
+                            <input
+                                type="text"
+                                name="displayVariant"
+                                value={formData.displayVariant}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="e.g. Active Matrix, Sony Trinitron"
+                            />
+                        </FormField>
+
+                        <FormField label="Native Resolution">
+                            <input
+                                type="text"
+                                name="nativeResolution"
+                                value={formData.nativeResolution}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="e.g. 640x480"
                             />
                         </FormField>
 
                         <FormField label="Storage">
-                            <input
-                                type="text"
-                                name="storage"
-                                value={formData.storage}
-                                onChange={handleChange}
-                                className={inputClass}
-                                placeholder={t.form.storagePlaceholder}
-                            />
+                            <div className="space-y-1">
+                                {storageEntries.map((entry, i) => (
+                                    <div key={i} className="flex items-center gap-2">
+                                        <span className="flex-1 px-3 py-1.5 text-sm bg-[var(--muted)] rounded border border-[var(--border)] text-[var(--foreground)]">{entry.value}</span>
+                                        <button type="button" onClick={() => handleRemoveStorage(i)} className="text-[var(--muted-foreground)] hover:text-[var(--apple-red)] text-lg leading-none">×</button>
+                                    </div>
+                                ))}
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newStorageValue}
+                                        onChange={e => setNewStorageValue(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddStorage(newStorageValue); }}}
+                                        className={`${inputClass} flex-1`}
+                                        placeholder="e.g. 1.44 MB Floppy, 40 MB SCSI HD"
+                                    />
+                                    <button type="button" onClick={() => handleAddStorage(newStorageValue)}
+                                        className="px-3 py-2 text-sm bg-[var(--apple-blue)] text-white rounded border border-[#007acc] hover:brightness-110 whitespace-nowrap">
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
                         </FormField>
 
                         <FormField label="Operating System">
-                            <input
-                                type="text"
-                                name="operatingSystem"
-                                value={formData.operatingSystem}
-                                onChange={handleChange}
-                                className={inputClass}
-                                placeholder={t.form.osPlaceholder}
-                            />
+                            <div className="space-y-1">
+                                {osEntries.map((entry, i) => (
+                                    <div key={i} className="flex items-center gap-2">
+                                        <span className="flex-1 px-3 py-1.5 text-sm bg-[var(--muted)] rounded border border-[var(--border)] text-[var(--foreground)]">{entry.value}</span>
+                                        <button type="button" onClick={() => handleRemoveOS(i)} className="text-[var(--muted-foreground)] hover:text-[var(--apple-red)] text-lg leading-none">×</button>
+                                    </div>
+                                ))}
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newOsValue}
+                                        onChange={e => setNewOsValue(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddOS(newOsValue); }}}
+                                        className={`${inputClass} flex-1`}
+                                        placeholder="e.g. System 7.5, Mac OS 8.1"
+                                    />
+                                    <button type="button" onClick={() => handleAddOS(newOsValue)}
+                                        className="px-3 py-2 text-sm bg-[var(--apple-blue)] text-white rounded border border-[#007acc] hover:brightness-110 whitespace-nowrap">
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
                         </FormField>
 
                         <div className="flex flex-col gap-3 justify-center">
@@ -1262,14 +1548,25 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"
-                                    name="isPramBatteryRemoved"
-                                    checked={formData.isPramBatteryRemoved}
+                                    name="pramBatteryInstalled"
+                                    checked={formData.pramBatteryInstalled}
                                     onChange={handleChange}
                                     className="w-4 h-4 rounded border-[var(--border)] text-[var(--apple-blue)] focus:ring-[var(--apple-blue)]"
                                 />
-                                <span className="text-sm text-[var(--foreground)]">{t.detail.pramBatteryRemoved}</span>
+                                <span className="text-sm text-[var(--foreground)]">PRAM Battery Installed</span>
                             </label>
                         </div>
+
+                        <FormField label="PRAM Battery Expiry Date">
+                            <input
+                                type="date"
+                                name="pramBatteryExpiryDate"
+                                value={formData.pramBatteryExpiryDate}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="Date battery needs replacing"
+                            />
+                        </FormField>
                     </div>
                 </>
             )}

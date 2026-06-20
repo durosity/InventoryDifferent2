@@ -11,7 +11,7 @@ import Charts
 
 struct ImageIndex: Identifiable {
     let id = UUID()
-    let value: Int
+    let imageId: Int
 }
 
 // MARK: - Design Tokens
@@ -318,7 +318,9 @@ struct DeviceDetailRedesignView: View {
             }
         }
         .fullScreenCover(item: $selectedImageIndex) { idx in
-            ImageViewerView(images: images.sorted(by: { $0.id > $1.id }), initialIndex: idx.value)
+            let sorted = images.sorted(by: { $0.id > $1.id })
+            let startIndex = sorted.firstIndex(where: { $0.id == idx.imageId }) ?? 0
+            ImageViewerView(images: sorted, initialIndex: startIndex)
         }
         .sheet(isPresented: $showAddTagSheet) {
             AddTagView(deviceId: device.id, existingTags: tags) { updated in
@@ -687,7 +689,7 @@ struct DeviceDetailRedesignView: View {
     private var indicatorGrid: some View {
         let t = lm.t
         let hasOriginalBox = accessories.contains(where: { $0.name == "Original Box" })
-        let isPram = device.isPramBatteryRemoved ?? false
+        let isPram = device.pramBatteryInstalled ?? true
         let isComputer = device.category.type == "COMPUTER"
 
         return LazyVGrid(
@@ -746,8 +748,8 @@ struct DeviceDetailRedesignView: View {
             // PRAM battery (always shown for computers, hidden for others)
             if isComputer {
                 indicatorTile(
-                    icon: isPram ? "battery.0" : "battery.100",
-                    label: isPram ? t.deviceDetail.indicatorNoPram : t.deviceDetail.indicatorPramInstalled,
+                    icon: isPram ? "battery.100" : "battery.0",
+                    label: isPram ? t.deviceDetail.indicatorPramInstalled : t.deviceDetail.indicatorNoPram,
                     color: isPram ? .green : .red,
                     active: true
                 )
@@ -1005,7 +1007,7 @@ struct DeviceDetailRedesignView: View {
                                 }
                             }
                         }
-                        .onTapGesture { selectedImageIndex = ImageIndex(value: index) }
+                        .onTapGesture { selectedImageIndex = ImageIndex(imageId: image.id) }
                 }
 
                 if showAdd {
@@ -1399,49 +1401,79 @@ struct DeviceDetailRedesignView: View {
 
     private var techSpecsSection: some View {
         let t = lm.t
-        let specs: [(String, String)] = [
-            device.cpu.map { (t.deviceDetail.cpu, $0) },
-            device.ram.map { (t.deviceDetail.ram, $0) },
-            device.storage.map { (t.deviceDetail.storage, $0) },
-            device.operatingSystem.map { (t.deviceDetail.operatingSystem, $0) },
-            device.graphics.map { (t.deviceDetail.graphics, $0) },
-        ].compactMap { $0 }
-
-        guard !specs.isEmpty || device.isWifiEnabled != nil else { return AnyView(EmptyView()) }
-
+        let isComputer = device.category.type == "COMPUTER"
+        var specs: [(String, String)] = []
+        if let cpu = device.cpuType {
+            let cpuStr = device.cpuSpeed.map { "\(cpu) @ \($0)" } ?? cpu
+            specs.append(("CPU", cpuStr))
+        }
+        if let ram = device.ram { specs.append((t.deviceDetail.ram, ram)) }
+        if !device.storageEntries.isEmpty { specs.append((t.deviceDetail.storage, device.storageEntries.map { $0.value }.joined(separator: ", "))) }
+        if !device.osEntries.isEmpty { specs.append((t.deviceDetail.operatingSystem, device.osEntries.map { $0.value }.joined(separator: ", "))) }
+        if let gfx = device.graphicsChip { specs.append(("Graphics", gfx)) }
+        if let screen = device.screenSize { specs.append(("Screen", screen)) }
+        if let dt = device.displayType {
+            let dStr = device.displayVariant.map { "\(dt) (\($0))" } ?? dt
+            specs.append(("Display", dStr))
+        }
+        if let res = device.nativeResolution { specs.append(("Resolution", res)) }
+        let hasContent = !specs.isEmpty || device.isWifiEnabled != nil
+            || (isComputer && (device.isRetroBrited == true || device.isRecapped == true || device.pramBatteryInstalled != nil))
+        guard hasContent else { return AnyView(EmptyView()) }
         return AnyView(
             VStack(alignment: .leading, spacing: 10) {
                 sectionOverline(t.deviceDetail.techSpecs)
-
                 VStack(spacing: 0) {
                     ForEach(Array(specs.enumerated()), id: \.offset) { index, spec in
                         HStack {
-                            Text(spec.0)
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
+                            Text(spec.0).font(.system(size: 13)).foregroundColor(.secondary)
                             Spacer()
-                            Text(spec.1)
-                                .font(.system(size: 13, weight: .bold))
-                                .multilineTextAlignment(.trailing)
+                            Text(spec.1).font(.system(size: 13, weight: .bold)).multilineTextAlignment(.trailing)
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
                         .background(index % 2 == 0 ? Color.edSurfaceLow : Color.edSurfaceHigh.opacity(0.5))
                     }
-
-                    // WiFi row
                     if let wifi = device.isWifiEnabled {
+                        let idx = specs.count
                         HStack {
-                            Text(t.deviceDetail.wifiEnabled)
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
+                            Text(t.deviceDetail.wifiEnabled).font(.system(size: 13)).foregroundColor(.secondary)
                             Spacer()
-                            Text(wifi ? t.common.yes : t.common.no)
-                                .font(.system(size: 13, weight: .bold))
+                            Text(wifi ? t.common.yes : t.common.no).font(.system(size: 13, weight: .bold))
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .background(specs.count % 2 == 0 ? Color.edSurfaceLow : Color.edSurfaceHigh.opacity(0.5))
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .background(idx % 2 == 0 ? Color.edSurfaceLow : Color.edSurfaceHigh.opacity(0.5))
+                    }
+                    if isComputer {
+                        if let pram = device.pramBatteryInstalled {
+                            let idx = specs.count + (device.isWifiEnabled != nil ? 1 : 0)
+                            HStack {
+                                Text("PRAM Battery").font(.system(size: 13)).foregroundColor(.secondary)
+                                Spacer()
+                                Text(pram ? "Installed" : "Removed").font(.system(size: 13, weight: .bold)).foregroundColor(pram ? .green : .red)
+                            }
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(idx % 2 == 0 ? Color.edSurfaceLow : Color.edSurfaceHigh.opacity(0.5))
+                        }
+                        if device.isRetroBrited == true {
+                            let idx = specs.count + (device.isWifiEnabled != nil ? 1 : 0) + (device.pramBatteryInstalled != nil ? 1 : 0)
+                            HStack {
+                                Text("Retr0brited").font(.system(size: 13)).foregroundColor(.secondary)
+                                Spacer()
+                                Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).foregroundColor(.green)
+                            }
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(idx % 2 == 0 ? Color.edSurfaceLow : Color.edSurfaceHigh.opacity(0.5))
+                        }
+                        if device.isRecapped == true {
+                            let idx = specs.count + (device.isWifiEnabled != nil ? 1 : 0) + (device.pramBatteryInstalled != nil ? 1 : 0) + (device.isRetroBrited == true ? 1 : 0)
+                            HStack {
+                                Text("Recapped").font(.system(size: 13)).foregroundColor(.secondary)
+                                Spacer()
+                                Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).foregroundColor(.green)
+                            }
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(idx % 2 == 0 ? Color.edSurfaceLow : Color.edSurfaceHigh.opacity(0.5))
+                        }
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -2187,7 +2219,9 @@ struct DevicePhotosChildView: View {
             }
         }
         .fullScreenCover(item: $selectedImageIndex) { idx in
-            ImageViewerView(images: images.sorted(by: { $0.id > $1.id }), initialIndex: idx.value)
+            let sorted = images.sorted(by: { $0.id > $1.id })
+            let startIndex = sorted.firstIndex(where: { $0.id == idx.imageId }) ?? 0
+            ImageViewerView(images: sorted, initialIndex: startIndex)
         }
         .sheet(isPresented: $showImagePicker) {
             ImageUploadView(deviceId: deviceId) { newImages in
@@ -2353,7 +2387,7 @@ struct DevicePhotosChildView: View {
         .frame(height: 120)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .onTapGesture {
-            if !isImageManagementMode { selectedImageIndex = ImageIndex(value: index) }
+            if !isImageManagementMode { selectedImageIndex = ImageIndex(imageId: image.id) }
         }
     }
 

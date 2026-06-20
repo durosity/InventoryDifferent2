@@ -10,6 +10,19 @@ struct LocationNavItem: Hashable {
     let id: Int
 }
 
+private struct LocationQueryResponse: Decodable {
+    struct LocationData: Decodable {
+        let id: Int
+        let name: String
+        let description: String?
+    }
+    let location: LocationData?
+}
+
+private struct DevicesQueryResponse: Decodable {
+    let devices: [DeviceListItem]
+}
+
 struct LocationDetailView: View {
     let locationId: Int
 
@@ -104,7 +117,7 @@ struct LocationDetailView: View {
                 rarity
                 isAssetTagged
                 isFavorite
-                isPramBatteryRemoved
+                pramBatteryInstalled
                 accessories { id name }
                 dateAcquired
                 estimatedValue
@@ -123,42 +136,22 @@ struct LocationDetailView: View {
         }
         """
 
-        struct LocationResponse: Decodable {
-            struct LocationData: Decodable {
-                let id: Int
-                let name: String
-                let description: String?
-            }
-            let location: LocationData?
-        }
-
-        struct DevicesResponse: Decodable {
-            let devices: [DeviceListItem]
-        }
-
         do {
-            async let locFetch: LocationResponse = APIService.shared.execute(
+            let locResult: LocationQueryResponse = try await APIService.shared.execute(
                 query: locationQuery,
                 variables: ["id": locationId]
             )
-            async let devFetch: DevicesResponse = APIService.shared.execute(
+            let devResult: DevicesQueryResponse = try await APIService.shared.execute(
                 query: devicesQuery,
                 variables: ["locationId": locationId]
             )
-
-            let (locResult, devResult) = try await (locFetch, devFetch)
-
-            await MainActor.run {
-                locationName = locResult.location?.name
-                locationDescription = locResult.location?.description
-                devices = devResult.devices
-                isLoading = false
-            }
+            locationName = locResult.location?.name
+            locationDescription = locResult.location?.description
+            devices = devResult.devices
+            isLoading = false
         } catch {
-            await MainActor.run {
-                self.error = error.localizedDescription
-                isLoading = false
-            }
+            self.error = error.localizedDescription
+            isLoading = false
         }
     }
 }

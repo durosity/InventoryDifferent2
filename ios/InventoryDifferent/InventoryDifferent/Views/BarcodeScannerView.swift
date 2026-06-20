@@ -361,13 +361,20 @@ struct BarcodeScannerView: View {
                 listPrice
                 soldPrice
                 soldDate
-                cpu
+                cpuType
+                cpuSpeed
                 ram
-                graphics
-                storage
-                operatingSystem
+                graphicsChip
+                screenSize
+                displayType
+                displayVariant
+                nativeResolution
+                storageEntries { id value sortOrder }
+                osEntries { id value sortOrder }
                 isWifiEnabled
-                isPramBatteryRemoved
+                isRetroBrited
+                isRecapped
+                pramBatteryInstalled
                 category {
                     id
                     name

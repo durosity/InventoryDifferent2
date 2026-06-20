@@ -38,13 +38,19 @@ model Device {
   soldPrice           Decimal?  @db.Decimal(10, 2)
   soldDate            DateTime?
 
-  cpu                 String?
+  cpuType             String?
+  cpuSpeed            String?
   ram                 String?
-  graphics            String?
-  storage             String?
-  operatingSystem     String?
+  graphicsChip        String?
+  screenSize          String?
+  displayType         String?
+  displayVariant      String?
+  nativeResolution    String?
   isWifiEnabled       Boolean?
-  isPramBatteryRemoved Boolean?
+  isRetroBrited       Boolean   @default(false)
+  isRecapped          Boolean   @default(false)
+  pramBatteryInstalled  Boolean?
+  pramBatteryExpiryDate DateTime?
   deleted             Boolean   @default(false)
 
   historicalNotes     String?   @db.Text
@@ -60,6 +66,24 @@ model Device {
   tags                Tag[]
   accessories         DeviceAccessory[]
   links               DeviceLink[]
+  storageEntries      DeviceStorage[]
+  osEntries           DeviceOS[]
+}
+
+model DeviceStorage {
+  id        Int    @id @default(autoincrement())
+  deviceId  Int
+  device    Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  value     String
+  sortOrder Int    @default(0)
+}
+
+model DeviceOS {
+  id        Int    @id @default(autoincrement())
+  deviceId  Int
+  device    Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  value     String
+  sortOrder Int    @default(0)
 }
 
 model Location {
@@ -147,14 +171,17 @@ model Template {
   modelNumber     String?
   releaseYear     Int?
   estimatedValue  Decimal?  @db.Decimal(10, 2)
-  cpu             String?
+  cpuType         String?
+  cpuSpeed        String?
   ram             String?
-  graphics        String?
-  storage         String?
-  operatingSystem String?
+  graphicsChip    String?
+  screenSize      String?
+  displayType     String?
+  displayVariant  String?
+  nativeResolution String?
   externalUrl     String?
   isWifiEnabled       Boolean?
-  isPramBatteryRemoved Boolean?
+  pramBatteryInstalled Boolean?
   rarity          Rarity?
 
   categoryId  Int

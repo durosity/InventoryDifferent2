@@ -384,9 +384,9 @@ struct StatusIndicatorsRow: View {
             
             // PRAM Battery (only for computers)
             if device.category.type == "COMPUTER" {
-                Image(systemName: "battery.100")
+                Image(systemName: device.pramBatteryInstalled == true ? "battery.100" : "battery.0")
                     .font(.system(size: 12))
-                    .foregroundColor(device.isPramBatteryRemoved == true ? .green : .red)
+                    .foregroundColor(device.pramBatteryInstalled == true ? .green : .red)
             }
             
             // Favorite
