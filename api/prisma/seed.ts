@@ -158,8 +158,13 @@ type ParsedTemplate = {
     releaseYear?: number;
     estimatedValue?: number;
     cpuType?: string;
+    cpuSpeed?: string;
     ram?: string;
     graphicsChip?: string;
+    screenSize?: string;
+    displayType?: string;
+    displayVariant?: string;
+    nativeResolution?: string;
     externalUrl?: string;
     externalLinkLabel?: string;
     isWifiEnabled?: boolean;
@@ -339,6 +344,84 @@ function templateDisplayName(deviceName: string, additionalName: string | null) 
     return `${deviceName} (${extra})`;
 }
 
+// Mirrors the CPU split logic in migration 20260528000000_split_cpu_graphics
+function parseCpu(cpu: string): { cpuType: string; cpuSpeed?: string } {
+    const idx = cpu.indexOf(' @ ');
+    if (idx !== -1) {
+        return { cpuType: cpu.slice(0, idx).trim(), cpuSpeed: cpu.slice(idx + 3).trim() };
+    }
+    return { cpuType: cpu.trim() };
+}
+
+const GRAPHICS_CHIP_BUILTINS = new Set([
+    'Built-in video',
+    'Built-in video + AV capabilities',
+    'Built-in video + optional Apple or third-party video card',
+    'Integrated video',
+    'Optional Apple or third-party video card',
+    'PCI video card',
+    'IMS Twin Turbo PCI video card',
+]);
+
+// Mirrors the graphics parsing logic in migration 20260528000000_split_cpu_graphics
+function parseGraphics(graphics: string): {
+    graphicsChip?: string;
+    screenSize?: string;
+    displayType?: string;
+    displayVariant?: string;
+    nativeResolution?: string;
+} {
+    const result: ReturnType<typeof parseGraphics> = {};
+
+    // screenSize: Built-in entries with inch marker
+    const builtinInchMatch = /^Built-in ([0-9][0-9./]*")/.exec(graphics);
+    if (builtinInchMatch) result.screenSize = builtinInchMatch[1].trim();
+
+    // screenSize: standalone monitor entries (e.g. '17" LCD, 1024x768')
+    if (!result.screenSize) {
+        const standaloneInchMatch = /^([0-9][0-9./]*"[/0-9.]*)/.exec(graphics);
+        if (standaloneInchMatch) result.screenSize = standaloneInchMatch[1].trim();
+    }
+
+    // nativeResolution: e.g. "640x480" or "640×480", skip Text: entries
+    if (!graphics.startsWith('Text:')) {
+        const resMatch = /([0-9]{3,}\s*[x×]\s*[0-9]{3,})/.exec(graphics);
+        if (resMatch) result.nativeResolution = resMatch[1].replace(/\s+/g, '');
+    }
+
+    // displayType — order matters: LCD before CRT, CRT before Monochrome
+    if (graphics.includes('LCD') || graphics.includes('LED-backlit')) {
+        result.displayType = 'LCD';
+    } else if (graphics.includes('CRT') || graphics.includes('Trinitron')) {
+        result.displayType = 'CRT';
+    } else if (graphics.toLowerCase().includes('monochrome')) {
+        result.displayType = 'Monochrome';
+    }
+
+    // displayVariant — later assignments win (LED-backlit overrides Retina)
+    if (graphics.includes('Active Matrix'))  result.displayVariant = 'Active Matrix';
+    if (graphics.includes('Passive Matrix')) result.displayVariant = 'Passive Matrix';
+    if (graphics.includes('Sony Trinitron')) result.displayVariant = 'Sony Trinitron';
+    if (graphics.includes('Diamondtron'))    result.displayVariant = 'Diamondtron';
+    if (graphics.includes('Retina'))         result.displayVariant = 'Retina';
+    if (graphics.includes('LED-backlit'))    result.displayVariant = 'LED-backlit';
+
+    // graphicsChip: discrete GPU entries — no inch marker, no display keywords, no × char, not Built-in
+    const hasUnicodeMul = graphics.includes('×');
+    const hasInch = graphics.includes('"');
+    const isBuiltIn = graphics.startsWith('Built-in ');
+    const isText = graphics.startsWith('Text:');
+    const hasDisplayKw = graphics.includes('monochrome') || graphics.includes(' CRT') || graphics.includes(' LCD');
+
+    if (GRAPHICS_CHIP_BUILTINS.has(graphics)) {
+        result.graphicsChip = graphics.trim();
+    } else if (!isText && !hasDisplayKw && !hasUnicodeMul && !hasInch && !isBuiltIn) {
+        result.graphicsChip = graphics.trim();
+    }
+
+    return result;
+}
+
 function parseTemplatesFromSql(sql: string, oldCategoryIdToNewId: Map<number, number>) {
     const valuesBlock = extractInsertValuesBlock(sql, 'device_templates');
     if (!valuesBlock) return [];
@@ -390,9 +473,20 @@ function parseTemplatesFromSql(sql: string, oldCategoryIdToNewId: Map<number, nu
         }
         // processorType exists in the source SQL but we are intentionally not storing it on Template for now.
         void processorType;
-        if (typeof cpu === 'string' && cpu.trim()) tpl.cpuType = cpu.trim();
+        if (typeof cpu === 'string' && cpu.trim()) {
+            const parsed = parseCpu(cpu.trim());
+            tpl.cpuType = parsed.cpuType;
+            if (parsed.cpuSpeed) tpl.cpuSpeed = parsed.cpuSpeed;
+        }
         if (typeof ram === 'string' && ram.trim()) tpl.ram = ram.trim();
-        if (typeof graphics === 'string' && graphics.trim()) tpl.graphicsChip = graphics.trim();
+        if (typeof graphics === 'string' && graphics.trim()) {
+            const parsed = parseGraphics(graphics.trim());
+            if (parsed.graphicsChip)     tpl.graphicsChip     = parsed.graphicsChip;
+            if (parsed.screenSize)       tpl.screenSize       = parsed.screenSize;
+            if (parsed.displayType)      tpl.displayType      = parsed.displayType;
+            if (parsed.displayVariant)   tpl.displayVariant   = parsed.displayVariant;
+            if (parsed.nativeResolution) tpl.nativeResolution = parsed.nativeResolution;
+        }
 
         const rarity = TEMPLATE_RARITY[tpl.name];
         if (rarity) tpl.rarity = rarity;
@@ -486,8 +580,13 @@ async function main() {
                         releaseYear: tpl.releaseYear,
                         estimatedValue: tpl.estimatedValue,
                         cpuType: tpl.cpuType,
+                        cpuSpeed: tpl.cpuSpeed,
                         ram: tpl.ram,
                         graphicsChip: tpl.graphicsChip,
+                        screenSize: tpl.screenSize,
+                        displayType: tpl.displayType,
+                        displayVariant: tpl.displayVariant,
+                        nativeResolution: tpl.nativeResolution,
                         externalUrl: tpl.externalUrl,
                         externalLinkLabel: tpl.externalLinkLabel,
                         isWifiEnabled: tpl.isWifiEnabled,
@@ -504,8 +603,13 @@ async function main() {
                         releaseYear: tpl.releaseYear,
                         estimatedValue: tpl.estimatedValue,
                         cpuType: tpl.cpuType,
+                        cpuSpeed: tpl.cpuSpeed,
                         ram: tpl.ram,
                         graphicsChip: tpl.graphicsChip,
+                        screenSize: tpl.screenSize,
+                        displayType: tpl.displayType,
+                        displayVariant: tpl.displayVariant,
+                        nativeResolution: tpl.nativeResolution,
                         externalUrl: tpl.externalUrl,
                         externalLinkLabel: tpl.externalLinkLabel,
                         isWifiEnabled: tpl.isWifiEnabled,
