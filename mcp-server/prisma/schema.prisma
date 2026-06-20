@@ -66,6 +66,24 @@ model Device {
   tags                Tag[]
   accessories         DeviceAccessory[]
   links               DeviceLink[]
+  storageEntries      DeviceStorage[]
+  osEntries           DeviceOS[]
+}
+
+model DeviceStorage {
+  id        Int    @id @default(autoincrement())
+  deviceId  Int
+  device    Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  value     String
+  sortOrder Int    @default(0)
+}
+
+model DeviceOS {
+  id        Int    @id @default(autoincrement())
+  deviceId  Int
+  device    Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  value     String
+  sortOrder Int    @default(0)
 }
 
 model Location {
@@ -157,8 +175,10 @@ model Template {
   cpuSpeed        String?
   ram             String?
   graphicsChip    String?
-  storage         String?
-  operatingSystem String?
+  screenSize      String?
+  displayType     String?
+  displayVariant  String?
+  nativeResolution String?
   externalUrl     String?
   isWifiEnabled       Boolean?
   pramBatteryInstalled Boolean?
