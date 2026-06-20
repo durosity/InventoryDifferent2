@@ -80,6 +80,8 @@ const DEVICE_INCLUDE = {
     customFieldValues: { include: { customField: true } },
     accessories: true,
     links: true,
+    storageEntries: { orderBy: { sortOrder: 'asc' as const } },
+    osEntries: { orderBy: { sortOrder: 'asc' as const } },
     relationsFrom: { include: { toDevice: { include: { images: true } } } },
     relationsTo:   { include: { fromDevice: { include: { images: true } } } },
 };
@@ -350,11 +352,16 @@ export const resolvers = {
                         device.manufacturer,
                         device.modelNumber,
                         device.serialNumber,
-                        device.cpu,
+                        device.cpuType,
+                        device.cpuSpeed,
                         device.ram,
-                        device.graphics,
-                        device.storage,
-                        device.operatingSystem,
+                        device.graphicsChip,
+                        device.screenSize,
+                        device.displayType,
+                        device.displayVariant,
+                        device.nativeResolution,
+                        ...(device as any).storageEntries?.map((s: any) => s.value) ?? [],
+                        ...(device as any).osEntries?.map((o: any) => o.value) ?? [],
                         device.info,
                         device.releaseYear?.toString(),
                         (device as any).location?.name,
@@ -1129,7 +1136,7 @@ export const resolvers = {
                     include: deviceInclude,
                 }),
                 context.prisma.device.findMany({
-                    where: { deleted: false, isPramBatteryRemoved: false, status: { notIn: ['SOLD', 'DONATED', 'RETURNED'] as any } },
+                    where: { deleted: false, pramBatteryInstalled: false, status: { notIn: ['SOLD', 'DONATED', 'RETURNED'] as any } },
                     include: deviceInclude,
                     orderBy: [{ releaseYear: 'asc' }, { dateAcquired: 'asc' }],
                 }),
@@ -1149,7 +1156,7 @@ export const resolvers = {
                         ...inCollectionFilter,
                         category: { type: { notIn: ['ACCESSORY'] as any } },
                         AND: [
-                            { OR: [{ cpu: null }, { cpu: '' }] },
+                            { OR: [{ cpuType: null }, { cpuType: '' }] },
                             { OR: [{ ram: null }, { ram: '' }] },
                         ],
                     },
@@ -1386,21 +1393,23 @@ export const resolvers = {
         createDevice: async (_parent: any, args: { input: any }, context: Context) => {
             requireAuth(context);
             const { input } = args;
+            // Strip legacy fields that no longer exist on Device model
+            const { storage, operatingSystem, ...deviceData } = input;
             const device = await context.prisma.device.create({
                 data: {
-                    ...input,
+                    ...deviceData,
                 },
                 include: DEVICE_INCLUDE,
             });
             // Activity log: acquisition event
-            if (input.dateAcquired) {
+            if (deviceData.dateAcquired) {
                 await (context.prisma as any).activityLog.create({
                     data: {
                         deviceId: device.id,
                         type: 'DEVICE_ACQUIRED',
                         metadata: {
-                            whereAcquired: input.whereAcquired ?? null,
-                            priceAcquired: input.priceAcquired != null ? Number(input.priceAcquired) : null,
+                            whereAcquired: deviceData.whereAcquired ?? null,
+                            priceAcquired: deviceData.priceAcquired != null ? Number(deviceData.priceAcquired) : null,
                         },
                     },
                 });
@@ -1409,7 +1418,7 @@ export const resolvers = {
         },
         updateDevice: async (_parent: any, args: { input: any }, context: Context) => {
             requireAuth(context);
-            const { id, ...data } = args.input;
+            const { id, storage, operatingSystem, ...data } = args.input;
             // Remove undefined values to avoid overwriting with null
             const cleanData = Object.fromEntries(
                 Object.entries(data).filter(([_, v]) => v !== undefined)
@@ -2277,6 +2286,48 @@ export const resolvers = {
             if (!quote) throw new Error('Quote not found');
             if (quote.isDefault) throw new Error('Cannot delete a default quote');
             await (context.prisma as any).showcaseQuote.delete({ where: { id: args.id } });
+            return true;
+        },
+
+        addDeviceStorageEntry: async (_parent: any, args: { deviceId: number; value: string; sortOrder?: number }, context: Context) => {
+            requireAuth(context);
+            return (context.prisma as any).deviceStorage.create({
+                data: { deviceId: args.deviceId, value: args.value, sortOrder: args.sortOrder ?? 0 },
+            });
+        },
+
+        updateDeviceStorageEntry: async (_parent: any, args: { id: number; value: string; sortOrder?: number }, context: Context) => {
+            requireAuth(context);
+            return (context.prisma as any).deviceStorage.update({
+                where: { id: args.id },
+                data: { value: args.value, ...(args.sortOrder !== undefined ? { sortOrder: args.sortOrder } : {}) },
+            });
+        },
+
+        removeDeviceStorageEntry: async (_parent: any, args: { id: number }, context: Context) => {
+            requireAuth(context);
+            await (context.prisma as any).deviceStorage.delete({ where: { id: args.id } });
+            return true;
+        },
+
+        addDeviceOSEntry: async (_parent: any, args: { deviceId: number; value: string; sortOrder?: number }, context: Context) => {
+            requireAuth(context);
+            return (context.prisma as any).deviceOS.create({
+                data: { deviceId: args.deviceId, value: args.value, sortOrder: args.sortOrder ?? 0 },
+            });
+        },
+
+        updateDeviceOSEntry: async (_parent: any, args: { id: number; value: string; sortOrder?: number }, context: Context) => {
+            requireAuth(context);
+            return (context.prisma as any).deviceOS.update({
+                where: { id: args.id },
+                data: { value: args.value, ...(args.sortOrder !== undefined ? { sortOrder: args.sortOrder } : {}) },
+            });
+        },
+
+        removeDeviceOSEntry: async (_parent: any, args: { id: number }, context: Context) => {
+            requireAuth(context);
+            await (context.prisma as any).deviceOS.delete({ where: { id: args.id } });
             return true;
         },
     },

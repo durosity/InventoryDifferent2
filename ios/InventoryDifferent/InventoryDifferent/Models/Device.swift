@@ -38,6 +38,18 @@ struct DeviceAccessory: Codable, Identifiable, Hashable {
     let name: String
 }
 
+struct DeviceStorageEntry: Codable, Identifiable, Hashable {
+    let id: Int
+    let value: String
+    let sortOrder: Int
+}
+
+struct DeviceOSEntry: Codable, Identifiable, Hashable {
+    let id: Int
+    let value: String
+    let sortOrder: Int
+}
+
 struct DeviceLink: Codable, Identifiable, Hashable {
     let id: Int
     let label: String
@@ -53,7 +65,7 @@ protocol DeviceRowPresentable {
     var isAssetTagged: Bool { get }
     var accessories: [DeviceAccessory] { get }
     var isFavorite: Bool { get }
-    var isPramBatteryRemoved: Bool? { get }
+    var pramBatteryInstalled: Bool? { get }
     var category: Category { get }
     var estimatedValue: Double? { get }
     var listPrice: Double? { get }
@@ -275,13 +287,21 @@ struct Device: Codable, Identifiable, Hashable {
     let soldPrice: Double?
     let soldDate: String?
 
-    let cpu: String?
+    let cpuType: String?
+    let cpuSpeed: String?
     let ram: String?
-    let graphics: String?
-    let storage: String?
-    let operatingSystem: String?
+    let graphicsChip: String?
+    let screenSize: String?
+    let displayType: String?
+    let displayVariant: String?
+    let nativeResolution: String?
     let isWifiEnabled: Bool?
-    let isPramBatteryRemoved: Bool?
+    let isRetroBrited: Bool?
+    let isRecapped: Bool?
+    let pramBatteryInstalled: Bool?
+    let pramBatteryExpiryDate: String?
+    let storageEntries: [DeviceStorageEntry]
+    let osEntries: [DeviceOSEntry]
 
     let category: Category
     let images: [DeviceImage]
@@ -336,7 +356,7 @@ struct DeviceListItem: Codable, Identifiable, Hashable {
     let rarity: Rarity?
     let lastPowerOnDate: String?
     let isAssetTagged: Bool
-    let isPramBatteryRemoved: Bool?
+    let pramBatteryInstalled: Bool?
     let accessories: [DeviceAccessory]
 
     let dateAcquired: String?

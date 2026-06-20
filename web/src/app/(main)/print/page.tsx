@@ -36,13 +36,19 @@ const GET_DEVICES = gql`
       listPrice
       soldPrice
       soldDate
-      cpu
+      cpuType
+      cpuSpeed
       ram
-      graphics
-      storage
-      operatingSystem
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       isWifiEnabled
-      isPramBatteryRemoved
+      pramBatteryInstalled
+      pramBatteryExpiryDate
+      storageEntries { id value sortOrder }
+      osEntries { id value sortOrder }
       lastPowerOnDate
       category {
         id
@@ -318,7 +324,7 @@ export default function PrintListPage() {
                     <tr><td className="text-gray-500 pr-2">{t.pages.print.functionalLabel}</td><td>{getFunctionalStatusText(device.functionalStatus)}</td></tr>
                     <tr><td className="text-gray-500 pr-2">{t.pages.print.originalBoxLabel}</td><td>{device.hasOriginalBox ? t.common.yes : t.common.no}</td></tr>
                     {device.category.type === "COMPUTER" && (
-                      <tr><td className="text-gray-500 pr-2">{t.pages.print.pramRemovedLabel}</td><td>{device.isPramBatteryRemoved ? t.common.yes : t.common.no}</td></tr>
+                      <tr><td className="text-gray-500 pr-2">{t.pages.print.pramRemovedLabel}</td><td>{device.pramBatteryInstalled ? 'Installed' : 'Removed'}</td></tr>
                     )}
                     <tr><td className="text-gray-500 pr-2">{t.pages.print.estValueLabel}</td><td>{formatCurrency(device.estimatedValue) || "—"}</td></tr>
                     {device.status === "SOLD" && (
@@ -344,11 +350,11 @@ export default function PrintListPage() {
                   <h3 className="font-bold text-gray-700 border-b border-gray-200 mb-1">{t.pages.print.specificationsSection}</h3>
                   <table className="w-full">
                     <tbody>
-                      {device.cpu && <tr><td className="text-gray-500 pr-2">{t.detail.cpu}:</td><td>{device.cpu}</td></tr>}
+                      {device.cpuType && <tr><td className="text-gray-500 pr-2">CPU:</td><td>{device.cpuType}{device.cpuSpeed ? ` @ ${device.cpuSpeed}` : ''}</td></tr>}
                       {device.ram && <tr><td className="text-gray-500 pr-2">{t.detail.ram}:</td><td>{device.ram}</td></tr>}
-                      {device.graphics && <tr><td className="text-gray-500 pr-2">{t.detail.graphics}:</td><td>{device.graphics}</td></tr>}
-                      {device.storage && <tr><td className="text-gray-500 pr-2">{t.detail.storage}:</td><td>{device.storage}</td></tr>}
-                      {device.operatingSystem && <tr><td className="text-gray-500 pr-2">{t.pages.print.osLabel}</td><td>{device.operatingSystem}</td></tr>}
+                      {device.graphicsChip && <tr><td className="text-gray-500 pr-2">Graphics:</td><td>{device.graphicsChip}</td></tr>}
+                      {device.storageEntries?.length > 0 && <tr><td className="text-gray-500 pr-2">{t.detail.storage}:</td><td>{device.storageEntries.map((s: any) => s.value).join(', ')}</td></tr>}
+                      {device.osEntries?.length > 0 && <tr><td className="text-gray-500 pr-2">{t.pages.print.osLabel}</td><td>{device.osEntries.map((o: any) => o.value).join(', ')}</td></tr>}
                     </tbody>
                   </table>
                 </div>

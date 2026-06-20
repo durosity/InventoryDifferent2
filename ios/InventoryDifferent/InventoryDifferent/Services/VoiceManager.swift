@@ -37,10 +37,11 @@ class VoiceManager: NSObject, ObservableObject {
     }
 
     private func requestPermissions() {
-        SFSpeechRecognizer.requestAuthorization { status in
-            AVAudioApplication.requestRecordPermission { granted in
-                Task { @MainActor in
-                    self.permissionsGranted = status == .authorized && granted
+        SFSpeechRecognizer.requestAuthorization { [weak self] status in
+            let authorized = status == .authorized
+            AVAudioApplication.requestRecordPermission { [weak self] granted in
+                Task { @MainActor [weak self] in
+                    self?.permissionsGranted = authorized && granted
                 }
             }
         }
@@ -63,14 +64,16 @@ class VoiceManager: NSObject, ObservableObject {
 
         recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
             guard let self else { return }
-            // Single Task so transcript is guaranteed set before stopRecording() runs
-            Task { @MainActor in
-                if let result {
+            let capturedResult = result
+            let capturedError = error
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if let result = capturedResult {
                     self.transcript = result.bestTranscription.formattedString
                     // Reset silence timer on each new partial result
                     self.silenceTimer?.invalidate()
                     self.silenceTimer = Timer.scheduledTimer(withTimeInterval: self.silenceTimeout, repeats: false) { [weak self] _ in
-                        Task { @MainActor in
+                        Task { @MainActor [weak self] in
                             guard let self, self.isRecording else { return }
                             let completed = self.transcript
                             // Suppress the isFinal callback that endAudio() will trigger
@@ -82,7 +85,7 @@ class VoiceManager: NSObject, ObservableObject {
                         }
                     }
                 }
-                if error != nil || result?.isFinal == true {
+                if capturedError != nil || capturedResult?.isFinal == true {
                     self.silenceTimer?.invalidate()
                     self.silenceTimer = nil
                     let completed = self.transcript

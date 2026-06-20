@@ -176,12 +176,8 @@ struct EditPhotoView: View {
                 cropHeight: hasCrop ? cropRect.height   : nil
             )
             // Invalidate old display copy and thumbnail from cache
-            if let url = APIService.shared.imageURL(for: oldPath) {
-                ImageCacheService.shared.removeImage(for: url)
-            }
-            if let thumb = oldThumb, let url = APIService.shared.imageURL(for: thumb) {
-                ImageCacheService.shared.removeImage(for: url)
-            }
+            let urlsToRemove = [oldPath, oldThumb].compactMap { APIService.shared.imageURL(for: $0 ?? "") }
+            for url in urlsToRemove { await ImageCacheService.shared.removeImage(for: url) }
             onSaved(updated)
             dismiss()
         } catch {
@@ -198,11 +194,11 @@ struct EditPhotoView: View {
         let origPath = image.originalPath
         do {
             let updated = try await DeviceService.shared.resetImageEdits(id: image.id)
-            for p in [oldPath, oldThumb, origPath].compactMap({ $0 }) {
-                if let url = APIService.shared.imageURL(for: p) {
-                    ImageCacheService.shared.removeImage(for: url)
-                }
+            let urlsToRemove = [oldPath, oldThumb, origPath].compactMap { p -> URL? in
+                guard let p else { return nil }
+                return APIService.shared.imageURL(for: p)
             }
+            for url in urlsToRemove { await ImageCacheService.shared.removeImage(for: url) }
             onSaved(updated)
             dismiss()
         } catch {

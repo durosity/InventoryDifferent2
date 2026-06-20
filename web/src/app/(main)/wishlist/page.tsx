@@ -25,14 +25,18 @@ const GET_WISHLIST = gql`
       deleted
       createdAt
       categoryId
-      cpu
+      cpuType
+      cpuSpeed
       ram
-      graphics
-      storage
-      operatingSystem
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       externalUrl
       isWifiEnabled
-      isPramBatteryRemoved
+      pramBatteryInstalled
+      pramBatteryExpiryDate
       category {
         id
         name
@@ -52,14 +56,17 @@ const GET_WISHLIST = gql`
       modelNumber
       releaseYear
       estimatedValue
-      cpu
+      cpuType
+      cpuSpeed
       ram
-      graphics
-      storage
-      operatingSystem
+      graphicsChip
+      screenSize
+      displayType
+      displayVariant
+      nativeResolution
       externalUrl
       isWifiEnabled
-      isPramBatteryRemoved
+      pramBatteryInstalled
       categoryId
     }
   }
@@ -103,14 +110,20 @@ interface Template {
   modelNumber?: string;
   releaseYear?: number;
   estimatedValue?: number;
-  cpu?: string;
+  cpuType?: string;
+  cpuSpeed?: string;
   ram?: string;
-  graphics?: string;
+  graphicsChip?: string;
+  screenSize?: string;
+  displayType?: string;
+  displayVariant?: string;
+  nativeResolution?: string;
   storage?: string;
   operatingSystem?: string;
   externalUrl?: string;
   isWifiEnabled?: boolean;
-  isPramBatteryRemoved?: boolean;
+  pramBatteryInstalled?: boolean;
+  pramBatteryExpiryDate?: string;
   categoryId: number;
 }
 
@@ -131,14 +144,20 @@ interface WishlistItem {
   createdAt: string;
   categoryId?: number;
   category?: Category;
-  cpu?: string;
+  cpuType?: string;
+  cpuSpeed?: string;
   ram?: string;
-  graphics?: string;
+  graphicsChip?: string;
+  screenSize?: string;
+  displayType?: string;
+  displayVariant?: string;
+  nativeResolution?: string;
   storage?: string;
   operatingSystem?: string;
   externalUrl?: string;
   isWifiEnabled?: boolean;
-  isPramBatteryRemoved?: boolean;
+  pramBatteryInstalled?: boolean;
+  pramBatteryExpiryDate?: string;
 }
 
 // PRIORITY_LABELS is now derived from t inside components that need it
@@ -161,14 +180,20 @@ const emptyForm = {
   priority: 2,
   group: "",
   categoryId: "",
-  cpu: "",
+  cpuType: "",
+  cpuSpeed: "",
   ram: "",
-  graphics: "",
+  graphicsChip: "",
+  screenSize: "",
+  displayType: "",
+  displayVariant: "",
+  nativeResolution: "",
   storage: "",
   operatingSystem: "",
   externalUrl: "",
   isWifiEnabled: false,
-  isPramBatteryRemoved: false,
+  pramBatteryInstalled: true,
+  pramBatteryExpiryDate: "",
 };
 
 interface WishlistFormProps {
@@ -214,14 +239,19 @@ function WishlistForm({ categories, templates, existingGroups, initialValues, is
       manufacturer: t.manufacturer ?? prev.manufacturer,
       modelNumber: t.modelNumber ?? prev.modelNumber,
       releaseYear: t.releaseYear ? String(t.releaseYear) : prev.releaseYear,
-      cpu: t.cpu ?? prev.cpu,
+      cpuType: t.cpuType ?? prev.cpuType,
+      cpuSpeed: t.cpuSpeed ?? prev.cpuSpeed,
       ram: t.ram ?? prev.ram,
-      graphics: t.graphics ?? prev.graphics,
+      graphicsChip: t.graphicsChip ?? prev.graphicsChip,
+      screenSize: t.screenSize ?? prev.screenSize,
+      displayType: t.displayType ?? prev.displayType,
+      displayVariant: t.displayVariant ?? prev.displayVariant,
+      nativeResolution: t.nativeResolution ?? prev.nativeResolution,
       storage: t.storage ?? prev.storage,
       operatingSystem: t.operatingSystem ?? prev.operatingSystem,
       externalUrl: t.externalUrl ?? prev.externalUrl,
       isWifiEnabled: t.isWifiEnabled ?? prev.isWifiEnabled,
-      isPramBatteryRemoved: t.isPramBatteryRemoved ?? prev.isPramBatteryRemoved,
+      pramBatteryInstalled: t.pramBatteryInstalled ?? prev.pramBatteryInstalled,
       categoryId: t.categoryId ? String(t.categoryId) : prev.categoryId,
     }));
     setTemplateQuery("");
@@ -243,14 +273,19 @@ function WishlistForm({ categories, templates, existingGroups, initialValues, is
     if (form.notes) data.notes = form.notes;
     if (form.group) data.group = form.group;
     if (form.categoryId) data.categoryId = parseInt(form.categoryId as string, 10);
-    if (form.cpu) data.cpu = form.cpu;
+    if (form.cpuType) data.cpuType = form.cpuType;
+    if (form.cpuSpeed) data.cpuSpeed = form.cpuSpeed;
     if (form.ram) data.ram = form.ram;
-    if (form.graphics) data.graphics = form.graphics;
+    if (form.graphicsChip) data.graphicsChip = form.graphicsChip;
+    if (form.screenSize) data.screenSize = form.screenSize;
+    if (form.displayType) data.displayType = form.displayType;
+    if (form.displayVariant) data.displayVariant = form.displayVariant;
+    if (form.nativeResolution) data.nativeResolution = form.nativeResolution;
     if (form.storage) data.storage = form.storage;
     if (form.operatingSystem) data.operatingSystem = form.operatingSystem;
     if (form.externalUrl) data.externalUrl = form.externalUrl;
     if (form.isWifiEnabled) data.isWifiEnabled = form.isWifiEnabled;
-    if (form.isPramBatteryRemoved) data.isPramBatteryRemoved = form.isPramBatteryRemoved;
+    if (form.pramBatteryInstalled !== undefined) data.pramBatteryInstalled = form.pramBatteryInstalled;
     onSave(data);
   };
 
@@ -361,16 +396,36 @@ function WishlistForm({ categories, templates, existingGroups, initialValues, is
         <p className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider mb-3">{t.pages.wishlist.specifications}</p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className={labelClass}>{t.detail.cpu}</label>
-            <input name="cpu" value={form.cpu} onChange={handleChange} className={inputClass} placeholder="e.g. Motorola 68000" />
+            <label className={labelClass}>CPU Type</label>
+            <input name="cpuType" value={form.cpuType} onChange={handleChange} className={inputClass} placeholder="e.g. Motorola 68000" />
+          </div>
+          <div>
+            <label className={labelClass}>CPU Speed</label>
+            <input name="cpuSpeed" value={form.cpuSpeed} onChange={handleChange} className={inputClass} placeholder="e.g. 8 MHz" />
           </div>
           <div>
             <label className={labelClass}>{t.detail.ram}</label>
             <input name="ram" value={form.ram} onChange={handleChange} className={inputClass} placeholder="e.g. 4 MB" />
           </div>
           <div>
-            <label className={labelClass}>{t.detail.graphics}</label>
-            <input name="graphics" value={form.graphics} onChange={handleChange} className={inputClass} />
+            <label className={labelClass}>Graphics Chip</label>
+            <input name="graphicsChip" value={form.graphicsChip} onChange={handleChange} className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Screen Size</label>
+            <input name="screenSize" value={form.screenSize} onChange={handleChange} className={inputClass} placeholder='e.g. 9"' />
+          </div>
+          <div>
+            <label className={labelClass}>Display Type</label>
+            <input name="displayType" value={form.displayType} onChange={handleChange} className={inputClass} placeholder="e.g. LCD, CRT, Monochrome" />
+          </div>
+          <div>
+            <label className={labelClass}>Display Variant</label>
+            <input name="displayVariant" value={form.displayVariant} onChange={handleChange} className={inputClass} placeholder="e.g. Active Matrix" />
+          </div>
+          <div>
+            <label className={labelClass}>Native Resolution</label>
+            <input name="nativeResolution" value={form.nativeResolution} onChange={handleChange} className={inputClass} placeholder="e.g. 640x480" />
           </div>
           <div>
             <label className={labelClass}>{t.detail.storage}</label>
@@ -390,8 +445,8 @@ function WishlistForm({ categories, templates, existingGroups, initialValues, is
               {t.detail.wifiEnabled}
             </label>
             <label className={checkboxLabel}>
-              <input type="checkbox" name="isPramBatteryRemoved" checked={!!form.isPramBatteryRemoved} onChange={handleChange} className="rounded" />
-              {t.detail.pramBatteryRemoved}
+              <input type="checkbox" name="pramBatteryInstalled" checked={!!form.pramBatteryInstalled} onChange={handleChange} className="rounded" />
+              PRAM Battery Installed
             </label>
           </div>
         </div>
@@ -459,18 +514,23 @@ function WishlistItemCard({
     if (item.modelNumber) params.set("modelNumber", item.modelNumber);
     if (item.releaseYear) params.set("releaseYear", String(item.releaseYear));
     if (item.categoryId) params.set("categoryId", String(item.categoryId));
-    if (item.cpu) params.set("cpu", item.cpu);
+    if (item.cpuType) params.set("cpuType", item.cpuType);
+    if (item.cpuSpeed) params.set("cpuSpeed", item.cpuSpeed);
     if (item.ram) params.set("ram", item.ram);
-    if (item.graphics) params.set("graphics", item.graphics);
+    if (item.graphicsChip) params.set("graphicsChip", item.graphicsChip);
+    if (item.screenSize) params.set("screenSize", item.screenSize);
+    if (item.displayType) params.set("displayType", item.displayType);
+    if (item.displayVariant) params.set("displayVariant", item.displayVariant);
+    if (item.nativeResolution) params.set("nativeResolution", item.nativeResolution);
     if (item.storage) params.set("storage", item.storage);
     if (item.operatingSystem) params.set("operatingSystem", item.operatingSystem);
     if (item.externalUrl) params.set("externalUrl", item.externalUrl);
     if (item.isWifiEnabled) params.set("isWifiEnabled", "1");
-    if (item.isPramBatteryRemoved) params.set("isPramBatteryRemoved", "1");
+    if (item.pramBatteryInstalled !== undefined) params.set("pramBatteryInstalled", item.pramBatteryInstalled ? "1" : "0");
     router.push(`/devices/new?${params.toString()}`);
   };
 
-  const hasSpecs = item.cpu || item.ram || item.graphics || item.storage || item.operatingSystem;
+  const hasSpecs = item.cpuType || item.cpuSpeed || item.ram || item.graphicsChip;
 
   return (
     <div className="rounded border border-[var(--border)] bg-[var(--background)] p-4">
@@ -502,10 +562,8 @@ function WishlistItemCard({
             )}
             {hasSpecs && (
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                {item.cpu && <span>CPU: {item.cpu}</span>}
+                {item.cpuType && <span>CPU: {item.cpuType}{item.cpuSpeed ? ` @ ${item.cpuSpeed}` : ''}</span>}
                 {item.ram && <span>RAM: {item.ram}</span>}
-                {item.storage && <span>Storage: {item.storage}</span>}
-                {item.operatingSystem && <span>OS: {item.operatingSystem}</span>}
               </div>
             )}
             {item.sourceNotes && (
@@ -601,14 +659,22 @@ export default function WishlistPage() {
     priority: editingItem.priority,
     group: editingItem.group ?? "",
     categoryId: editingItem.categoryId ? String(editingItem.categoryId) : "",
-    cpu: editingItem.cpu ?? "",
+    cpu: editingItem.cpuType ?? "",
+    cpuType: editingItem.cpuType ?? "",
+    cpuSpeed: editingItem.cpuSpeed ?? "",
     ram: editingItem.ram ?? "",
-    graphics: editingItem.graphics ?? "",
+    graphics: editingItem.graphicsChip ?? "",
+    graphicsChip: editingItem.graphicsChip ?? "",
+    screenSize: editingItem.screenSize ?? "",
+    displayType: editingItem.displayType ?? "",
+    displayVariant: editingItem.displayVariant ?? "",
+    nativeResolution: editingItem.nativeResolution ?? "",
     storage: editingItem.storage ?? "",
     operatingSystem: editingItem.operatingSystem ?? "",
     externalUrl: editingItem.externalUrl ?? "",
     isWifiEnabled: editingItem.isWifiEnabled ?? false,
-    isPramBatteryRemoved: editingItem.isPramBatteryRemoved ?? false,
+    pramBatteryInstalled: editingItem.pramBatteryInstalled ?? true,
+    pramBatteryExpiryDate: editingItem.pramBatteryExpiryDate ?? "",
   } : undefined;
 
   return (

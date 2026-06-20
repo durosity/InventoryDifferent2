@@ -44,8 +44,8 @@ export async function handleSearchDevices(prisma: PrismaClient, args: any) {
     devices = devices.filter((device) => {
       const searchableText = [
         device.name, device.additionalName, device.manufacturer, device.modelNumber,
-        device.serialNumber, device.cpu, device.ram, device.graphics, device.storage,
-        device.operatingSystem, device.info, (device as any).location?.name,
+        device.serialNumber, device.cpuType, device.cpuSpeed, device.ram, device.graphicsChip,
+        device.screenSize, device.displayType, device.info, (device as any).location?.name,
         ...device.tags.map((t) => t.name),
         ...device.notes.map((n) => n.content),
       ].filter(Boolean).join(" ").toLowerCase();
@@ -64,10 +64,10 @@ export async function handleSearchDevices(prisma: PrismaClient, args: any) {
     functionalStatus: d.functionalStatus,
     category: d.category.name,
     categoryType: d.category.type,
-    cpu: d.cpu,
+    cpuType: d.cpuType,
+    cpuSpeed: d.cpuSpeed,
     ram: d.ram,
-    storage: d.storage,
-    operatingSystem: d.operatingSystem,
+    graphicsChip: d.graphicsChip,
     location: (d as any).location?.name ?? null,
     estimatedValue: decimalToNumber(d.estimatedValue),
     listPrice: decimalToNumber(d.listPrice),
@@ -113,9 +113,11 @@ export async function handleGetDeviceDetails(prisma: PrismaClient, args: any) {
     isAssetTagged: device.isAssetTagged,
     category: { id: device.category.id, name: device.category.name, type: device.category.type },
     specs: {
-      cpu: device.cpu, ram: device.ram, graphics: device.graphics,
-      storage: device.storage, operatingSystem: device.operatingSystem,
-      isWifiEnabled: device.isWifiEnabled, isPramBatteryRemoved: device.isPramBatteryRemoved,
+      cpuType: device.cpuType, cpuSpeed: device.cpuSpeed, ram: device.ram, graphicsChip: device.graphicsChip,
+      screenSize: device.screenSize, displayType: device.displayType, displayVariant: device.displayVariant,
+      nativeResolution: device.nativeResolution, isWifiEnabled: device.isWifiEnabled,
+      pramBatteryInstalled: device.pramBatteryInstalled, pramBatteryExpiryDate: device.pramBatteryExpiryDate,
+      isRetroBrited: device.isRetroBrited, isRecapped: device.isRecapped,
     },
     acquisition: {
       dateAcquired: device.dateAcquired, whereAcquired: device.whereAcquired,
@@ -225,13 +227,19 @@ export async function handleListDevices(prisma: PrismaClient, args: any) {
     if (shouldInclude("listPrice")) device.listPrice = decimalToNumber(d.listPrice);
     if (shouldInclude("soldPrice")) device.soldPrice = decimalToNumber(d.soldPrice);
     if (shouldInclude("soldDate")) device.soldDate = d.soldDate;
-    if (shouldInclude("cpu")) device.cpu = d.cpu;
+    if (shouldInclude("cpuType")) device.cpuType = d.cpuType;
+    if (shouldInclude("cpuSpeed")) device.cpuSpeed = d.cpuSpeed;
     if (shouldInclude("ram")) device.ram = d.ram;
-    if (shouldInclude("graphics")) device.graphics = d.graphics;
-    if (shouldInclude("storage")) device.storage = d.storage;
-    if (shouldInclude("operatingSystem")) device.operatingSystem = d.operatingSystem;
+    if (shouldInclude("graphicsChip")) device.graphicsChip = d.graphicsChip;
+    if (shouldInclude("screenSize")) device.screenSize = d.screenSize;
+    if (shouldInclude("displayType")) device.displayType = d.displayType;
+    if (shouldInclude("displayVariant")) device.displayVariant = d.displayVariant;
+    if (shouldInclude("nativeResolution")) device.nativeResolution = d.nativeResolution;
     if (shouldInclude("isWifiEnabled")) device.isWifiEnabled = d.isWifiEnabled;
-    if (shouldInclude("isPramBatteryRemoved")) device.isPramBatteryRemoved = d.isPramBatteryRemoved;
+    if (shouldInclude("pramBatteryInstalled")) device.pramBatteryInstalled = d.pramBatteryInstalled;
+    if (shouldInclude("pramBatteryExpiryDate")) device.pramBatteryExpiryDate = d.pramBatteryExpiryDate;
+    if (shouldInclude("isRetroBrited")) device.isRetroBrited = d.isRetroBrited;
+    if (shouldInclude("isRecapped")) device.isRecapped = d.isRecapped;
     if (shouldInclude("lastPowerOnDate")) device.lastPowerOnDate = d.lastPowerOnDate;
     if (shouldInclude("externalUrl")) device.externalUrl = d.externalUrl;
     if (shouldInclude("category")) device.category = { id: d.category.id, name: d.category.name, type: d.category.type };
