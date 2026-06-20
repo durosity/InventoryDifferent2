@@ -53,6 +53,10 @@ npm-debug.log*
 ios/.build/
 ios/DerivedData/
 *.xcuserstate
+xcuserdata/
+*.xcschememanagement
 showcase-seed.js
 populate-historical-notes.js
-ios/InventoryDifferent/InventoryDifferent.xcodeproj/xcuserdata/wottle.xcuserdatad/xcdebugger/Breakpoints_v2.xcbkptlist
+
+# Playwright MCP session artifacts
+.playwright-mcp/
