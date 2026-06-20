@@ -101,6 +101,35 @@ Provides tools for AI assistants to query inventory:
 
 See `api/prisma/schema.prisma` for complete schema.
 
+## Schema Change Checklist
+
+When adding, removing, or renaming fields in `api/prisma/schema.prisma`, every layer that touches that data must be updated in the **same commit**. Missing any one of these will break the Docker build or produce silent data loss.
+
+**Required updates for any Device/Template field change:**
+
+1. **`api/prisma/schema.prisma`** — source of truth; write the migration SQL in `api/prisma/migrations/`
+2. **`mcp-server/prisma/schema.prisma`** — mirror of Device/Template models; must stay in sync or `tsc` fails at Docker build time
+3. **`api/src/typeDefs.ts`** — GraphQL schema; add/remove the field from the relevant type and any input types
+4. **`api/src/resolvers.ts`** — read/write the field in the appropriate resolvers
+5. **`api/src/index.ts`** — any REST endpoints, bulk import/export, or search text construction that references the field
+6. **`mcp-server/src/index.ts`** — all four tool handlers (`search_devices`, `get_device_details`, `list_all_devices`, `list_devices`) include/select and map device fields
+7. **`api/prisma/seed.ts`** — `parseTemplatesFromSql` and the template upsert `update`/`create` blocks; parsing logic must match the migration SQL so fresh installs produce the same structured data as migrated databases
+8. **Web** (`web/src/`) — form components, display components, GraphQL queries/fragments, TypeScript types
+9. **iOS** (`ios/`) — `Models/Device.swift`, `Models/Template.swift`, views that display or edit the field, GraphQL query strings in Services
+
+**For new relation tables** (e.g. adding a `DeviceStorage` join table):
+- Add the model to **both** `api/prisma/schema.prisma` and `mcp-server/prisma/schema.prisma`
+- Add the relation field on `Device` in both schemas
+- Run `npx prisma generate` in **both** `api/` and `mcp-server/` after schema changes
+- Update seed logic to populate/migrate the relation rows (not just the scalar columns)
+
+**Verification before committing:**
+```bash
+cd api && npx tsc --noEmit          # must pass
+cd mcp-server && npx tsc --noEmit   # must pass
+cd web && npm run build              # must pass
+```
+
 ## GraphQL Patterns
 
 Filtering uses `DeviceWhereInput`:

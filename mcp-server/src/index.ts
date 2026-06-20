@@ -312,6 +312,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             accessories: true,
             links: true,
             location: true,
+            storageEntries: true,
+            osEntries: true,
           },
           take: limit,
           orderBy: { name: "asc" },
@@ -327,11 +329,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               device.manufacturer,
               device.modelNumber,
               device.serialNumber,
-              device.cpu,
+              device.cpuType,
+              device.cpuSpeed,
               device.ram,
-              device.graphics,
-              device.storage,
-              device.operatingSystem,
+              device.graphicsChip,
+              ...device.storageEntries.map((s) => s.value),
+              ...device.osEntries.map((o) => o.value),
               device.info,
               (device as any).location?.name,
               ...device.tags.map((t) => t.name),
@@ -358,10 +361,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           rarity: (d as any).rarity ?? null,
           category: d.category.name,
           categoryType: d.category.type,
-          cpu: d.cpu,
+          cpuType: d.cpuType,
+          cpuSpeed: d.cpuSpeed,
           ram: d.ram,
-          storage: d.storage,
-          operatingSystem: d.operatingSystem,
+          storage: d.storageEntries.map((s) => s.value).join(' + ') || null,
+          operatingSystem: d.osEntries.map((o) => o.value).join(', ') || null,
           location: (d as any).location?.name ?? null,
           estimatedValue: decimalToNumber(d.estimatedValue),
           listPrice: decimalToNumber(d.listPrice),
@@ -401,6 +405,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             accessories: true,
             links: true,
             location: true,
+            storageEntries: { orderBy: { sortOrder: "asc" } },
+            osEntries: { orderBy: { sortOrder: "asc" } },
           },
         });
 
@@ -438,13 +444,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             type: device.category.type,
           },
           specs: {
-            cpu: device.cpu,
+            cpuType: device.cpuType,
+            cpuSpeed: device.cpuSpeed,
             ram: device.ram,
-            graphics: device.graphics,
-            storage: device.storage,
-            operatingSystem: device.operatingSystem,
+            graphicsChip: device.graphicsChip,
+            screenSize: device.screenSize,
+            displayType: device.displayType,
+            displayVariant: device.displayVariant,
+            nativeResolution: device.nativeResolution,
+            storage: device.storageEntries.map((s) => s.value),
+            operatingSystem: device.osEntries.map((o) => o.value),
             isWifiEnabled: device.isWifiEnabled,
-            isPramBatteryRemoved: device.isPramBatteryRemoved,
+            pramBatteryInstalled: device.pramBatteryInstalled,
+            pramBatteryExpiryDate: device.pramBatteryExpiryDate,
+            isRetroBrited: device.isRetroBrited,
+            isRecapped: device.isRecapped,
           },
           acquisition: {
             dateAcquired: device.dateAcquired,
@@ -586,13 +600,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             releaseYear: true,
             status: true,
             functionalStatus: true,
-            cpu: true,
+            cpuType: true,
             ram: true,
-            storage: true,
-            operatingSystem: true,
             estimatedValue: true,
             category: { select: { name: true, type: true } },
             tags: { select: { name: true } },
+            storageEntries: { select: { value: true, sortOrder: true } },
+            osEntries: { select: { value: true, sortOrder: true } },
           },
           orderBy: [
             { category: { sortOrder: 'asc' } },
@@ -616,10 +630,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             rarity: (d as any).rarity ?? null,
             category: d.category?.name,
             categoryType: d.category?.type,
-            cpu: d.cpu,
+            cpu: d.cpuType,
             ram: d.ram,
-            storage: d.storage,
-            os: d.operatingSystem,
+            storage: d.storageEntries.map((s) => s.value).join(' + ') || null,
+            os: d.osEntries.map((o) => o.value).join(', ') || null,
             estimatedValue: d.estimatedValue ? Number(d.estimatedValue) : null,
             tags: d.tags.length > 0 ? d.tags.map(t => t.name) : undefined,
           })),
@@ -674,6 +688,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             accessories: true,
             links: true,
             location: true,
+            storageEntries: { orderBy: { sortOrder: "asc" } },
+            osEntries: { orderBy: { sortOrder: "asc" } },
           },
           take: limit,
           orderBy: { id: "asc" },
@@ -719,16 +735,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           if (shouldInclude("soldPrice"))
             device.soldPrice = decimalToNumber(d.soldPrice);
           if (shouldInclude("soldDate")) device.soldDate = d.soldDate;
-          if (shouldInclude("cpu")) device.cpu = d.cpu;
+          if (shouldInclude("cpuType")) device.cpuType = d.cpuType;
+          if (shouldInclude("cpuSpeed")) device.cpuSpeed = d.cpuSpeed;
           if (shouldInclude("ram")) device.ram = d.ram;
-          if (shouldInclude("graphics")) device.graphics = d.graphics;
-          if (shouldInclude("storage")) device.storage = d.storage;
+          if (shouldInclude("graphicsChip")) device.graphicsChip = d.graphicsChip;
+          if (shouldInclude("screenSize")) device.screenSize = d.screenSize;
+          if (shouldInclude("displayType")) device.displayType = d.displayType;
+          if (shouldInclude("displayVariant")) device.displayVariant = d.displayVariant;
+          if (shouldInclude("nativeResolution")) device.nativeResolution = d.nativeResolution;
+          if (shouldInclude("storage"))
+            device.storage = d.storageEntries.map((s) => s.value).join(' + ') || null;
           if (shouldInclude("operatingSystem"))
-            device.operatingSystem = d.operatingSystem;
+            device.operatingSystem = d.osEntries.map((o) => o.value).join(', ') || null;
           if (shouldInclude("isWifiEnabled"))
             device.isWifiEnabled = d.isWifiEnabled;
-          if (shouldInclude("isPramBatteryRemoved"))
-            device.isPramBatteryRemoved = d.isPramBatteryRemoved;
+          if (shouldInclude("pramBatteryInstalled"))
+            device.pramBatteryInstalled = d.pramBatteryInstalled;
           if (shouldInclude("lastPowerOnDate"))
             device.lastPowerOnDate = d.lastPowerOnDate;
           if (shouldInclude("externalUrl")) device.externalUrl = d.externalUrl;
