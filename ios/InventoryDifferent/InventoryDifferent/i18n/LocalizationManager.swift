@@ -33,7 +33,7 @@ final class LocalizationManager: ObservableObject {
     static let supported = ["en", "de", "fr", "es"]
 
     /// Currency codes available in Settings (first entry means "use language default").
-    static let supportedCurrencies = ["system", "USD", "EUR", "GBP", "CAD", "AUD", "JPY"]
+    static let supportedCurrencies = ["system", "USD", "EUR", "GBP", "CAD", "AUD", "JPY", "MXN", "ARS", "CLP"]
 
     /// The active translations object. Views observe this via @EnvironmentObject.
     @Published private(set) var t: Translations

@@ -56,6 +56,9 @@
                 <string>CURRENCY_CAD</string>
                 <string>CURRENCY_AUD</string>
                 <string>CURRENCY_JPY</string>
+                <string>CURRENCY_MXN</string>
+                <string>CURRENCY_ARS</string>
+                <string>CURRENCY_CLP</string>
             </array>
             <key>Values</key>
             <array>
@@ -66,6 +69,9 @@
                 <string>CAD</string>
                 <string>AUD</string>
                 <string>JPY</string>
+                <string>MXN</string>
+                <string>ARS</string>
+                <string>CLP</string>
             </array>
         </dict>
     </array>
