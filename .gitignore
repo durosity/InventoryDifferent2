@@ -55,6 +55,7 @@ ios/DerivedData/
 *.xcuserstate
 xcuserdata/
 *.xcschememanagement
+ios/InventoryDifferent/Configurations/Local.xcconfig
 showcase-seed.js
 populate-historical-notes.js
 

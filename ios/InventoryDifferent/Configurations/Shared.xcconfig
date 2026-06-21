@@ -1,0 +1,8 @@
+// Shared build identity defaults.
+// Each developer overrides these in Local.xcconfig (gitignored).
+// Copy Local.xcconfig.template → Local.xcconfig, then fill in your values.
+
+DEVELOPMENT_TEAM = XLY3EERM8Z
+BUNDLE_ID_PREFIX = com.wottle
+
+#include? "Local.xcconfig"
