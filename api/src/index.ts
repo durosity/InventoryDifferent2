@@ -1917,6 +1917,7 @@ RESTART IDENTITY CASCADE;
     const server = new ApolloServer<Context>({
         typeDefs,
         resolvers,
+        introspection: process.env.NODE_ENV !== 'production',
     });
 
     await server.start();
