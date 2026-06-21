@@ -22,6 +22,7 @@ import {
     consumeRefreshToken,
 } from './auth';
 import { authMiddleware, requireAuth } from './middleware/auth';
+import rateLimit from 'express-rate-limit';
 
 const JSZip = require('jszip');
 const sharp = require('sharp');
@@ -187,8 +188,16 @@ export async function createApp(prismaOverride?: PrismaClient) {
 
     // ============== AUTH ENDPOINTS ==============
 
+    const authRateLimit = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 10,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: { error: 'Too many login attempts. Please try again later.' },
+    });
+
     // Login endpoint
-    app.post('/auth/login', async (req, res) => {
+    app.post('/auth/login', authRateLimit, async (req, res) => {
         const { username, password } = req.body;
 
         if (!password) {
@@ -226,7 +235,7 @@ export async function createApp(prismaOverride?: PrismaClient) {
     });
 
     // Refresh token endpoint
-    app.post('/auth/refresh', async (req, res) => {
+    app.post('/auth/refresh', authRateLimit, async (req, res) => {
         const { refreshToken } = req.body;
 
         if (!refreshToken) {
