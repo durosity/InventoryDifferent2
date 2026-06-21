@@ -4,6 +4,10 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+---
+
+## [2.8.6] - 2026-06-21
+
 ### Fixed
 - API CORS policy now restricted to configured DOMAIN, SHOP_DOMAIN, and SHOWCASE_DOMAIN in production — previously any origin could make cross-origin requests to the GraphQL endpoint
 - API now sets HTTP security headers via Helmet (X-Content-Type-Options, X-Frame-Options, HSTS, Referrer-Policy, etc.)
