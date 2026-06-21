@@ -15,11 +15,21 @@ InvDifferent2 is a vintage computer collection inventory management system. It's
 
 This project is distributed as pre-built Docker images published to Docker Hub (`wottle/inventory-*:latest`). The primary deployment path for end users is pulling these images via `docker-compose.simple.yml` (simple/local) or `docker-compose.prod.yml` (Traefik + HTTPS). End-user setup instructions live in `README.md`.
 
-When changes are ready to ship:
-1. Push to `main` — GitHub Actions automatically builds multi-arch images and pushes to Docker Hub as `:latest`
-2. Push to `dev` — builds and pushes `:dev` images for pre-release testing without affecting `:latest`
-   - Promote `:dev` → `:latest` by merging `dev` into `main`, or via Actions → Retag Docker Images (skips rebuild)
-3. Users update by running `docker compose pull && docker compose up -d` — migrations run automatically on container start via `api/entrypoint.sh`
+## Branch & PR Workflow
+
+All work follows a **dev-first** flow — `dev` is the staging branch, `main` is production:
+
+1. Create a feature or fix branch from `dev` (e.g. `fix/my-bug`, `feature/my-feature`)
+2. Open a PR targeting **`dev`** — never target `main` directly
+3. Merge to `dev` → GitHub Actions builds and pushes `:dev` images for staging verification
+4. Test on staging (`docker compose pull && docker compose up -d`)
+5. When confirmed working, merge `dev` → `main` to publish `:latest` for end users
+
+To promote `dev` → `main`:
+- Merge via PR, **or**
+- Via Actions → Retag Docker Images (skips rebuild if images are already good)
+
+Users update by running `docker compose pull && docker compose up -d` — migrations run automatically on container start via `api/entrypoint.sh`.
 
 The `./build-and-push.sh` script still exists for manual local builds if needed, but the normal path is CI/CD via GitHub Actions.
 
