@@ -435,8 +435,8 @@ function IndicatorCard({ color, iconName, label, value, active = true }: { color
   );
 }
 
-function formatCurrency(value: number): string {
-  return `$${Number(value).toFixed(2)}`;
+function formatCurrency(value: number, currencySymbol: string): string {
+  return `${currencySymbol}${Number(value).toFixed(2)}`;
 }
 
 function calcGainPct(acquired: number, estimated: number): string {
@@ -1290,7 +1290,7 @@ export default function DeviceDetailNew() {
                     {device.priceAcquired != null ? (
                       <>
                         <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.acquisitionPrice}</span>
-                        <span className="text-3xl font-bold text-on-surface mb-3">{formatCurrency(device.priceAcquired)}</span>
+                        <span className="text-3xl font-bold text-on-surface mb-3">{formatCurrency(device.priceAcquired, t.common.currencySymbol)}</span>
                       </>
                     ) : (
                       <span className="text-outline text-[10px] uppercase tracking-widest block mb-3">{t.detail.acquisition}</span>
@@ -1323,7 +1323,7 @@ export default function DeviceDetailNew() {
                           <>
                             <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.repairFee}</span>
                             {device.soldPrice != null ? (
-                              <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.soldPrice)}</span>
+                              <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.soldPrice, t.common.currencySymbol)}</span>
                             ) : (
                               <span className="text-on-surface-variant text-sm">{t.detail.noFeeCharged}</span>
                             )}
@@ -1334,7 +1334,7 @@ export default function DeviceDetailNew() {
                         ) : device.soldPrice != null && !isCollection ? (
                           <>
                             <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.salePrice}</span>
-                            <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.soldPrice)}</span>
+                            <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.soldPrice, t.common.currencySymbol)}</span>
                             {device.soldDate && (
                               <span className="text-on-surface-variant text-xs block mt-2">{formatDateForDisplay(device.soldDate)}</span>
                             )}
@@ -1344,13 +1344,13 @@ export default function DeviceDetailNew() {
                             {device.listPrice != null && (
                               <>
                                 <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.listPriceLabel}</span>
-                                <span className="text-3xl font-bold text-on-surface mb-3">{formatCurrency(device.listPrice)}</span>
+                                <span className="text-3xl font-bold text-on-surface mb-3">{formatCurrency(device.listPrice, t.common.currencySymbol)}</span>
                               </>
                             )}
                             {device.estimatedValue != null && (
                               <>
                                 <span className="text-outline text-[10px] uppercase tracking-widest block mb-1 mt-2">{t.detail.estValue}</span>
-                                <span className="text-xl font-semibold text-on-surface">{formatCurrency(device.estimatedValue)}</span>
+                                <span className="text-xl font-semibold text-on-surface">{formatCurrency(device.estimatedValue, t.common.currencySymbol)}</span>
                               </>
                             )}
                             {gainPct != null && (
@@ -1362,7 +1362,7 @@ export default function DeviceDetailNew() {
                         ) : (
                           <>
                             <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.estimatedValue}</span>
-                            <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.estimatedValue)}</span>
+                            <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.estimatedValue, t.common.currencySymbol)}</span>
                             {gainPct != null && (
                               <span className={`${gainTextClass} text-sm font-bold block mt-1`}>
                                 {gainPct >= 0 ? '+' : ''}{gainPct.toFixed(1)}% {t.detail.sincePurchase}
@@ -2022,7 +2022,7 @@ export default function DeviceDetailNew() {
                             <span className="text-[10px] text-outline shrink-0 ml-2">{formatDateForDisplay(task.dateCompleted).toUpperCase()}</span>
                           </div>
                           {task.notes && <p className="text-xs text-on-surface-variant">{task.notes}</p>}
-                          {task.cost != null && <p className="text-xs text-on-surface-variant mt-1">Cost: {formatCurrency(task.cost)}</p>}
+                          {task.cost != null && <p className="text-xs text-on-surface-variant mt-1">Cost: {formatCurrency(task.cost, t.common.currencySymbol)}</p>}
                         </div>
                         {isAuthenticated && (
                           <div className="flex flex-col gap-1 opacity-0 group-hover/task:opacity-100 transition-opacity shrink-0">
