@@ -180,6 +180,9 @@ export async function createApp(prismaOverride?: PrismaClient) {
     // Health check endpoint — used by Docker healthcheck to know when the API is ready
     app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
+    // Trust the first proxy hop (Traefik) so req.ip reflects the real client IP
+    app.set('trust proxy', 1);
+
     // Apply auth middleware to all routes (sets req.isAuthenticated)
     app.use(authMiddleware);
 
