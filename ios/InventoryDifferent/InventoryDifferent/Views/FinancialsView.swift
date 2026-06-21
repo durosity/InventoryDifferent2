@@ -184,16 +184,7 @@ struct FinancialsView: View {
                     lm.t.financials.netPositionLine: Color.blue
                 ])
                 .chartYAxis {
-                    let currencySymbol = lm.t.common.currencySymbol
-
-                    if( currencySymbol == "$") {
-                        AxisMarks(format: .currency(code: "USD"))
-                    } else if ( currencySymbol == "€") {
-                        AxisMarks(format: .currency(code: "EUR"))
-                    } else {
-                        AxisMarks(format: .currency(code: "USD"))
-
-                    }
+                    AxisMarks(format: .currency(code: lm.effectiveCurrencyCode))
                 }
                 .chartXAxis {
                     // Pick ~5 evenly spaced indices to label so the axis stays readable
@@ -510,11 +501,9 @@ struct FinancialsView: View {
     private func formatCurrency(_ value: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        // Use the currency symbol from translations
-        let currencySymbol = lm.t.common.currencySymbol
-        formatter.currencySymbol = currencySymbol
-        formatter.locale = Locale.current
-        return formatter.string(from: NSNumber(value: value)) ?? "\(currencySymbol)0.00"
+        formatter.locale = Locale(identifier: lm.effectiveLocale)
+        formatter.currencyCode = lm.effectiveCurrencyCode
+        return formatter.string(from: NSNumber(value: value)) ?? "\(lm.effectiveCurrencySymbol)0.00"
     }
     
     private func formatDate(_ dateString: String) -> String {

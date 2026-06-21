@@ -214,7 +214,7 @@ function WishlistForm({ categories, templates, existingGroups, initialValues, is
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return "";
-    return `${t.common.currencySymbol}${Number(value).toFixed(2)}`;
+    return new Intl.NumberFormat(t.common.locale, { style: "currency", currency: t.common.currencyCode }).format(Number(value));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -497,7 +497,7 @@ function WishlistItemCard({
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return "";
-    return `${t.common.currencySymbol}${Number(value).toFixed(2)}`;
+    return new Intl.NumberFormat(t.common.locale, { style: "currency", currency: t.common.currencyCode }).format(Number(value));
   };
 
   const PRIORITY_LABELS: Record<number, string> = {

@@ -115,6 +115,8 @@ export const de: Translations = {
     date: "Datum",
     cost: "Kosten",
     currencySymbol: "€",
+    currencyCode: "EUR",
+    locale: "de-DE",
     back: "Zurück",
     save: "Speichern",
     edit: "Bearbeiten",

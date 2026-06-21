@@ -756,19 +756,19 @@ export default function Home() {
                   <div className="flex items-center gap-2">
                     <span className="text-[var(--muted-foreground)]">{t.home.estValue}</span>
                     <span className="font-semibold text-[var(--foreground)]">
-                      ${filteredDevices.reduce((sum: number, d: any) => sum + (d.estimatedValue || 0), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {new Intl.NumberFormat(t.common.locale, { style: 'currency', currency: t.common.currencyCode }).format(filteredDevices.reduce((sum: number, d: any) => sum + (d.estimatedValue || 0), 0))}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[var(--muted-foreground)]">{t.home.totalSpent}</span>
                     <span className="font-semibold text-[var(--foreground)]">
-                      ${filteredDevices.reduce((sum: number, d: any) => sum + (d.priceAcquired || 0), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {new Intl.NumberFormat(t.common.locale, { style: 'currency', currency: t.common.currencyCode }).format(filteredDevices.reduce((sum: number, d: any) => sum + (d.priceAcquired || 0), 0))}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[var(--muted-foreground)]">{t.home.totalSold}</span>
                     <span className="font-semibold text-[var(--foreground)]">
-                      ${filteredDevices.reduce((sum: number, d: any) => sum + (d.soldPrice || 0), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {new Intl.NumberFormat(t.common.locale, { style: 'currency', currency: t.common.currencyCode }).format(filteredDevices.reduce((sum: number, d: any) => sum + (d.soldPrice || 0), 0))}
                     </span>
                   </div>
                 </div>

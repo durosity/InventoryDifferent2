@@ -113,6 +113,8 @@ export type Translations = {
     date: string;
     cost: string;
     currencySymbol: string;
+    currencyCode: string;
+    locale: string;
     back: string;
     save: string;
     edit: string;
@@ -1106,6 +1108,8 @@ export const en: Translations = {
     date: "Date",
     cost: "Cost",
     currencySymbol: "$",
+    currencyCode: "USD",
+    locale: "en-US",
     back: "Back",
     save: "Save",
     edit: "Edit",

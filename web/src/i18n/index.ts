@@ -11,5 +11,20 @@ export type SupportedLanguage = keyof typeof translations;
 
 export function getTranslations(lang?: string | null) {
   const key = (lang ?? "en") as SupportedLanguage;
-  return translations[key] ?? en;
+  const base = translations[key] ?? en;
+
+  const currencyOverride = process.env.CURRENCY;
+  if (!currencyOverride) return base;
+
+  const symbolOverride = new Intl.NumberFormat(base.common.locale, {
+    style: "currency",
+    currency: currencyOverride,
+  })
+    .formatToParts(1)
+    .find((p) => p.type === "currency")?.value ?? currencyOverride;
+
+  return {
+    ...base,
+    common: { ...base.common, currencyCode: currencyOverride, currencySymbol: symbolOverride },
+  };
 }

@@ -132,7 +132,7 @@ const DeviceRow = memo(function DeviceRow({ device }: { device: Device }) {
   const thumbnail = thumbImage?.thumbnailPath || thumbImage?.path;
 
   const formatPrice = (p: number | null | undefined) =>
-    p == null ? null : `${t.common.currencySymbol}${p.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    p == null ? null : new Intl.NumberFormat(t.common.locale, { style: "currency", currency: t.common.currencyCode, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(p);
 
   const valueLabel = () => {
     switch (device.status) {

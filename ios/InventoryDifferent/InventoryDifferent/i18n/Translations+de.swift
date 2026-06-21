@@ -50,6 +50,8 @@ extension Translations {
             error: "Fehler",
             noData: "Keine Daten",
             currencySymbol: "€",
+            currencyCode: "EUR",
+            locale: "de_DE",
             yes: "Ja",
             no: "Nein",
             more: "Mehr...",

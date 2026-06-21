@@ -80,7 +80,7 @@ struct AddMaintenanceTaskView: View {
 
                     DatePicker(t.maintenance.dateCompleted, selection: $dateCompleted, displayedComponents: .date)
                     HStack {
-                        Text(t.common.currencySymbol)
+                        Text(lm.effectiveCurrencySymbol)
                             .foregroundColor(.secondary)
                         TextField(t.maintenance.cost, text: $cost)
                             .keyboardType(.decimalPad)

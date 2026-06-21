@@ -815,7 +815,6 @@ struct DeviceDetailRedesignView: View {
 
     private var valuationCards: some View {
         let t = lm.t
-        let symbol = t.common.currencySymbol
         let appreciation: Double? = {
             guard let paid = device.priceAcquired, paid > 0,
                   let value = device.estimatedValue else { return nil }
@@ -831,7 +830,7 @@ struct DeviceDetailRedesignView: View {
                     .tracking(1)
                     .foregroundColor(.secondary)
                 if let paid = device.priceAcquired {
-                    Text("\(symbol)\(String(format: "%.0f", paid))")
+                    Text(formatCurrency(paid, fractionDigits: 0))
                         .font(.system(size: 24, weight: .black))
                         .tracking(-0.5)
                 } else {
@@ -866,7 +865,7 @@ struct DeviceDetailRedesignView: View {
                         .tracking(1)
                         .foregroundColor(.secondary)
                     if let sold = device.soldPrice {
-                        Text("\(symbol)\(String(format: "%.0f", sold))")
+                        Text(formatCurrency(sold, fractionDigits: 0))
                             .font(.system(size: 24, weight: .black))
                             .tracking(-0.5)
                             .foregroundColor(.red)
@@ -902,7 +901,7 @@ struct DeviceDetailRedesignView: View {
                             .foregroundColor(.secondary)
                     }
                     if let fee = device.soldPrice, fee > 0 {
-                        Text("\(t.deviceDetail.repairFeeCharged): \(symbol)\(String(format: "%.0f", fee))")
+                        Text("\(t.deviceDetail.repairFeeCharged): \(formatCurrency(fee, fractionDigits: 0))")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.secondary)
                     }
@@ -944,7 +943,7 @@ struct DeviceDetailRedesignView: View {
                         .tracking(1)
                         .foregroundColor(.secondary)
                     if let value = device.estimatedValue {
-                        Text("\(symbol)\(String(format: "%.0f", value))")
+                        Text(formatCurrency(value, fractionDigits: 0))
                             .font(.system(size: 24, weight: .black))
                             .tracking(-0.5)
                             .foregroundColor(.edTertiary)
@@ -955,7 +954,7 @@ struct DeviceDetailRedesignView: View {
                     }
                     if device.status == .FOR_SALE || device.status == .PENDING_SALE,
                        let list = device.listPrice {
-                        Text("\(t.deviceDetail.listPrice): \(symbol)\(String(format: "%.0f", list))")
+                        Text("\(t.deviceDetail.listPrice): \(formatCurrency(list, fractionDigits: 0))")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.orange)
                     } else if let pct = appreciation {
@@ -1347,10 +1346,7 @@ struct DeviceDetailRedesignView: View {
                                     Spacer()
                                     
                                     if let cost = task.cost {
-                                        Text( t.common.currencySymbol )
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.secondary)
-                                        Text( cost, format: .number.precision(.fractionLength(2)) )
+                                        Text(formatCurrency(cost))
                                             .font(.system(size: 12))
                                             .foregroundColor(.secondary)
                                             .lineLimit(1)
@@ -2045,6 +2041,16 @@ struct DeviceDetailRedesignView: View {
 
     // MARK: - Helpers
 
+    private func formatCurrency(_ value: Double, fractionDigits: Int = 2) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = Locale(identifier: lm.effectiveLocale)
+        formatter.currencyCode = lm.effectiveCurrencyCode
+        formatter.minimumFractionDigits = fractionDigits
+        formatter.maximumFractionDigits = fractionDigits
+        return formatter.string(from: NSNumber(value: value)) ?? "\(lm.effectiveCurrencySymbol)\(String(format: "%.\(fractionDigits)f", value))"
+    }
+
     private func formatDate(_ dateString: String?) -> String? {
         guard let dateString else { return nil }
         let formatter = ISO8601DateFormatter()
@@ -2574,10 +2580,7 @@ private struct EDLogRowView: View {
                             .lineLimit(2)
                         Spacer()
                         if let cost = task.cost, cost > 0 {
-                            Text(lm.t.common.currencySymbol)
-                                .font(.system(size: 12))
-                                .foregroundColor(.secondary)
-                            Text(cost, format: .number.precision(.fractionLength(2)))
+                            Text(formatCurrency(cost))
                                 .font(.system(size: 12))
                                 .foregroundColor(.secondary)
                         }
@@ -2627,6 +2630,14 @@ private struct EDLogRowView: View {
                 .padding()
             }
         }
+    }
+
+    private func formatCurrency(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = Locale(identifier: lm.effectiveLocale)
+        formatter.currencyCode = lm.effectiveCurrencyCode
+        return formatter.string(from: NSNumber(value: value)) ?? "\(lm.effectiveCurrencySymbol)\(String(format: "%.2f", value))"
     }
 
     private func edFormatDate(_ dateString: String) -> String {

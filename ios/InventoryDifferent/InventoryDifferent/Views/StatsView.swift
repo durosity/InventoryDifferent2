@@ -317,9 +317,9 @@ struct StatsView: View {
     private func formatCurrency(_ value: Double) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        let symbol = lm.t.common.currencySymbol
-        formatter.currencyCode = symbol == "€" ? "EUR" : "USD"
-        return formatter.string(from: NSNumber(value: value)) ?? "\(symbol)0.00"
+        formatter.locale = Locale(identifier: lm.effectiveLocale)
+        formatter.currencyCode = lm.effectiveCurrencyCode
+        return formatter.string(from: NSNumber(value: value)) ?? "\(lm.effectiveCurrencySymbol)0.00"
     }
 
     // MARK: - Translation Helpers

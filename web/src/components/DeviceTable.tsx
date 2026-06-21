@@ -31,7 +31,7 @@ export function DeviceTable({ devices, sortColumn, sortDirection, onSortChange }
 
   const formatCurrency = (value: number | null | undefined) => {
     if (value === null || value === undefined) return '';
-    return `${t.common.currencySymbol}${Number(value).toFixed(2)}`;
+    return new Intl.NumberFormat(t.common.locale, { style: "currency", currency: t.common.currencyCode }).format(Number(value));
   };
 
   const handleSort = (column: SortColumn) => {

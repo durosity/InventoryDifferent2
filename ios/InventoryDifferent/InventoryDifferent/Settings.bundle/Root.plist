@@ -38,6 +38,36 @@
                 <string>es</string>
             </array>
         </dict>
+        <dict>
+            <key>Type</key>
+            <string>PSMultiValueSpecifier</string>
+            <key>Title</key>
+            <string>CURRENCY_TITLE</string>
+            <key>Key</key>
+            <string>app_currency</string>
+            <key>DefaultValue</key>
+            <string>system</string>
+            <key>Titles</key>
+            <array>
+                <string>CURRENCY_SYSTEM</string>
+                <string>CURRENCY_USD</string>
+                <string>CURRENCY_EUR</string>
+                <string>CURRENCY_GBP</string>
+                <string>CURRENCY_CAD</string>
+                <string>CURRENCY_AUD</string>
+                <string>CURRENCY_JPY</string>
+            </array>
+            <key>Values</key>
+            <array>
+                <string>system</string>
+                <string>USD</string>
+                <string>EUR</string>
+                <string>GBP</string>
+                <string>CAD</string>
+                <string>AUD</string>
+                <string>JPY</string>
+            </array>
+        </dict>
     </array>
 </dict>
 </plist>

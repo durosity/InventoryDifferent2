@@ -10,6 +10,8 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
+import { useT } from "../i18n/context";
+import { formatCurrency, formatCurrencyCompact } from "../lib/currency";
 
 interface ValueChartDataPoint {
   date: string;
@@ -21,18 +23,12 @@ interface DeviceValueChartProps {
   data: ValueChartDataPoint[];
 }
 
-function formatCurrencyShort(value: number) {
-  if (Math.abs(value) >= 1000) {
-    return `$${(value / 1000).toFixed(1)}k`;
-  }
-  return `$${value.toFixed(0)}`;
-}
-
-function formatCurrencyFull(value: number) {
-  return `$${value.toFixed(2)}`;
-}
-
 export default function DeviceValueChart({ data }: DeviceValueChartProps) {
+  const t = useT();
+  const { locale, currencyCode } = t.common;
+  const formatCurrencyShort = (v: number) => formatCurrencyCompact(v, locale, currencyCode);
+  const formatCurrencyFull = (v: number) => formatCurrency(v, locale, currencyCode);
+
   if (data.length < 2) {
     return (
       <p className="text-sm text-[var(--muted-foreground)]">
