@@ -12,6 +12,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { useT } from "../i18n/context";
+import { formatCurrency, formatCurrencyCompact } from "../lib/currency";
 
 interface ChartDataPoint {
   date: string;
@@ -27,14 +28,10 @@ interface FinancialChartProps {
 
 export default function FinancialChart({ data }: FinancialChartProps) {
   const t = useT();
-  const sym = t.common.currencySymbol;
+  const { locale, currencyCode } = t.common;
 
-  const formatCurrencyShort = (value: number) => {
-    if (Math.abs(value) >= 1000) return `${sym}${(value / 1000).toFixed(1)}k`;
-    return `${sym}${value.toFixed(0)}`;
-  };
-
-  const formatCurrencyFull = (value: number) => `${sym}${value.toFixed(2)}`;
+  const formatCurrencyShort = (value: number) => formatCurrencyCompact(value, locale, currencyCode);
+  const formatCurrencyFull = (value: number) => formatCurrency(value, locale, currencyCode);
 
   if (data.length === 0) {
     return (

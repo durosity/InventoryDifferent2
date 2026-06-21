@@ -113,6 +113,8 @@ export type Translations = {
     date: string;
     cost: string;
     currencySymbol: string;
+    currencyCode: string;
+    locale: string;
     back: string;
     save: string;
     edit: string;
@@ -273,6 +275,11 @@ export type Translations = {
     operatingSystem: string;
     wifiEnabled: string;
     pramBatteryRemoved: string;
+    screenSize: string;
+    displayType: string;
+    resolution: string;
+    pramBattery: string;
+    pramExpiry: string;
     dateAcquired: string;
     whereAcquired: string;
     priceAcquired: string;
@@ -988,6 +995,24 @@ export type Translations = {
     createDevice: string;
     saveChanges: string;
     externalUrlLabel: string;
+    cpuType: string;
+    cpuSpeed: string;
+    graphicsChip: string;
+    screenSize: string;
+    displayType: string;
+    displayVariant: string;
+    nativeResolution: string;
+    pramBatteryInstalled: string;
+    pramBatteryExpiryDate: string;
+    cpuTypePlaceholder: string;
+    cpuSpeedPlaceholder: string;
+    graphicsChipPlaceholder: string;
+    screenSizePlaceholder: string;
+    displayTypePlaceholder: string;
+    displayVariantPlaceholder: string;
+    nativeResolutionPlaceholder: string;
+    storageEntryPlaceholder: string;
+    osEntryPlaceholder: string;
   };
 };
 
@@ -1106,6 +1131,8 @@ export const en: Translations = {
     date: "Date",
     cost: "Cost",
     currencySymbol: "$",
+    currencyCode: "USD",
+    locale: "en-US",
     back: "Back",
     save: "Save",
     edit: "Edit",
@@ -1266,6 +1293,11 @@ export const en: Translations = {
     operatingSystem: "Operating System",
     wifiEnabled: "WiFi Enabled",
     pramBatteryRemoved: "PRAM Battery Removed",
+    screenSize: "Screen Size",
+    displayType: "Display Type",
+    resolution: "Resolution",
+    pramBattery: "PRAM Battery",
+    pramExpiry: "PRAM Expiry",
     dateAcquired: "Date Acquired",
     whereAcquired: "Where Acquired",
     priceAcquired: "Price Acquired",
@@ -1988,5 +2020,23 @@ export const en: Translations = {
     createDevice: "Create Device",
     saveChanges: "Save Changes",
     externalUrlLabel: "External URL",
+    cpuType: "CPU Type",
+    cpuSpeed: "CPU Speed",
+    graphicsChip: "Graphics Chip",
+    screenSize: "Screen Size",
+    displayType: "Display Type",
+    displayVariant: "Display Variant",
+    nativeResolution: "Native Resolution",
+    pramBatteryInstalled: "PRAM Battery Installed",
+    pramBatteryExpiryDate: "PRAM Battery Expiry Date",
+    cpuTypePlaceholder: "e.g. Motorola 68000",
+    cpuSpeedPlaceholder: "e.g. 8 MHz",
+    graphicsChipPlaceholder: "e.g. ATI Rage 128 GL",
+    screenSizePlaceholder: 'e.g. 9" or 12.1"/14.1"',
+    displayTypePlaceholder: "e.g. LCD, CRT, Monochrome, OLED",
+    displayVariantPlaceholder: "e.g. Active Matrix, Sony Trinitron",
+    nativeResolutionPlaceholder: "e.g. 640x480",
+    storageEntryPlaceholder: "e.g. 1.44 MB Floppy, 40 MB SCSI HD",
+    osEntryPlaceholder: "e.g. System 7.5, Mac OS 8.1",
   },
 };

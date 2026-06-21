@@ -1,4 +1,4 @@
-export const APP_VERSION = '2.8.4';
+export const APP_VERSION = '2.8.5';
 
 export interface ReleaseEntry {
   version: string;
@@ -17,12 +17,22 @@ export const releaseNotes: ReleaseEntry[] = [
     fixed: [],
   },
   {
-    version: '2.8.3',
-    date: '2026-05-28',
-    added: [],
-    changed: [],
+    version: '2.8.5',
+    date: '2026-06-21',
+    added: [
+      'Currency can now be set independently of language — web: set CURRENCY env var; iOS: Settings → Currency picker (USD, EUR, GBP, CAD, AUD, JPY, MXN, ARS, CLP)',
+      'All new device spec fields (CPU Type/Speed, Graphics Chip, Screen Size, Display Type/Variant, Native Resolution, PRAM Battery) now fully translated in English, German, French, and Spanish on both web and iOS',
+    ],
+    changed: [
+      'Currency formatting now uses locale-aware formatting everywhere — euro symbol appears on the right for French, German, and Spanish (15,50 €) and on the left for English (€15.50)',
+      'Spanish language now defaults to EUR/€ (targeting Spain); other currencies available via the currency override setting',
+      '"Add storage" button label corrected to "Add Storage"',
+    ],
     fixed: [
-      'Photos page: edit button no longer appears on top of the thumbnail mode picker and delete confirmation dialogs',
+      'Euro symbol placement was wrong in Docker deployments due to Alpine\'s small-icu Node.js build — now installs full ICU data',
+      'Web device detail and edit form showed hardcoded English labels for new spec fields regardless of language',
+      'iOS device detail, Add Device, and Add Wishlist Item showed hardcoded English labels for new spec fields',
+      'PRAM Battery status displayed hardcoded "Installed"/"Removed" regardless of language',
     ],
   },
   {
@@ -37,6 +47,15 @@ export const releaseNotes: ReleaseEntry[] = [
       'iOS image viewer resets zoom to fit-to-screen when swiping to a different image',
       'iOS image viewer pinch-to-zoom now zooms toward the pinch center instead of always zooming from the image center',
       'iOS image viewer double-tap now zooms to 3× centered on the tapped point instead of the image center',
+    ],
+  },
+  {
+    version: '2.8.3',
+    date: '2026-05-28',
+    added: [],
+    changed: [],
+    fixed: [
+      'Photos page: edit button no longer appears on top of the thumbnail mode picker and delete confirmation dialogs',
     ],
   },
   {

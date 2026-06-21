@@ -435,8 +435,8 @@ function IndicatorCard({ color, iconName, label, value, active = true }: { color
   );
 }
 
-function formatCurrency(value: number, currencySymbol: string): string {
-  return `${currencySymbol}${Number(value).toFixed(2)}`;
+function formatCurrency(value: number, locale: string, currencyCode: string): string {
+  return new Intl.NumberFormat(locale, { style: "currency", currency: currencyCode }).format(Number(value));
 }
 
 function calcGainPct(acquired: number, estimated: number): string {
@@ -1251,7 +1251,7 @@ export default function DeviceDetailNew() {
                 iconName="battery_alert"
                 color={device.pramBatteryInstalled ? 'emerald' : 'red'}
                 label={t.detail.pramLabel}
-                value={device.pramBatteryInstalled ? 'Battery Installed' : 'Battery Removed'}
+                value={device.pramBatteryInstalled ? t.detail.pramInstalled : t.detail.pramRemoved}
                 active={true}
               />
             )}
@@ -1290,7 +1290,7 @@ export default function DeviceDetailNew() {
                     {device.priceAcquired != null ? (
                       <>
                         <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.acquisitionPrice}</span>
-                        <span className="text-3xl font-bold text-on-surface mb-3">{formatCurrency(device.priceAcquired, t.common.currencySymbol)}</span>
+                        <span className="text-3xl font-bold text-on-surface mb-3">{formatCurrency(device.priceAcquired, t.common.locale, t.common.currencyCode)}</span>
                       </>
                     ) : (
                       <span className="text-outline text-[10px] uppercase tracking-widest block mb-3">{t.detail.acquisition}</span>
@@ -1323,7 +1323,7 @@ export default function DeviceDetailNew() {
                           <>
                             <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.repairFee}</span>
                             {device.soldPrice != null ? (
-                              <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.soldPrice, t.common.currencySymbol)}</span>
+                              <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.soldPrice, t.common.locale, t.common.currencyCode)}</span>
                             ) : (
                               <span className="text-on-surface-variant text-sm">{t.detail.noFeeCharged}</span>
                             )}
@@ -1334,7 +1334,7 @@ export default function DeviceDetailNew() {
                         ) : device.soldPrice != null && !isCollection ? (
                           <>
                             <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.salePrice}</span>
-                            <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.soldPrice, t.common.currencySymbol)}</span>
+                            <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.soldPrice, t.common.locale, t.common.currencyCode)}</span>
                             {device.soldDate && (
                               <span className="text-on-surface-variant text-xs block mt-2">{formatDateForDisplay(device.soldDate)}</span>
                             )}
@@ -1344,13 +1344,13 @@ export default function DeviceDetailNew() {
                             {device.listPrice != null && (
                               <>
                                 <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.listPriceLabel}</span>
-                                <span className="text-3xl font-bold text-on-surface mb-3">{formatCurrency(device.listPrice, t.common.currencySymbol)}</span>
+                                <span className="text-3xl font-bold text-on-surface mb-3">{formatCurrency(device.listPrice, t.common.locale, t.common.currencyCode)}</span>
                               </>
                             )}
                             {device.estimatedValue != null && (
                               <>
                                 <span className="text-outline text-[10px] uppercase tracking-widest block mb-1 mt-2">{t.detail.estValue}</span>
-                                <span className="text-xl font-semibold text-on-surface">{formatCurrency(device.estimatedValue, t.common.currencySymbol)}</span>
+                                <span className="text-xl font-semibold text-on-surface">{formatCurrency(device.estimatedValue, t.common.locale, t.common.currencyCode)}</span>
                               </>
                             )}
                             {gainPct != null && (
@@ -1362,7 +1362,7 @@ export default function DeviceDetailNew() {
                         ) : (
                           <>
                             <span className="text-outline text-[10px] uppercase tracking-widest block mb-1">{t.detail.estimatedValue}</span>
-                            <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.estimatedValue, t.common.currencySymbol)}</span>
+                            <span className="text-3xl font-bold text-on-surface">{formatCurrency(device.estimatedValue, t.common.locale, t.common.currencyCode)}</span>
                             {gainPct != null && (
                               <span className={`${gainTextClass} text-sm font-bold block mt-1`}>
                                 {gainPct >= 0 ? '+' : ''}{gainPct.toFixed(1)}% {t.detail.sincePurchase}
@@ -1423,17 +1423,17 @@ export default function DeviceDetailNew() {
             <section className="bg-[var(--card)] rounded-xl p-8 shadow-sm">
               <h2 className="text-on-surface font-bold text-sm uppercase tracking-widest mb-6">{t.detail.technicalSpecs}</h2>
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                {device.cpuType && <SpecField label="CPU" value={device.cpuType + (device.cpuSpeed ? ` @ ${device.cpuSpeed}` : '')} />}
+                {device.cpuType && <SpecField label={t.detail.cpu} value={device.cpuType + (device.cpuSpeed ? ` @ ${device.cpuSpeed}` : '')} />}
                 {device.ram && <SpecField label={t.detail.memoryRam} value={device.ram} />}
                 {device.storageEntries?.length > 0 && <SpecField label={t.detail.storage} value={device.storageEntries.map((s: any) => s.value).join(', ')} />}
-                {device.graphicsChip && <SpecField label="Graphics" value={device.graphicsChip} />}
-                {device.screenSize && <SpecField label="Screen Size" value={device.screenSize} />}
-                {device.displayType && <SpecField label="Display Type" value={device.displayType + (device.displayVariant ? ` · ${device.displayVariant}` : '')} />}
-                {device.nativeResolution && <SpecField label="Resolution" value={device.nativeResolution} />}
+                {device.graphicsChip && <SpecField label={t.detail.graphics} value={device.graphicsChip} />}
+                {device.screenSize && <SpecField label={t.detail.screenSize} value={device.screenSize} />}
+                {device.displayType && <SpecField label={t.detail.displayType} value={device.displayType + (device.displayVariant ? ` · ${device.displayVariant}` : '')} />}
+                {device.nativeResolution && <SpecField label={t.detail.resolution} value={device.nativeResolution} />}
                 {device.osEntries?.length > 0 && <SpecField label={t.detail.operatingSystem} value={device.osEntries.map((o: any) => o.value).join(', ')} />}
                 {device.isWifiEnabled != null && <SpecField label={t.detail.wifi} value={device.isWifiEnabled ? t.common.yes : t.common.no} />}
-                {device.pramBatteryInstalled != null && <SpecField label="PRAM Battery" value={device.pramBatteryInstalled ? 'Installed' : 'Removed'} />}
-                {device.pramBatteryExpiryDate && <SpecField label="PRAM Expiry" value={new Date(device.pramBatteryExpiryDate).toLocaleDateString()} />}
+                {device.pramBatteryInstalled != null && <SpecField label={t.detail.pramBattery} value={device.pramBatteryInstalled ? t.detail.pramInstalled : t.detail.pramRemoved} />}
+                {device.pramBatteryExpiryDate && <SpecField label={t.detail.pramExpiry} value={new Date(device.pramBatteryExpiryDate).toLocaleDateString()} />}
               </div>
             </section>
           )}
@@ -2022,7 +2022,7 @@ export default function DeviceDetailNew() {
                             <span className="text-[10px] text-outline shrink-0 ml-2">{formatDateForDisplay(task.dateCompleted).toUpperCase()}</span>
                           </div>
                           {task.notes && <p className="text-xs text-on-surface-variant">{task.notes}</p>}
-                          {task.cost != null && <p className="text-xs text-on-surface-variant mt-1">Cost: {formatCurrency(task.cost, t.common.currencySymbol)}</p>}
+                          {task.cost != null && <p className="text-xs text-on-surface-variant mt-1">Cost: {formatCurrency(task.cost, t.common.locale, t.common.currencyCode)}</p>}
                         </div>
                         {isAuthenticated && (
                           <div className="flex flex-col gap-1 opacity-0 group-hover/task:opacity-100 transition-opacity shrink-0">

@@ -165,13 +165,7 @@ struct CashFlowByPeriodView: View {
                             }
                         }
                         .chartYAxis {
-                            // Currency code derived from symbol; USD fallback for unsupported symbols
-                            let sym = lm.t.common.currencySymbol
-                            if sym == "€" {
-                                AxisMarks(format: .currency(code: "EUR"))
-                            } else {
-                                AxisMarks(format: .currency(code: "USD"))
-                            }
+                            AxisMarks(format: .currency(code: lm.effectiveCurrencyCode))
                         }
                         .chartXAxis {
                             AxisMarks { _ in

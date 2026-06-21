@@ -115,7 +115,7 @@ export function FilterBar({
         <p className="text-sm font-medium text-on-surface-variant dark:text-[#c1c6d7]">
           {t.home.showing} {filteredCount} {t.home.devices}
           {isAuthenticated && totalEstValue > 0 && (
-            <span> ({t.home.estValue} {t.common.currencySymbol}{totalEstValue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })})</span>
+            <span> ({t.home.estValue} {new Intl.NumberFormat(t.common.locale, { style: "currency", currency: t.common.currencyCode, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(totalEstValue)})</span>
           )}
         </p>
       </div>

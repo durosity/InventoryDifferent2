@@ -10,3 +10,18 @@
 "LANGUAGE_DE" = "Deutsch";
 "LANGUAGE_FR" = "Français";
 "LANGUAGE_ES" = "Español";
+
+/* Currency picker label */
+"CURRENCY_TITLE" = "Currency";
+
+/* Currency options */
+"CURRENCY_SYSTEM" = "Match Language";
+"CURRENCY_USD" = "US Dollar ($)";
+"CURRENCY_EUR" = "Euro (€)";
+"CURRENCY_GBP" = "British Pound (£)";
+"CURRENCY_CAD" = "Canadian Dollar (C$)";
+"CURRENCY_AUD" = "Australian Dollar (A$)";
+"CURRENCY_JPY" = "Japanese Yen (¥)";
+"CURRENCY_MXN" = "Mexican Peso (MX$)";
+"CURRENCY_ARS" = "Argentine Peso (ARS$)";
+"CURRENCY_CLP" = "Chilean Peso (CLP$)";

@@ -476,14 +476,14 @@ struct AddDeviceView: View {
     private var computerSpecsSection: some View {
         let t = lm.t
         return Section {
-            LabeledField(label: "CPU Type", text: $cpuType)
-            LabeledField(label: "CPU Speed", text: $cpuSpeed)
+            LabeledField(label: t.addEditDevice.cpuType, text: $cpuType)
+            LabeledField(label: t.addEditDevice.cpuSpeed, text: $cpuSpeed)
             LabeledField(label: t.addEditDevice.ram, text: $ram)
-            LabeledField(label: "Graphics Chip", text: $graphicsChip)
-            LabeledField(label: "Screen Size", text: $screenSize)
-            LabeledField(label: "Display Type", text: $displayType)
-            LabeledField(label: "Display Variant", text: $displayVariant)
-            LabeledField(label: "Native Resolution", text: $nativeResolution)
+            LabeledField(label: t.addEditDevice.graphicsChip, text: $graphicsChip)
+            LabeledField(label: t.addEditDevice.screenSize, text: $screenSize)
+            LabeledField(label: t.addEditDevice.displayType, text: $displayType)
+            LabeledField(label: t.addEditDevice.displayVariant, text: $displayVariant)
+            LabeledField(label: t.addEditDevice.nativeResolution, text: $nativeResolution)
             ForEach(storageEntries) { entry in
                 HStack {
                     Text(entry.value).font(.subheadline)
@@ -494,7 +494,7 @@ struct AddDeviceView: View {
                 }
             }
             HStack {
-                TextField("Add storage (e.g. 1.44 MB Floppy)", text: $newStorageValue)
+                TextField(t.addEditDevice.addStorage, text: $newStorageValue)
                 Button("Add") {
                     let v = newStorageValue.trimmingCharacters(in: .whitespaces)
                     guard !v.isEmpty else { return }
@@ -512,7 +512,7 @@ struct AddDeviceView: View {
                 }
             }
             HStack {
-                TextField("Add OS (e.g. System 7.5)", text: $newOsValue)
+                TextField(t.addEditDevice.addOs, text: $newOsValue)
                 Button("Add") {
                     let v = newOsValue.trimmingCharacters(in: .whitespaces)
                     guard !v.isEmpty else { return }
@@ -521,7 +521,7 @@ struct AddDeviceView: View {
                 }.disabled(newOsValue.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             Toggle(t.addEditDevice.wifiEnabled, isOn: $isWifiEnabled)
-            Toggle("PRAM Battery Installed", isOn: $pramBatteryInstalled)
+            Toggle(t.addEditDevice.pramBatteryInstalled, isOn: $pramBatteryInstalled)
             DatePicker(t.addEditDevice.lastPowerOn, selection: Binding(
                 get: { lastPowerOnDate ?? Date() },
                 set: { lastPowerOnDate = $0 }

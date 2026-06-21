@@ -7,7 +7,13 @@
 //   2. If "system" (or unset), use the device's preferred language if supported
 //   3. Fall back to English
 //
+// Currency resolution order:
+//   1. UserDefaults key "app_currency" set by the iOS Settings app
+//   2. If "system" (or unset), use the default currency for the current language
+//
 // Views inject this via @EnvironmentObject and access strings as `lm.t.someKey`.
+// For currency-aware formatting, use lm.effectiveCurrencyCode, lm.effectiveLocale,
+// and lm.effectiveCurrencySymbol instead of lm.t.common.currencyCode.
 
 import Foundation
 import Combine
@@ -20,13 +26,19 @@ final class LocalizationManager: ObservableObject {
     /// The key used in UserDefaults and the Settings.bundle Root.plist.
     static let userDefaultsKey = "app_language"
 
+    /// The UserDefaults key for the currency override.
+    static let currencyDefaultsKey = "app_currency"
+
     /// Languages the app has full translations for.
     static let supported = ["en", "de", "fr", "es"]
+
+    /// Currency codes available in Settings (first entry means "use language default").
+    static let supportedCurrencies = ["system", "USD", "EUR", "GBP", "CAD", "AUD", "JPY", "MXN", "ARS", "CLP"]
 
     /// The active translations object. Views observe this via @EnvironmentObject.
     @Published private(set) var t: Translations
 
-    /// The resolved language code ("en" or "de").
+    /// The resolved language code ("en", "de", etc.).
     @Published private(set) var currentLanguage: String
 
     private var cancellable: AnyCancellable?
@@ -68,12 +80,39 @@ final class LocalizationManager: ObservableObject {
         }
     }
 
+    // MARK: - Effective currency (may be overridden independently of language)
+
+    /// The ISO 4217 currency code to use for formatting. Reads the Settings override;
+    /// falls back to the language-default code stored in t.common.currencyCode.
+    var effectiveCurrencyCode: String {
+        let stored = UserDefaults.standard.string(forKey: Self.currencyDefaultsKey) ?? "system"
+        if stored != "system" && Self.supportedCurrencies.contains(stored) { return stored }
+        return t.common.currencyCode
+    }
+
+    /// The BCP-47 / POSIX locale identifier for number formatting (e.g. "en_US", "fr_FR").
+    /// Always reflects the current language — currency placement follows language, not currency.
+    var effectiveLocale: String { t.common.locale }
+
+    /// The currency symbol for the effective currency code in the current locale.
+    var effectiveCurrencySymbol: String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = Locale(identifier: effectiveLocale)
+        formatter.currencyCode = effectiveCurrencyCode
+        return formatter.currencySymbol ?? effectiveCurrencyCode
+    }
+
     // MARK: - Reload on UserDefaults change
 
     private func reload() {
         let lang = Self.resolveLanguage()
-        guard lang != currentLanguage else { return }
-        currentLanguage = lang
-        t = Self.translations(for: lang)
+        if lang != currentLanguage {
+            currentLanguage = lang
+            t = Self.translations(for: lang)
+        } else {
+            // Language unchanged — but currency override may have changed; trigger re-render.
+            objectWillChange.send()
+        }
     }
 }

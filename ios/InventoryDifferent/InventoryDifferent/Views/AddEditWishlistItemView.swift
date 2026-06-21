@@ -170,19 +170,19 @@ struct AddEditWishlistItemView: View {
                 }
 
                 Section(t.addEditWishlist.specifications) {
-                    LabeledField(label: "CPU Type", text: $cpuType)
-                    LabeledField(label: "CPU Speed", text: $cpuSpeed)
+                    LabeledField(label: t.addEditWishlist.cpuType, text: $cpuType)
+                    LabeledField(label: t.addEditWishlist.cpuSpeed, text: $cpuSpeed)
                     LabeledField(label: t.addEditWishlist.ram, text: $ram)
-                    LabeledField(label: "Graphics Chip", text: $graphicsChip)
-                    LabeledField(label: "Screen Size", text: $screenSize)
-                    LabeledField(label: "Display Type", text: $displayType)
-                    LabeledField(label: "Display Variant", text: $displayVariant)
-                    LabeledField(label: "Native Resolution", text: $nativeResolution)
+                    LabeledField(label: t.addEditWishlist.graphicsChip, text: $graphicsChip)
+                    LabeledField(label: t.addEditWishlist.screenSize, text: $screenSize)
+                    LabeledField(label: t.addEditWishlist.displayType, text: $displayType)
+                    LabeledField(label: t.addEditWishlist.displayVariant, text: $displayVariant)
+                    LabeledField(label: t.addEditWishlist.nativeResolution, text: $nativeResolution)
                     LabeledField(label: t.addEditWishlist.storage, text: $storage)
                     LabeledField(label: t.addEditWishlist.os, text: $operatingSystem)
                     LabeledField(label: t.addEditWishlist.externalURL, text: $externalUrl, keyboardType: .URL)
                     Toggle(t.addEditWishlist.wifiEnabled, isOn: $isWifiEnabled)
-                    Toggle("PRAM Battery Installed", isOn: $pramBatteryInstalled)
+                    Toggle(t.addEditWishlist.pramBatteryInstalled, isOn: $pramBatteryInstalled)
                 }
 
                 if isEditing {

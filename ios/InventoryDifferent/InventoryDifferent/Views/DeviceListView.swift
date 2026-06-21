@@ -481,7 +481,12 @@ struct ValueSaleInfo: View {
     }
 
     private func formatPrice(_ price: Double) -> String {
-        return "\(lm.t.common.currencySymbol)\(Int(price).formatted())"
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.locale = Locale(identifier: lm.effectiveLocale)
+        formatter.currencyCode = lm.effectiveCurrencyCode
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: NSNumber(value: price)) ?? "\(lm.effectiveCurrencySymbol)\(Int(price))"
     }
 }
 
