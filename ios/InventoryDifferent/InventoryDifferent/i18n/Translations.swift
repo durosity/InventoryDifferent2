@@ -27,6 +27,8 @@ struct Translations {
         let copy, copied: String
         let loading, error, noData: String
         let currencySymbol: String
+        let currencyCode: String
+        let locale: String
         let yes, no: String
         let more, less: String
         let remove: String

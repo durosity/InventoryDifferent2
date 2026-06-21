@@ -10,3 +10,15 @@
 "LANGUAGE_DE" = "Deutsch";
 "LANGUAGE_FR" = "Français";
 "LANGUAGE_ES" = "Español";
+
+/* Currency picker label */
+"CURRENCY_TITLE" = "Währung";
+
+/* Currency options */
+"CURRENCY_SYSTEM" = "Sprache anpassen";
+"CURRENCY_USD" = "US-Dollar ($)";
+"CURRENCY_EUR" = "Euro (€)";
+"CURRENCY_GBP" = "Britisches Pfund (£)";
+"CURRENCY_CAD" = "Kanadischer Dollar (C$)";
+"CURRENCY_AUD" = "Australischer Dollar (A$)";
+"CURRENCY_JPY" = "Japanischer Yen (¥)";

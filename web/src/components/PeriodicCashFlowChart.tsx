@@ -14,6 +14,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { useT } from "../i18n/context";
+import { formatCurrency, formatCurrencyCompact } from "../lib/currency";
 
 export interface PeriodBucket {
   key: string;
@@ -33,7 +34,7 @@ const YAXIS_PANEL_WIDTH = 72; // px — width of the fixed left Y-axis panel
 
 export default function PeriodicCashFlowChart({ data }: PeriodicCashFlowChartProps) {
   const t = useT();
-  const sym = t.common.currencySymbol;
+  const { locale, currencyCode } = t.common;
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,14 +43,8 @@ export default function PeriodicCashFlowChart({ data }: PeriodicCashFlowChartPro
     }
   }, [data]);
 
-  const formatCurrencyShort = (value: number) => {
-    const abs = Math.abs(value);
-    const sign = value < 0 ? "-" : "";
-    if (abs >= 1000) return `${sign}${sym}${(abs / 1000).toFixed(1)}k`;
-    return `${sign}${sym}${abs.toFixed(0)}`;
-  };
-
-  const formatCurrencyFull = (value: number) => `${sym}${value.toFixed(2)}`;
+  const formatCurrencyShort = (value: number) => formatCurrencyCompact(value, locale, currencyCode);
+  const formatCurrencyFull = (value: number) => formatCurrency(value, locale, currencyCode);
 
   if (data.length === 0) {
     return (

@@ -97,7 +97,7 @@ export function DeviceListRow({ device }: DeviceListRowProps) {
 
   const formatPrice = (price: number | null | undefined) => {
     if (price == null) return null;
-    return `${t.common.currencySymbol}${price.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    return new Intl.NumberFormat(t.common.locale, { style: "currency", currency: t.common.currencyCode, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(price);
   };
 
   const valueLabel = () => {

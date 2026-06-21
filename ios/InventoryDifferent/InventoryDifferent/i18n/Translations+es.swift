@@ -50,6 +50,8 @@ extension Translations {
             error: "Error",
             noData: "Sin datos",
             currencySymbol: "$",
+            currencyCode: "USD",
+            locale: "es_ES",
             yes: "Sí",
             no: "No",
             more: "Más...",

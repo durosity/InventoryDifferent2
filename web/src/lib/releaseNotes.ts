@@ -12,8 +12,13 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
-    added: [],
-    changed: [],
+    added: [
+      'Currency can now be set independently of language via the CURRENCY env var (web) or iOS Settings → Currency picker — allows English UI with EUR formatting, French UI with USD, etc.',
+      'iOS: Currency picker added to iOS Settings app (USD, EUR, GBP, CAD, AUD, JPY, or match language default)',
+    ],
+    changed: [
+      'Currency formatting now uses locale-aware Intl.NumberFormat everywhere — euro symbol appears on the right for French and German (15,50 €) and on the left for English (€15.50)',
+    ],
     fixed: [],
   },
   {

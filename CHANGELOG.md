@@ -4,6 +4,13 @@ All notable changes to InventoryDifferent will be documented here.
 
 ## [Unreleased]
 
+### Added
+- Currency can now be set independently of language via the `CURRENCY` env var (web) or iOS Settings → Currency picker
+- iOS: Currency picker added to iOS Settings (USD, EUR, GBP, CAD, AUD, JPY, or match language default)
+
+### Changed
+- Currency formatting now uses locale-aware formatting everywhere — euro symbol appears on the right for French/German (15,50 €) and on the left for English (€15.50)
+
 ### Fixed
 - Photos page: edit button no longer appears on top of the thumbnail mode picker and delete confirmation dialogs
 
