@@ -1395,25 +1395,25 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                 <>
                     <SectionHeader>{t.detail.computerSpecs}</SectionHeader>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField label="CPU Type">
+                        <FormField label={t.form.cpuType}>
                             <input
                                 type="text"
                                 name="cpuType"
                                 value={formData.cpuType}
                                 onChange={handleChange}
                                 className={inputClass}
-                                placeholder="e.g. Motorola 68000"
+                                placeholder={t.form.cpuTypePlaceholder}
                             />
                         </FormField>
 
-                        <FormField label="CPU Speed">
+                        <FormField label={t.form.cpuSpeed}>
                             <input
                                 type="text"
                                 name="cpuSpeed"
                                 value={formData.cpuSpeed}
                                 onChange={handleChange}
                                 className={inputClass}
-                                placeholder="e.g. 8 MHz"
+                                placeholder={t.form.cpuSpeedPlaceholder}
                             />
                         </FormField>
 
@@ -1428,62 +1428,62 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                             />
                         </FormField>
 
-                        <FormField label="Graphics Chip">
+                        <FormField label={t.form.graphicsChip}>
                             <input
                                 type="text"
                                 name="graphicsChip"
                                 value={formData.graphicsChip}
                                 onChange={handleChange}
                                 className={inputClass}
-                                placeholder="e.g. ATI Rage 128 GL"
+                                placeholder={t.form.graphicsChipPlaceholder}
                             />
                         </FormField>
 
-                        <FormField label="Screen Size">
+                        <FormField label={t.form.screenSize}>
                             <input
                                 type="text"
                                 name="screenSize"
                                 value={formData.screenSize}
                                 onChange={handleChange}
                                 className={inputClass}
-                                placeholder='e.g. 9" or 12.1"/14.1"'
+                                placeholder={t.form.screenSizePlaceholder}
                             />
                         </FormField>
 
-                        <FormField label="Display Type">
+                        <FormField label={t.form.displayType}>
                             <input
                                 type="text"
                                 name="displayType"
                                 value={formData.displayType}
                                 onChange={handleChange}
                                 className={inputClass}
-                                placeholder="e.g. LCD, CRT, Monochrome, OLED"
+                                placeholder={t.form.displayTypePlaceholder}
                             />
                         </FormField>
 
-                        <FormField label="Display Variant">
+                        <FormField label={t.form.displayVariant}>
                             <input
                                 type="text"
                                 name="displayVariant"
                                 value={formData.displayVariant}
                                 onChange={handleChange}
                                 className={inputClass}
-                                placeholder="e.g. Active Matrix, Sony Trinitron"
+                                placeholder={t.form.displayVariantPlaceholder}
                             />
                         </FormField>
 
-                        <FormField label="Native Resolution">
+                        <FormField label={t.form.nativeResolution}>
                             <input
                                 type="text"
                                 name="nativeResolution"
                                 value={formData.nativeResolution}
                                 onChange={handleChange}
                                 className={inputClass}
-                                placeholder="e.g. 640x480"
+                                placeholder={t.form.nativeResolutionPlaceholder}
                             />
                         </FormField>
 
-                        <FormField label="Storage">
+                        <FormField label={t.detail.storage}>
                             <div className="space-y-1">
                                 {storageEntries.map((entry, i) => (
                                     <div key={i} className="flex items-center gap-2">
@@ -1498,17 +1498,17 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                                         onChange={e => setNewStorageValue(e.target.value)}
                                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddStorage(newStorageValue); }}}
                                         className={`${inputClass} flex-1`}
-                                        placeholder="e.g. 1.44 MB Floppy, 40 MB SCSI HD"
+                                        placeholder={t.form.storageEntryPlaceholder}
                                     />
                                     <button type="button" onClick={() => handleAddStorage(newStorageValue)}
                                         className="px-3 py-2 text-sm bg-[var(--apple-blue)] text-white rounded border border-[#007acc] hover:brightness-110 whitespace-nowrap">
-                                        Add
+                                        {t.common.add}
                                     </button>
                                 </div>
                             </div>
                         </FormField>
 
-                        <FormField label="Operating System">
+                        <FormField label={t.detail.operatingSystem}>
                             <div className="space-y-1">
                                 {osEntries.map((entry, i) => (
                                     <div key={i} className="flex items-center gap-2">
@@ -1523,11 +1523,11 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                                         onChange={e => setNewOsValue(e.target.value)}
                                         onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddOS(newOsValue); }}}
                                         className={`${inputClass} flex-1`}
-                                        placeholder="e.g. System 7.5, Mac OS 8.1"
+                                        placeholder={t.form.osEntryPlaceholder}
                                     />
                                     <button type="button" onClick={() => handleAddOS(newOsValue)}
                                         className="px-3 py-2 text-sm bg-[var(--apple-blue)] text-white rounded border border-[#007acc] hover:brightness-110 whitespace-nowrap">
-                                        Add
+                                        {t.common.add}
                                     </button>
                                 </div>
                             </div>
@@ -1553,11 +1553,11 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                                     onChange={handleChange}
                                     className="w-4 h-4 rounded border-[var(--border)] text-[var(--apple-blue)] focus:ring-[var(--apple-blue)]"
                                 />
-                                <span className="text-sm text-[var(--foreground)]">PRAM Battery Installed</span>
+                                <span className="text-sm text-[var(--foreground)]">{t.form.pramBatteryInstalled}</span>
                             </label>
                         </div>
 
-                        <FormField label="PRAM Battery Expiry Date">
+                        <FormField label={t.form.pramBatteryExpiryDate}>
                             <input
                                 type="date"
                                 name="pramBatteryExpiryDate"

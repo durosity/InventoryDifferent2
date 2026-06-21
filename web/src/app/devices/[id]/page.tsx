@@ -1251,7 +1251,7 @@ export default function DeviceDetailNew() {
                 iconName="battery_alert"
                 color={device.pramBatteryInstalled ? 'emerald' : 'red'}
                 label={t.detail.pramLabel}
-                value={device.pramBatteryInstalled ? 'Battery Installed' : 'Battery Removed'}
+                value={device.pramBatteryInstalled ? t.detail.pramInstalled : t.detail.pramRemoved}
                 active={true}
               />
             )}
@@ -1423,17 +1423,17 @@ export default function DeviceDetailNew() {
             <section className="bg-[var(--card)] rounded-xl p-8 shadow-sm">
               <h2 className="text-on-surface font-bold text-sm uppercase tracking-widest mb-6">{t.detail.technicalSpecs}</h2>
               <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                {device.cpuType && <SpecField label="CPU" value={device.cpuType + (device.cpuSpeed ? ` @ ${device.cpuSpeed}` : '')} />}
+                {device.cpuType && <SpecField label={t.detail.cpu} value={device.cpuType + (device.cpuSpeed ? ` @ ${device.cpuSpeed}` : '')} />}
                 {device.ram && <SpecField label={t.detail.memoryRam} value={device.ram} />}
                 {device.storageEntries?.length > 0 && <SpecField label={t.detail.storage} value={device.storageEntries.map((s: any) => s.value).join(', ')} />}
-                {device.graphicsChip && <SpecField label="Graphics" value={device.graphicsChip} />}
-                {device.screenSize && <SpecField label="Screen Size" value={device.screenSize} />}
-                {device.displayType && <SpecField label="Display Type" value={device.displayType + (device.displayVariant ? ` · ${device.displayVariant}` : '')} />}
-                {device.nativeResolution && <SpecField label="Resolution" value={device.nativeResolution} />}
+                {device.graphicsChip && <SpecField label={t.detail.graphics} value={device.graphicsChip} />}
+                {device.screenSize && <SpecField label={t.detail.screenSize} value={device.screenSize} />}
+                {device.displayType && <SpecField label={t.detail.displayType} value={device.displayType + (device.displayVariant ? ` · ${device.displayVariant}` : '')} />}
+                {device.nativeResolution && <SpecField label={t.detail.resolution} value={device.nativeResolution} />}
                 {device.osEntries?.length > 0 && <SpecField label={t.detail.operatingSystem} value={device.osEntries.map((o: any) => o.value).join(', ')} />}
                 {device.isWifiEnabled != null && <SpecField label={t.detail.wifi} value={device.isWifiEnabled ? t.common.yes : t.common.no} />}
-                {device.pramBatteryInstalled != null && <SpecField label="PRAM Battery" value={device.pramBatteryInstalled ? 'Installed' : 'Removed'} />}
-                {device.pramBatteryExpiryDate && <SpecField label="PRAM Expiry" value={new Date(device.pramBatteryExpiryDate).toLocaleDateString()} />}
+                {device.pramBatteryInstalled != null && <SpecField label={t.detail.pramBattery} value={device.pramBatteryInstalled ? t.detail.pramInstalled : t.detail.pramRemoved} />}
+                {device.pramBatteryExpiryDate && <SpecField label={t.detail.pramExpiry} value={new Date(device.pramBatteryExpiryDate).toLocaleDateString()} />}
               </div>
             </section>
           )}

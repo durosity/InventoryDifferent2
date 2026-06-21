@@ -1406,13 +1406,13 @@ struct DeviceDetailRedesignView: View {
         if let ram = device.ram { specs.append((t.deviceDetail.ram, ram)) }
         if !device.storageEntries.isEmpty { specs.append((t.deviceDetail.storage, device.storageEntries.map { $0.value }.joined(separator: ", "))) }
         if !device.osEntries.isEmpty { specs.append((t.deviceDetail.operatingSystem, device.osEntries.map { $0.value }.joined(separator: ", "))) }
-        if let gfx = device.graphicsChip { specs.append(("Graphics", gfx)) }
-        if let screen = device.screenSize { specs.append(("Screen", screen)) }
+        if let gfx = device.graphicsChip { specs.append((t.deviceDetail.graphicsChip, gfx)) }
+        if let screen = device.screenSize { specs.append((t.deviceDetail.screenSize, screen)) }
         if let dt = device.displayType {
             let dStr = device.displayVariant.map { "\(dt) (\($0))" } ?? dt
-            specs.append(("Display", dStr))
+            specs.append((t.deviceDetail.displayType, dStr))
         }
-        if let res = device.nativeResolution { specs.append(("Resolution", res)) }
+        if let res = device.nativeResolution { specs.append((t.deviceDetail.resolution, res)) }
         let hasContent = !specs.isEmpty || device.isWifiEnabled != nil
             || (isComputer && (device.isRetroBrited == true || device.isRecapped == true || device.pramBatteryInstalled != nil))
         guard hasContent else { return AnyView(EmptyView()) }
@@ -1443,9 +1443,9 @@ struct DeviceDetailRedesignView: View {
                         if let pram = device.pramBatteryInstalled {
                             let idx = specs.count + (device.isWifiEnabled != nil ? 1 : 0)
                             HStack {
-                                Text("PRAM Battery").font(.system(size: 13)).foregroundColor(.secondary)
+                                Text(t.deviceDetail.pramBattery).font(.system(size: 13)).foregroundColor(.secondary)
                                 Spacer()
-                                Text(pram ? "Installed" : "Removed").font(.system(size: 13, weight: .bold)).foregroundColor(pram ? .green : .red)
+                                Text(pram ? t.deviceDetail.pramInstalled : t.deviceDetail.pramRemoved).font(.system(size: 13, weight: .bold)).foregroundColor(pram ? .green : .red)
                             }
                             .padding(.horizontal, 14).padding(.vertical, 10)
                             .background(idx % 2 == 0 ? Color.edSurfaceLow : Color.edSurfaceHigh.opacity(0.5))

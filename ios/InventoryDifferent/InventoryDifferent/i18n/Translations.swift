@@ -65,7 +65,7 @@ struct Translations {
         let setThumbnail, replaceBothModes, setLightThumbnail, setDarkThumbnail, thumbnailChoiceMsg: String
         let removeTag, removeTagFmt: String  // removeTagFmt: "Remove the tag \"%@\" from this device?"
         let tags, noTags: String
-        let functionalStatus, rarity, estimatedValue, pramRemoved: String
+        let functionalStatus, rarity, estimatedValue, pramRemoved, pramInstalled: String
         let noAccessories, noLinks: String
         let noPhotos: String
         let maintenanceTasks, noTasks: String
@@ -81,6 +81,7 @@ struct Translations {
         let sales, listPrice, soldPrice, soldDate: String
         let donated, donatedDate, repair, returnedDate, repairFeeCharged: String
         let computerSpecs, cpu, ram, graphics, storage, operatingSystem, wifiEnabled, pramBatteryRemoved: String
+        let graphicsChip, screenSize, displayType, resolution, pramBattery, pramExpiry: String
         let customFields, additionalInfo, accessories, addAccessory, referenceLinks: String
         let noPhotosMessage, noTasksMessage, noNotesMessage: String
         // Redesign-specific keys
@@ -131,7 +132,12 @@ struct Translations {
         let repair: String
         let repairInformation, repairFeeCharged, returnedDate, setReturnedDate, clearReturnedDate: String
         let computerSpecs, cpu, ram, graphics, storage, os: String
-        let wifiEnabled, pramRemoved: String
+        let cpuType, cpuSpeed, graphicsChip, screenSize, displayType, displayVariant, nativeResolution: String
+        let wifiEnabled, pramRemoved, pramBatteryInstalled: String
+        let addStorage, addOs: String
+        let cpuTypePlaceholder, cpuSpeedPlaceholder, graphicsChipPlaceholder: String
+        let screenSizePlaceholder, displayTypePlaceholder, displayVariantPlaceholder: String
+        let nativeResolutionPlaceholder, storageEntryPlaceholder, osEntryPlaceholder: String
         let lastPowerOn, setLastPowerOn, clearLastPowerOn: String
         let customFields: String
         let historicalNotes: String
@@ -183,7 +189,8 @@ struct Translations {
         let source, sourceURL, sourceNotes: String
         let notes, notesPlaceholder: String
         let specifications, cpu, ram, graphics, storage, os, externalURL: String
-        let wifiEnabled, pramRemoved: String
+        let cpuType, cpuSpeed, graphicsChip, screenSize, displayType, displayVariant, nativeResolution: String
+        let wifiEnabled, pramRemoved, pramBatteryInstalled: String
         let markAcquired: String
     }
 
