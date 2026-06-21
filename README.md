@@ -281,6 +281,26 @@ The iOS app connects to your self-hosted API. No App Store account needed for lo
 
 **Requirements:** macOS with Xcode 15+, iOS 17+ device or simulator.
 
+### Signing Setup (contributors)
+
+The project uses `Configurations/Shared.xcconfig` to manage signing identity. Your personal Team ID and bundle prefix are kept in a gitignored local file so they're never committed.
+
+**One-time setup:**
+
+```bash
+cd ios/InventoryDifferent/Configurations
+cp Local.xcconfig.template Local.xcconfig
+```
+
+Edit `Local.xcconfig` with your values:
+
+```xcconfig
+DEVELOPMENT_TEAM = YOUR_TEAM_ID_HERE   # developer.apple.com → Account → Membership
+BUNDLE_ID_PREFIX = com.yourname
+```
+
+`Local.xcconfig` is gitignored — it will never be committed. If you don't create it, the project defaults (the project owner's Team ID and `com.wottle` prefix) are used, which is fine for simulator builds.
+
 ### TestFlight Distribution
 
 1. **Archive:** Product → Archive in Xcode

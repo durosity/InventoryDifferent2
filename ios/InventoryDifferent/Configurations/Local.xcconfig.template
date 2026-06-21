@@ -1,0 +1,12 @@
+// Per-developer signing identity overrides.
+//
+// Setup:
+//   cp Local.xcconfig.template Local.xcconfig
+//   # then edit Local.xcconfig with your values
+//
+// Local.xcconfig is gitignored and will never be committed.
+//
+// Find your Team ID at: developer.apple.com → Account → Membership → Team ID
+
+DEVELOPMENT_TEAM = YOUR_TEAM_ID_HERE
+BUNDLE_ID_PREFIX = com.yourname
