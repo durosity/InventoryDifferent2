@@ -488,27 +488,15 @@ RESTART IDENTITY CASCADE;
         };
 
         if (existingDevice) {
-            // If a prior import already created this device (or it already exists), keep the ID and refresh data.
-            // Also clear related rows so re-import doesn't duplicate children.
-            await prisma.image.deleteMany({ where: { deviceId: desiredDeviceId } });
-            await prisma.note.deleteMany({ where: { deviceId: desiredDeviceId } });
-            await prisma.maintenanceTask.deleteMany({ where: { deviceId: desiredDeviceId } });
-            await (prisma as any).deviceAccessory.deleteMany({ where: { deviceId: desiredDeviceId } });
-            await (prisma as any).deviceLink.deleteMany({ where: { deviceId: desiredDeviceId } });
-            await (prisma as any).customFieldValue.deleteMany({ where: { deviceId: desiredDeviceId } });
-            await (prisma as any).deviceRelationship.deleteMany({ where: { fromDeviceId: desiredDeviceId } });
-            await prisma.device.update({
-                where: { id: desiredDeviceId },
-                data: {
-                    ...deviceCreateData,
-                    tags: { set: [] },
-                },
+            // ID already exists — always create a new device with an auto-generated ID.
+            // The idMapping entry ensures cross-device relationships within this import batch
+            // are re-wired to the new ID.
+            newDevice = await prisma.device.create({
+                data: deviceCreateData,
             });
-
-            newDevice = await prisma.device.findUnique({ where: { id: desiredDeviceId } });
-            idMapping[desiredDeviceId] = desiredDeviceId;
+            idMapping[desiredDeviceId] = newDevice.id;
         } else {
-            // Prefer preserving ID via normal Prisma create (lets Postgres enforce constraints cleanly)
+            // ID is free — prefer preserving it so relationships and deep-links stay stable.
             try {
                 newDevice = await prisma.device.create({
                     data: {
@@ -519,7 +507,7 @@ RESTART IDENTITY CASCADE;
                 await prisma.$executeRaw`SELECT setval('"Device_id_seq"', (SELECT GREATEST(MAX(id), 1) FROM "Device"))`;
                 idMapping[desiredDeviceId] = desiredDeviceId;
             } catch (insertError) {
-                // Fallback: create with auto-generated ID if there's a conflict or the DB rejects explicit id.
+                // Fallback: auto-generated ID if Postgres rejects the explicit id.
                 newDevice = await prisma.device.create({
                     data: deviceCreateData,
                 });
