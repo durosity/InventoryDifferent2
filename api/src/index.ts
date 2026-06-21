@@ -3,6 +3,7 @@ import { expressMiddleware } from '@apollo/server/express4';
 import { PrismaClient } from '@prisma/client';
 import cors from 'cors';
 import express from 'express';
+import helmet from 'helmet';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
@@ -171,6 +172,9 @@ export async function createApp(prismaOverride?: PrismaClient) {
     const prisma = prismaOverride || defaultPrisma;
     await initializeAuth(prisma);
     const app = express();
+
+    // Security headers
+    app.use(helmet());
 
     // CORS configuration — restrict to configured domains in production
     const allowedOrigins: string[] = [];
