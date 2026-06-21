@@ -172,8 +172,17 @@ export async function createApp(prismaOverride?: PrismaClient) {
     await initializeAuth(prisma);
     const app = express();
 
-    // CORS configuration
-    app.use(cors());
+    // CORS configuration — restrict to configured domains in production
+    const allowedOrigins: string[] = [];
+    if (process.env.DOMAIN) allowedOrigins.push(`https://${process.env.DOMAIN}`);
+    if (process.env.SHOP_DOMAIN) allowedOrigins.push(`https://${process.env.SHOP_DOMAIN}`);
+    if (process.env.SHOWCASE_DOMAIN) allowedOrigins.push(`https://${process.env.SHOWCASE_DOMAIN}`);
+
+    const corsOrigin = allowedOrigins.length > 0 && process.env.NODE_ENV === 'production'
+        ? allowedOrigins
+        : true; // permissive in dev or when no domains are configured
+
+    app.use(cors({ origin: corsOrigin, credentials: true }));
 
     app.use(express.json({ limit: '50mb' }));
 
