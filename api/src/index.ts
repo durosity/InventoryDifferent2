@@ -22,6 +22,7 @@ import {
     consumeRefreshToken,
 } from './auth';
 import { authMiddleware, requireAuth } from './middleware/auth';
+import rateLimit from 'express-rate-limit';
 
 const JSZip = require('jszip');
 const sharp = require('sharp');
@@ -179,6 +180,9 @@ export async function createApp(prismaOverride?: PrismaClient) {
     // Health check endpoint — used by Docker healthcheck to know when the API is ready
     app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
+    // Trust the first proxy hop (Traefik) so req.ip reflects the real client IP
+    app.set('trust proxy', 1);
+
     // Apply auth middleware to all routes (sets req.isAuthenticated)
     app.use(authMiddleware);
 
@@ -187,8 +191,16 @@ export async function createApp(prismaOverride?: PrismaClient) {
 
     // ============== AUTH ENDPOINTS ==============
 
+    const authRateLimit = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 10,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: { error: 'Too many login attempts. Please try again later.' },
+    });
+
     // Login endpoint
-    app.post('/auth/login', async (req, res) => {
+    app.post('/auth/login', authRateLimit, async (req, res) => {
         const { username, password } = req.body;
 
         if (!password) {
@@ -226,7 +238,7 @@ export async function createApp(prismaOverride?: PrismaClient) {
     });
 
     // Refresh token endpoint
-    app.post('/auth/refresh', async (req, res) => {
+    app.post('/auth/refresh', authRateLimit, async (req, res) => {
         const { refreshToken } = req.body;
 
         if (!refreshToken) {
