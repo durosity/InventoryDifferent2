@@ -1,4 +1,4 @@
-export const APP_VERSION = '2.8.4';
+export const APP_VERSION = '2.8.5';
 
 export interface ReleaseEntry {
   version: string;
@@ -12,14 +12,28 @@ export const releaseNotes: ReleaseEntry[] = [
   {
     version: 'Unreleased',
     date: '',
+    added: [],
+    changed: [],
+    fixed: [],
+  },
+  {
+    version: '2.8.5',
+    date: '2026-06-21',
     added: [
-      'Currency can now be set independently of language via the CURRENCY env var (web) or iOS Settings → Currency picker — allows English UI with EUR formatting, French UI with USD, etc.',
-      'iOS: Currency picker added to iOS Settings app (USD, EUR, GBP, CAD, AUD, JPY, or match language default)',
+      'Currency can now be set independently of language — web: set CURRENCY env var; iOS: Settings → Currency picker (USD, EUR, GBP, CAD, AUD, JPY, MXN, ARS, CLP)',
+      'All new device spec fields (CPU Type/Speed, Graphics Chip, Screen Size, Display Type/Variant, Native Resolution, PRAM Battery) now fully translated in English, German, French, and Spanish on both web and iOS',
     ],
     changed: [
-      'Currency formatting now uses locale-aware Intl.NumberFormat everywhere — euro symbol appears on the right for French and German (15,50 €) and on the left for English (€15.50)',
+      'Currency formatting now uses locale-aware formatting everywhere — euro symbol appears on the right for French, German, and Spanish (15,50 €) and on the left for English (€15.50)',
+      'Spanish language now defaults to EUR/€ (targeting Spain); other currencies available via the currency override setting',
+      '"Add storage" button label corrected to "Add Storage"',
     ],
-    fixed: [],
+    fixed: [
+      'Euro symbol placement was wrong in Docker deployments due to Alpine\'s small-icu Node.js build — now installs full ICU data',
+      'Web device detail and edit form showed hardcoded English labels for new spec fields regardless of language',
+      'iOS device detail, Add Device, and Add Wishlist Item showed hardcoded English labels for new spec fields',
+      'PRAM Battery status displayed hardcoded "Installed"/"Removed" regardless of language',
+    ],
   },
   {
     version: '2.8.3',

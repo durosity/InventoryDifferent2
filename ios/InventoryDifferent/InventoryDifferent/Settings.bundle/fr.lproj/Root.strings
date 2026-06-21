@@ -22,3 +22,6 @@
 "CURRENCY_CAD" = "Dollar canadien (C$)";
 "CURRENCY_AUD" = "Dollar australien (A$)";
 "CURRENCY_JPY" = "Yen japonais (¥)";
+"CURRENCY_MXN" = "Peso mexicain (MX$)";
+"CURRENCY_ARS" = "Peso argentin (ARS$)";
+"CURRENCY_CLP" = "Peso chilien (CLP$)";
