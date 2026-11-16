@@ -64,6 +64,14 @@ model Device {
   pramBatteryExpiryDate DateTime?
   deleted             Boolean   @default(false)
 
+  // Software-specific fields
+  platform            String?
+  licenceKey          String?
+  requiresDongle      Boolean   @default(false)
+  downloadUrl         String?
+  localPath           String?
+  hasOriginalManuals  Boolean   @default(false)
+
   // Historical / descriptive
   historicalNotes     String?   @db.Text
 
@@ -143,6 +151,10 @@ model Category {
   name    String   @unique
   type    CategoryType
   sortOrder Int    @default(0)
+  showSoftwareFields Boolean @default(false)
+  parentId  Int?
+  parent    Category?  @relation("CategoryParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children  Category[] @relation("CategoryParent")
 
   devices Device[]
   templates Template[]
@@ -374,6 +386,7 @@ enum CategoryType {
   COMPUTER
   PERIPHERAL
   ACCESSORY
+  SOFTWARE
   OTHER
 }
 

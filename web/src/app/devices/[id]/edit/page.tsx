@@ -3,7 +3,8 @@
 import { useQuery } from "@apollo/client";
 import gql from "graphql-tag";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { DeviceForm } from "../../../../components/DeviceForm";
 import { LoadingPanel } from "../../../../components/LoadingPanel";
 
@@ -52,12 +53,19 @@ const GET_DEVICE = gql`
       pramBatteryInstalled
       pramBatteryExpiryDate
       lastPowerOnDate
+      platform
+      licenceKey
+      requiresDongle
+      downloadUrl
+      localPath
+      hasOriginalManuals
       storageEntries { id value sortOrder }
       osEntries { id value sortOrder }
       category {
         id
         name
         type
+        showSoftwareFields
       }
       customFieldValues {
         id
@@ -83,11 +91,27 @@ const GET_DEVICE = gql`
 export default function EditDevicePage() {
     const params = useParams();
     const id = params.id;
+    const router = useRouter();
+    const pathname = usePathname();
 
     const { loading, error, data } = useQuery(GET_DEVICE, {
         variables: { where: { id: parseInt(id as string) } },
         skip: !id,
     });
+
+    // Same canonical-URL self-correction as the detail page: settle on
+    // /software/[id]/edit for software items, /devices/[id]/edit for hardware.
+    useEffect(() => {
+        const d = data?.device;
+        if (!d || !pathname) return;
+        const isSoftware = !!d.category?.showSoftwareFields;
+        const onSoftwareRoute = pathname.startsWith('/software/');
+        if (isSoftware && !onSoftwareRoute) {
+            router.replace(`/software/${id}/edit`);
+        } else if (!isSoftware && onSoftwareRoute) {
+            router.replace(`/devices/${id}/edit`);
+        }
+    }, [data?.device, pathname, id, router]);
 
     if (loading) {
         return (
@@ -134,7 +158,7 @@ export default function EditDevicePage() {
     return (
         <div className="max-w-6xl mx-auto">
             <Link
-                href={`/devices/${id}`}
+                href={data.device.category?.showSoftwareFields ? `/software/${id}` : `/devices/${id}`}
                 className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors mb-8 group"
             >
                 <svg width="16" height="16" className="transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

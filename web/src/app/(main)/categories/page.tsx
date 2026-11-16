@@ -14,28 +14,34 @@ const GET_CATEGORIES = gql`
       name
       type
       sortOrder
+      showSoftwareFields
+      parentId
     }
   }
 `;
 
 const CREATE_CATEGORY = gql`
-  mutation CreateCategory($name: String!, $type: String!, $sortOrder: Int) {
-    createCategory(name: $name, type: $type, sortOrder: $sortOrder) {
+  mutation CreateCategory($name: String!, $type: String!, $sortOrder: Int, $showSoftwareFields: Boolean, $parentId: Int) {
+    createCategory(name: $name, type: $type, sortOrder: $sortOrder, showSoftwareFields: $showSoftwareFields, parentId: $parentId) {
       id
       name
       type
       sortOrder
+      showSoftwareFields
+      parentId
     }
   }
 `;
 
 const UPDATE_CATEGORY = gql`
-  mutation UpdateCategory($id: Int!, $name: String, $type: String, $sortOrder: Int) {
-    updateCategory(id: $id, name: $name, type: $type, sortOrder: $sortOrder) {
+  mutation UpdateCategory($id: Int!, $name: String, $type: String, $sortOrder: Int, $showSoftwareFields: Boolean, $parentId: Int) {
+    updateCategory(id: $id, name: $name, type: $type, sortOrder: $sortOrder, showSoftwareFields: $showSoftwareFields, parentId: $parentId) {
       id
       name
       type
       sortOrder
+      showSoftwareFields
+      parentId
     }
   }
 `;
@@ -53,9 +59,35 @@ type Category = {
   name: string;
   type: string;
   sortOrder: number;
+  showSoftwareFields: boolean;
+  parentId: number | null;
 };
 
-const CATEGORY_TYPES = ["COMPUTER", "PERIPHERAL", "ACCESSORY", "OTHER"] as const;
+const CATEGORY_TYPES = ["COMPUTER", "PERIPHERAL", "ACCESSORY", "SOFTWARE", "OTHER"] as const;
+
+// Builds a flat, display-ordered list (top-level categories followed by their
+// children, each annotated with a depth for indentation). Categories whose
+// parent no longer exists (shouldn't normally happen) are treated as top-level.
+function buildHierarchy(categories: Category[]): (Category & { depth: number })[] {
+  const byParent = new Map<number | null, Category[]>();
+  for (const cat of categories) {
+    const key = cat.parentId && categories.some((c) => c.id === cat.parentId) ? cat.parentId : null;
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key)!.push(cat);
+  }
+  for (const list of byParent.values()) {
+    list.sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+  }
+  const result: (Category & { depth: number })[] = [];
+  const walk = (parentId: number | null, depth: number) => {
+    for (const cat of byParent.get(parentId) ?? []) {
+      result.push({ ...cat, depth });
+      walk(cat.id, depth + 1);
+    }
+  };
+  walk(null, 0);
+  return result;
+}
 
 export default function CategoriesPage() {
   const t = useT();
@@ -69,21 +101,28 @@ export default function CategoriesPage() {
   const [deleteCategory] = useMutation(DELETE_CATEGORY);
 
   const categories: Category[] = useMemo(() => data?.categories ?? [], [data?.categories]);
+  const orderedCategories = useMemo(() => buildHierarchy(categories), [categories]);
 
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<(typeof CATEGORY_TYPES)[number]>("COMPUTER");
   const [newSortOrder, setNewSortOrder] = useState<number>(0);
+  const [newShowSoftwareFields, setNewShowSoftwareFields] = useState<boolean>(false);
+  const [newParentId, setNewParentId] = useState<number | "">("");
 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editType, setEditType] = useState<(typeof CATEGORY_TYPES)[number]>("COMPUTER");
   const [editSortOrder, setEditSortOrder] = useState<number>(0);
+  const [editShowSoftwareFields, setEditShowSoftwareFields] = useState<boolean>(false);
+  const [editParentId, setEditParentId] = useState<number | "">("");
 
   const startEdit = (cat: Category) => {
     setEditingId(cat.id);
     setEditName(cat.name);
     setEditType((CATEGORY_TYPES as readonly string[]).includes(cat.type) ? (cat.type as any) : "OTHER");
     setEditSortOrder(cat.sortOrder ?? 0);
+    setEditShowSoftwareFields(cat.showSoftwareFields ?? false);
+    setEditParentId(cat.parentId ?? "");
   };
 
   const cancelEdit = () => {
@@ -91,6 +130,8 @@ export default function CategoriesPage() {
     setEditName("");
     setEditType("COMPUTER");
     setEditSortOrder(0);
+    setEditShowSoftwareFields(false);
+    setEditParentId("");
   };
 
   const handleCreate = async () => {
@@ -102,12 +143,16 @@ export default function CategoriesPage() {
         name,
         type: newType,
         sortOrder: Number.isFinite(newSortOrder) ? newSortOrder : 0,
+        showSoftwareFields: newShowSoftwareFields,
+        parentId: newParentId === "" ? null : newParentId,
       },
     });
 
     setNewName("");
     setNewType("COMPUTER");
     setNewSortOrder(0);
+    setNewShowSoftwareFields(false);
+    setNewParentId("");
     await refetch();
   };
 
@@ -122,6 +167,8 @@ export default function CategoriesPage() {
         name,
         type: editType,
         sortOrder: Number.isFinite(editSortOrder) ? editSortOrder : 0,
+        showSoftwareFields: editShowSoftwareFields,
+        parentId: editParentId === "" ? null : editParentId,
       },
     });
 
@@ -144,6 +191,28 @@ export default function CategoriesPage() {
     }
   };
 
+  // A category can't be its own parent, and (to keep things simple and avoid
+  // cycles) can't be parented under any of its own descendants either.
+  const descendantIds = (rootId: number): Set<number> => {
+    const ids = new Set<number>();
+    const walk = (parentId: number) => {
+      for (const cat of categories) {
+        if (cat.parentId === parentId && !ids.has(cat.id)) {
+          ids.add(cat.id);
+          walk(cat.id);
+        }
+      }
+    };
+    walk(rootId);
+    return ids;
+  };
+
+  const parentOptionsFor = (excludeId: number | null) => {
+    const excluded = excludeId != null ? descendantIds(excludeId) : new Set<number>();
+    if (excludeId != null) excluded.add(excludeId);
+    return categories.filter((c) => !excluded.has(c.id));
+  };
+
   if (redirecting) return <LoadingPanel title={t.nav.manageCategories} />;
 
   return (
@@ -152,7 +221,7 @@ export default function CategoriesPage() {
 
       <section className="mb-6 rounded border border-[var(--border)] bg-[var(--card)] p-4 card-retro">
         <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">{t.pages.categories.addSection}</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">
           <input
             type="number"
             value={newSortOrder}
@@ -176,6 +245,27 @@ export default function CategoriesPage() {
               </option>
             ))}
           </select>
+          <select
+            value={newParentId}
+            onChange={(e) => setNewParentId(e.target.value === "" ? "" : parseInt(e.target.value, 10))}
+            className="select-flat w-full px-4 py-2 text-sm text-[var(--foreground)]"
+          >
+            <option value="">\u2014 Top Level \u2014</option>
+            {parentOptionsFor(null).map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <label className="flex items-center gap-2 px-1 text-sm text-[var(--foreground)] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={newShowSoftwareFields}
+              onChange={(e) => setNewShowSoftwareFields(e.target.checked)}
+              className="w-4 h-4 rounded border-[var(--border)] text-[var(--apple-blue)] focus:ring-[var(--apple-blue)]"
+            />
+            Software-style form
+          </label>
           <button
             type="button"
             onClick={handleCreate}
@@ -202,11 +292,13 @@ export default function CategoriesPage() {
                 <th className="px-4 py-2 text-left font-medium">{t.pages.categories.sort}</th>
                 <th className="px-4 py-2 text-left font-medium">{t.common.name}</th>
                 <th className="px-4 py-2 text-left font-medium">{t.common.type}</th>
+                <th className="px-4 py-2 text-left font-medium">Parent</th>
+                <th className="px-4 py-2 text-left font-medium">Software Form</th>
                 <th className="px-4 py-2 text-right font-medium">{t.pages.categories.actions}</th>
               </tr>
             </thead>
             <tbody className="bg-[var(--card)]">
-              {categories.map((cat) => {
+              {orderedCategories.map((cat) => {
                 const isEditing = editingId === cat.id;
                 return (
                   <tr key={cat.id} className="border-t border-[var(--border)]">
@@ -230,7 +322,10 @@ export default function CategoriesPage() {
                           className="input-retro w-full px-2 py-1 text-[var(--foreground)]"
                         />
                       ) : (
-                        cat.name
+                        <span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>
+                          {cat.depth > 0 && <span className="text-[var(--muted-foreground)] mr-1">\u2514</span>}
+                          {cat.name}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-2">
@@ -248,6 +343,36 @@ export default function CategoriesPage() {
                         </select>
                       ) : (
                         cat.type
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      {isEditing ? (
+                        <select
+                          value={editParentId}
+                          onChange={(e) => setEditParentId(e.target.value === "" ? "" : parseInt(e.target.value, 10))}
+                          className="select-flat w-full px-4 py-1 text-[var(--foreground)]"
+                        >
+                          <option value="">\u2014 Top Level \u2014</option>
+                          {parentOptionsFor(cat.id).map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        categories.find((c) => c.id === cat.parentId)?.name ?? "\u2014"
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      {isEditing ? (
+                        <input
+                          type="checkbox"
+                          checked={editShowSoftwareFields}
+                          onChange={(e) => setEditShowSoftwareFields(e.target.checked)}
+                          className="w-4 h-4 rounded border-[var(--border)] text-[var(--apple-blue)] focus:ring-[var(--apple-blue)]"
+                        />
+                      ) : (
+                        cat.showSoftwareFields ? "Yes" : "\u2014"
                       )}
                     </td>
                     <td className="px-4 py-2 text-right">

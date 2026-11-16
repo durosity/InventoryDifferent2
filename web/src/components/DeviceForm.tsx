@@ -108,6 +108,7 @@ const GET_CATEGORIES = gql`
       id
       name
       type
+      showSoftwareFields
     }
   }
 `;
@@ -221,6 +222,12 @@ const UPDATE_DEVICE = gql`
       pramBatteryInstalled
       pramBatteryExpiryDate
       lastPowerOnDate
+      platform
+      licenceKey
+      requiresDongle
+      downloadUrl
+      localPath
+      hasOriginalManuals
       storageEntries { id value sortOrder }
       osEntries { id value sortOrder }
       category {
@@ -247,6 +254,7 @@ interface Category {
     id: number;
     name: string;
     type: string;
+    showSoftwareFields: boolean;
 }
 
 interface Template {
@@ -322,6 +330,12 @@ interface DeviceData {
     pramBatteryInstalled?: boolean;
     pramBatteryExpiryDate?: string;
     lastPowerOnDate?: string;
+    platform?: string;
+    licenceKey?: string;
+    requiresDongle?: boolean;
+    downloadUrl?: string;
+    localPath?: string;
+    hasOriginalManuals?: boolean;
     accessories?: DeviceAccessory[];
     links?: DeviceLink[];
     storageEntries?: { id: number; value: string; sortOrder: number }[];
@@ -468,6 +482,12 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
         pramBatteryInstalled: prefill?.pramBatteryInstalled ?? true,
         pramBatteryExpiryDate: "",
         lastPowerOnDate: "",
+        platform: "",
+        licenceKey: "",
+        requiresDongle: false,
+        downloadUrl: "",
+        localPath: "",
+        hasOriginalManuals: false,
     });
 
     const [customFieldFormValues, setCustomFieldFormValues] = useState<Record<number, string>>({});
@@ -557,6 +577,12 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                 pramBatteryInstalled: device.pramBatteryInstalled ?? true,
                 pramBatteryExpiryDate: device.pramBatteryExpiryDate ? device.pramBatteryExpiryDate.split("T")[0] : "",
                 lastPowerOnDate: device.lastPowerOnDate ? device.lastPowerOnDate.split("T")[0] : "",
+                platform: device.platform || "",
+                licenceKey: device.licenceKey || "",
+                requiresDongle: device.requiresDongle || false,
+                downloadUrl: device.downloadUrl || "",
+                localPath: device.localPath || "",
+                hasOriginalManuals: device.hasOriginalManuals || false,
             });
 
             setAccessories(device.accessories?.map(a => ({ id: a.id, name: a.name })) ?? []);
@@ -627,6 +653,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
     const categories: Category[] = categoriesData?.categories || [];
     const selectedCategory = categories.find(c => c.id === formData.categoryId);
     const isComputerCategory = selectedCategory?.type === "COMPUTER";
+    const isSoftwareCategory = selectedCategory?.showSoftwareFields === true;
     const showSalesFields = ["FOR_SALE", "PENDING_SALE", "SOLD", "DONATED"].includes(formData.status);
     const showSoldFields = formData.status === "SOLD";
     const showDonatedFields = formData.status === "DONATED";
@@ -824,6 +851,16 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
             input.isWifiEnabled = formData.isWifiEnabled;
             input.pramBatteryInstalled = formData.pramBatteryInstalled;
             if (formData.pramBatteryExpiryDate) input.pramBatteryExpiryDate = parseLocalDate(formData.pramBatteryExpiryDate);
+        }
+
+        // Add software specs if applicable
+        if (isSoftwareCategory) {
+            if (formData.platform) input.platform = formData.platform;
+            if (formData.licenceKey) input.licenceKey = formData.licenceKey;
+            input.requiresDongle = formData.requiresDongle;
+            if (formData.downloadUrl) input.downloadUrl = formData.downloadUrl;
+            if (formData.localPath) input.localPath = formData.localPath;
+            input.hasOriginalManuals = formData.hasOriginalManuals;
         }
 
         try {
@@ -1161,7 +1198,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                     />
                 </FormField>
 
-                <FormField label={t.form.manufacturerLabel}>
+                <FormField label={isSoftwareCategory ? "Publisher" : t.form.manufacturerLabel}>
                     <input
                         type="text"
                         name="manufacturer"
@@ -1173,7 +1210,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                     {errors.manufacturer && <p className="text-red-500 text-xs mt-1">{errors.manufacturer}</p>}
                 </FormField>
 
-                <FormField label={t.form.modelNumberLabel}>
+                <FormField label={isSoftwareCategory ? "Version" : t.form.modelNumberLabel}>
                     <input
                         type="text"
                         name="modelNumber"
@@ -1248,6 +1285,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                     </button>
                 </FormField>
 
+                {!isSoftwareCategory && (
                 <FormField label={t.form.lastPowerOnLabel}>
                     <input
                         type="date"
@@ -1257,6 +1295,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                         className={inputClass}
                     />
                 </FormField>
+                )}
                 
             </div>
 
@@ -1281,6 +1320,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                     </select>
                 </FormField>
 
+                {!isSoftwareCategory && (
                 <FormField label={t.filter.functionalStatus}>
                     <select
                         name="functionalStatus"
@@ -1294,6 +1334,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                         <option value="UNKNOWN">{t.functionalStatus.UNKNOWN}</option>
                     </select>
                 </FormField>
+                )}
 
                 <FormField label={t.filter.condition}>
                     <select
@@ -1351,6 +1392,8 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                         <span className="text-sm text-[var(--foreground)]">{t.form.assetTaggedLabel}</span>
                     </label>
 
+                    {!isSoftwareCategory && (
+                    <>
                     <label className="flex items-center gap-2 cursor-pointer">
                         <input
                             type="checkbox"
@@ -1372,6 +1415,8 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                         />
                         <span className="text-sm text-[var(--foreground)]">Recapped</span>
                     </label>
+                    </>
+                    )}
                 </div>
             </div>
 
@@ -1679,6 +1724,81 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                                 placeholder="Date battery needs replacing"
                             />
                         </FormField>
+                    </div>
+                </>
+            )}
+
+            {isSoftwareCategory && (
+                <>
+                    <SectionHeader>Software Information</SectionHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField label="Platform">
+                            <input
+                                type="text"
+                                name="platform"
+                                value={formData.platform}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="e.g. Mac OS 7–9, Windows 95"
+                            />
+                        </FormField>
+
+                        <FormField label="Licence Key">
+                            <input
+                                type="text"
+                                name="licenceKey"
+                                value={formData.licenceKey}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="Serial number / licence key"
+                            />
+                        </FormField>
+
+                        <FormField label="Download URL">
+                            <input
+                                type="url"
+                                name="downloadUrl"
+                                value={formData.downloadUrl}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="https://…"
+                            />
+                        </FormField>
+
+                        <FormField label="Local Path">
+                            <input
+                                type="text"
+                                name="localPath"
+                                value={formData.localPath}
+                                onChange={handleChange}
+                                className={inputClass}
+                                placeholder="/Volumes/Archive/Software/…"
+                            />
+                        </FormField>
+
+                        <div className="md:col-span-2 flex flex-wrap gap-6">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    name="requiresDongle"
+                                    checked={formData.requiresDongle}
+                                    onChange={handleChange}
+                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--apple-blue)] focus:ring-[var(--apple-blue)]"
+                                />
+                                <span className="text-sm text-[var(--foreground)]">Requires Dongle</span>
+                            </label>
+
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    name="hasOriginalManuals"
+                                    checked={formData.hasOriginalManuals}
+                                    onChange={handleChange}
+                                    className="w-4 h-4 rounded border-[var(--border)] text-[var(--apple-blue)] focus:ring-[var(--apple-blue)]"
+                                />
+                                <span className="text-sm text-[var(--foreground)]">Has Original Manuals</span>
+                            </label>
+                        </div>
                     </div>
                 </>
             )}

@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "@apollo/client";
 import gql from "graphql-tag";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
 import { ImageUploader } from "../../../components/ImageUploader";
@@ -61,12 +61,19 @@ const GET_DEVICE = gql`
       pramBatteryInstalled
       pramBatteryExpiryDate
       lastPowerOnDate
+      platform
+      licenceKey
+      requiresDongle
+      downloadUrl
+      localPath
+      hasOriginalManuals
       storageEntries { id value sortOrder }
       osEntries { id value sortOrder }
       category {
         id
         name
         type
+        showSoftwareFields
       }
       images {
         id
@@ -313,6 +320,10 @@ const GET_ALL_DEVICES_SIMPLE = gql`
       additionalName
       manufacturer
       serialNumber
+      category {
+        id
+        showSoftwareFields
+      }
     }
   }
 `;
@@ -470,6 +481,7 @@ export default function DeviceDetailNew() {
   const params = useParams();
   const id = params.id;
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   const isDark = useIsDarkMode();
   const t = useT();
@@ -525,6 +537,8 @@ export default function DeviceDetailNew() {
   const [relationType, setRelationType] = useState('');
   const [isRelationReversed, setIsRelationReversed] = useState(false);
   const [relationToRemoveId, setRelationToRemoveId] = useState<number | null>(null);
+  const [showInstallForm, setShowInstallForm] = useState(false);
+  const [installDeviceName, setInstallDeviceName] = useState('');
   const [deleteDeviceConfirm, setDeleteDeviceConfirm] = useState(false);
   const [showSoldModal, setShowSoldModal] = useState(false);
   const [soldAmountInput, setSoldAmountInput] = useState('');
@@ -672,6 +686,21 @@ export default function DeviceDetailNew() {
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [showValueHistory]);
+
+  // Software items live canonically at /software/[id], hardware at /devices/[id].
+  // Whichever link got clicked, settle on the right one once we know which this is —
+  // cheaper than updating every link site throughout the app individually.
+  useEffect(() => {
+    const d = data?.device;
+    if (!d || !pathname) return;
+    const isSoftware = !!d.category?.showSoftwareFields;
+    const onSoftwareRoute = pathname.startsWith('/software/');
+    if (isSoftware && !onSoftwareRoute) {
+      router.replace(`/software/${id}`);
+    } else if (!isSoftware && onSoftwareRoute) {
+      router.replace(`/devices/${id}`);
+    }
+  }, [data?.device, pathname, id, router]);
 
   if (loading) {
     return (
@@ -880,6 +909,31 @@ export default function DeviceDetailNew() {
       refetch();
     } catch (err) {
       console.error('Error removing relationship:', err);
+    }
+  };
+
+  const handleAddInstalledOn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const allDevices: any[] = allDevicesData?.devices ?? [];
+    const matched = allDevices.find(
+      (d: any) =>
+        `${d.name}${d.additionalName ? ` · ${d.additionalName}` : ''}${d.manufacturer ? ` (${d.manufacturer})` : ''}${d.serialNumber ? ` [${d.serialNumber}]` : ''}` === installDeviceName ||
+        `${d.name}${d.additionalName ? ` · ${d.additionalName}` : ''}${d.manufacturer ? ` (${d.manufacturer})` : ''}` === installDeviceName ||
+        String(d.id) === installDeviceName
+    );
+    if (!matched) return;
+    try {
+      const isSoftware = !!device.category?.showSoftwareFields;
+      const fromDeviceId = isSoftware ? device.id : matched.id;
+      const toDeviceId = isSoftware ? matched.id : device.id;
+      await addDeviceRelationship({
+        variables: { fromDeviceId, toDeviceId, type: 'INSTALLED_ON' },
+      });
+      setInstallDeviceName('');
+      setShowInstallForm(false);
+      refetch();
+    } catch (err) {
+      console.error('Error linking installed software:', err);
     }
   };
 
@@ -1157,7 +1211,7 @@ export default function DeviceDetailNew() {
             </button>
           )}
           {isAuthenticated && (
-            <Link href={`/devices/${id}/edit`} title="Edit device" aria-label="Edit device" className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-all">
+            <Link href={device.category?.showSoftwareFields ? `/software/${id}/edit` : `/devices/${id}/edit`} title="Edit device" aria-label="Edit device" className="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-all">
               <Icon name="edit" className="w-5 h-5" />
             </Link>
           )}
@@ -1205,10 +1259,15 @@ export default function DeviceDetailNew() {
             </span>
           </div>
           <div className="grid grid-cols-2 gap-y-8 gap-x-8">
-            {device.manufacturer && <SpecField label={t.detail.manufacturerModel} value={`${device.manufacturer} ${device.modelNumber}`} />}
+            {device.manufacturer && (
+              <SpecField
+                label={device.category?.showSoftwareFields ? 'Publisher' : t.detail.manufacturerModel}
+                value={device.modelNumber ? `${device.manufacturer} ${device.modelNumber}` : device.manufacturer}
+              />
+            )}
             {device.serialNumber && <SpecField label={t.detail.serialNumber} value={device.serialNumber} />}
             {device.location && <SpecField label={t.detail.locationLabel} value={device.location.name} />}
-            {device.lastPowerOnDate && <SpecField label={t.detail.lastUsed} value={new Date(device.lastPowerOnDate).toLocaleDateString(localeFromLang(locale), { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' })} />}
+            {device.lastPowerOnDate && <SpecField label={device.category?.showSoftwareFields ? 'Last Opened' : t.detail.lastUsed} value={new Date(device.lastPowerOnDate).toLocaleDateString(localeFromLang(locale), { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' })} />}
           </div>
           {device.info && <InfoNotes info={device.info} />}
         </section>
@@ -1462,6 +1521,28 @@ export default function DeviceDetailNew() {
             </section>
           )}
 
+          {/* Software Information */}
+          {(device.platform || device.licenceKey || device.downloadUrl || device.localPath || device.requiresDongle) && (
+            <section className="bg-[var(--card)] rounded-xl p-8 shadow-sm">
+              <h2 className="text-on-surface font-bold text-sm uppercase tracking-widest mb-6">Software Information</h2>
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                {device.platform && <SpecField label="Platform" value={device.platform} />}
+                {device.licenceKey && <SpecField label="Licence Key" value={device.licenceKey} />}
+                {device.requiresDongle != null && <SpecField label="Requires Dongle" value={device.requiresDongle ? t.common.yes : t.common.no} />}
+                {device.hasOriginalManuals != null && <SpecField label="Original Manuals" value={device.hasOriginalManuals ? t.common.yes : t.common.no} />}
+                {device.downloadUrl && (
+                  <div className="flex flex-col">
+                    <span className="text-outline text-[10px] uppercase tracking-tighter mb-1">Download</span>
+                    <a href={device.downloadUrl} target="_blank" rel="noopener noreferrer" className="text-primary font-semibold text-sm hover:underline truncate">
+                      {device.downloadUrl}
+                    </a>
+                  </div>
+                )}
+                {device.localPath && <SpecField label="Local Path" value={device.localPath} />}
+              </div>
+            </section>
+          )}
+
           {/* Custom Fields */}
           {(device.customFieldValues ?? []).length > 0 && (
             <section className="bg-[var(--card)] rounded-xl p-8 shadow-sm">
@@ -1550,8 +1631,108 @@ export default function DeviceDetailNew() {
           </section>
         )}
 
+        {/* Installed On / Installed Software */}
+        {(() => {
+          const isSoftware = !!device.category?.showSoftwareFields;
+          const installedRelations = isSoftware
+            ? (device.relationsFrom ?? []).filter((r: any) => r.type === 'INSTALLED_ON')
+            : (device.relationsTo ?? []).filter((r: any) => r.type === 'INSTALLED_ON');
+          if (installedRelations.length === 0 && !isAuthenticated) return null;
+          const allDevices: any[] = allDevicesData?.devices ?? [];
+          const existingIds = new Set(installedRelations.map((r: any) => isSoftware ? r.toDeviceId : r.fromDeviceId));
+          const candidateDevices = allDevices
+            .filter((d: any) => !!d.category?.showSoftwareFields !== isSoftware && d.id !== device.id && !existingIds.has(d.id))
+            .sort((a: any, b: any) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+          return (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-on-surface font-bold text-[10px] uppercase tracking-widest">
+                  {isSoftware ? 'Installed On' : 'Installed Software'}
+                </h2>
+                {isAuthenticated && !showInstallForm && (
+                  <button
+                    onClick={() => setShowInstallForm(true)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+                  >
+                    <Icon name="add" className="w-3.5 h-3.5" />
+                    Add
+                  </button>
+                )}
+              </div>
+
+              {installedRelations.length > 0 ? (
+                <div className="space-y-2 mb-2">
+                  {installedRelations.map((rel: any) => {
+                    const linked = isSoftware ? rel.toDevice : rel.fromDevice;
+                    const thumb = (linked.images ?? []).find((i: any) => i.isThumbnail) ?? (linked.images ?? [])[0];
+                    return (
+                      <div key={rel.id} className="relative flex items-center gap-3 p-3 bg-surface-container-low rounded-xl group">
+                        <div className="w-9 h-9 rounded-lg bg-surface-container-high overflow-hidden flex-shrink-0 flex items-center justify-center">
+                          {thumb ? (
+                            <img src={`${API_BASE_URL}${thumb.thumbnailPath || thumb.path}`} alt={linked.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <Icon name={isSoftware ? 'device_hub' : 'package'} className="w-4 h-4 text-outline" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Link href={`/devices/${linked.id}`} className="text-sm font-semibold text-on-surface hover:text-primary transition-colors truncate block">
+                            {linked.name}{linked.additionalName && <span className="font-normal text-on-surface-variant"> · {linked.additionalName}</span>}
+                          </Link>
+                        </div>
+                        {isAuthenticated && (
+                          <button type="button" onClick={() => setRelationToRemoveId(rel.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1.5 text-on-surface-variant hover:text-red-500 rounded-lg transition-all flex-shrink-0">
+                            <Icon name="delete" className="w-4 h-4" />
+                          </button>
+                        )}
+                        {relationToRemoveId === rel.id && (
+                          <div className="absolute inset-0 bg-black/70 rounded-xl flex items-center justify-center gap-2">
+                            <span className="text-white text-xs">{t.detail.removeRelationshipConfirm}</span>
+                            <button onClick={() => handleRemoveRelationship(rel.id)} className="px-2 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700">{t.common.remove}</button>
+                            <button onClick={() => setRelationToRemoveId(null)} className="px-2 py-1 bg-white text-gray-700 text-xs rounded-lg hover:bg-gray-100">{t.common.cancel}</button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : !showInstallForm && (
+                <p className="text-sm text-on-surface-variant">{isSoftware ? 'Not installed on any device yet' : 'No software installed yet'}</p>
+              )}
+
+              {isAuthenticated && showInstallForm && (
+                <form onSubmit={handleAddInstalledOn} className="mt-3 p-4 bg-surface-container rounded-xl space-y-3">
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider text-outline block mb-1.5">
+                      {isSoftware ? 'Computer' : 'Software'}
+                    </label>
+                    <input type="text" value={installDeviceName} onChange={e => setInstallDeviceName(e.target.value)}
+                      list="install-device-suggestions" placeholder="Search devices…" required
+                      className="w-full px-3 py-2 text-sm bg-[var(--card)] border border-outline-variant/30 rounded-xl text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    <datalist id="install-device-suggestions">
+                      {candidateDevices.map((d: any) => (
+                        <option key={d.id} value={`${d.name}${d.additionalName ? ` · ${d.additionalName}` : ''}${d.manufacturer ? ` (${d.manufacturer})` : ''}${d.serialNumber ? ` [${d.serialNumber}]` : ''}`} />
+                      ))}
+                    </datalist>
+                  </div>
+                  <div className="flex gap-2 justify-end pt-1">
+                    <button type="button" onClick={() => { setShowInstallForm(false); setInstallDeviceName(''); }}
+                      className="px-3 py-1.5 text-sm font-medium text-on-surface-variant bg-surface-container-high hover:bg-surface-container-highest rounded-xl transition-colors">
+                      {t.common.cancel}
+                    </button>
+                    <button type="submit" disabled={addingRelationship}
+                      className="px-3 py-1.5 text-sm font-semibold text-white bg-primary hover:opacity-90 rounded-xl disabled:opacity-50 transition-all">
+                      {addingRelationship ? t.common.addingEllipsis : t.common.add}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </section>
+          );
+        })()}
+
         {/* Related Devices */}
-        {((device.relationsFrom ?? []).length > 0 || (device.relationsTo ?? []).length > 0 || isAuthenticated) && (
+        {(((device.relationsFrom ?? []).filter((r: any) => r.type !== 'INSTALLED_ON')).length > 0 || ((device.relationsTo ?? []).filter((r: any) => r.type !== 'INSTALLED_ON')).length > 0 || isAuthenticated) && (
           <section>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-on-surface font-bold text-[10px] uppercase tracking-widest">{t.detail.relatedDevices}</h2>
@@ -1567,9 +1748,9 @@ export default function DeviceDetailNew() {
             </div>
 
             {/* Outgoing (relationsFrom) */}
-            {(device.relationsFrom ?? []).length > 0 && (
+            {((device.relationsFrom ?? []).filter((r: any) => r.type !== 'INSTALLED_ON')).length > 0 && (
               <div className="space-y-2 mb-2">
-                {(device.relationsFrom as any[]).map((rel: any) => {
+                {(device.relationsFrom as any[]).filter((r: any) => r.type !== 'INSTALLED_ON').map((rel: any) => {
                   const thumb = (rel.toDevice.images ?? []).find((i: any) => i.isThumbnail) ?? (rel.toDevice.images ?? [])[0];
                   return (
                     <div key={rel.id} className="relative flex items-center gap-3 p-3 bg-surface-container-low rounded-xl group">
@@ -1606,9 +1787,9 @@ export default function DeviceDetailNew() {
             )}
 
             {/* Incoming (relationsTo) */}
-            {(device.relationsTo ?? []).length > 0 && (
+            {((device.relationsTo ?? []).filter((r: any) => r.type !== 'INSTALLED_ON')).length > 0 && (
               <div className="space-y-2 mb-2">
-                {(device.relationsTo as any[]).map((rel: any) => {
+                {(device.relationsTo as any[]).filter((r: any) => r.type !== 'INSTALLED_ON').map((rel: any) => {
                   const thumb = (rel.fromDevice.images ?? []).find((i: any) => i.isThumbnail) ?? (rel.fromDevice.images ?? [])[0];
                   const inverseLabel = (t.detail.inverseRelationLabels as Record<string, string>)[rel.type] ?? rel.type;
                   return (
@@ -1646,7 +1827,7 @@ export default function DeviceDetailNew() {
             )}
 
             {/* Empty state */}
-            {(device.relationsFrom ?? []).length === 0 && (device.relationsTo ?? []).length === 0 && !showRelationForm && (
+            {((device.relationsFrom ?? []).filter((r: any) => r.type !== 'INSTALLED_ON')).length === 0 && ((device.relationsTo ?? []).filter((r: any) => r.type !== 'INSTALLED_ON')).length === 0 && !showRelationForm && (
               <p className="text-sm text-on-surface-variant">{t.detail.noRelatedDevices}</p>
             )}
 
@@ -1805,7 +1986,7 @@ export default function DeviceDetailNew() {
               <h2 className="text-on-surface font-bold text-sm uppercase tracking-widest mb-6">{t.detail.quickActions}</h2>
               <div className="grid grid-cols-4 gap-3">
                 <button onClick={handleUpdateLastPowerOnDate} disabled={updatingPowerDate}
-                  title={t.detail.logPowerOn}
+                  title={device.category?.showSoftwareFields ? 'Log opened' : t.detail.logPowerOn}
                   className="relative flex flex-col items-center justify-center p-3.5 bg-surface-container hover:bg-surface-container-high rounded-xl transition-all group active:scale-95 disabled:opacity-50">
                   <Icon name="power_settings_new" className="w-6 h-6 text-on-surface-variant group-hover:text-primary transition-colors" />
                 </button>

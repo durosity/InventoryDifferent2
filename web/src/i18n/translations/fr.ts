@@ -145,6 +145,7 @@ export const fr: Translations = {
   },
   nav: {
     devices: "Appareils",
+    software: "Logiciels",
     more: "Plus",
     wishlist: "Liste de souhaits",
     financials: "Finances",

@@ -24,6 +24,7 @@ import {
 } from './auth';
 import { authMiddleware, requireAuth } from './middleware/auth';
 import rateLimit from 'express-rate-limit';
+import { searchMacintoshRepository, fetchMacintoshRepositoryDetails } from './macintoshRepository';
 
 const JSZip = require('jszip');
 const sharp = require('sharp');
@@ -2010,6 +2011,36 @@ RESTART IDENTITY CASCADE;
         const job = generationJobs.get(req.params.jobId);
         if (!job) return res.status(404).json({ error: 'Job not found or expired' });
         return res.json({ status: job.status, result: job.result ?? null, error: job.error ?? null });
+    });
+
+    // ============== MACINTOSH REPOSITORY LOOKUP ==============
+    // Screen-scrapes macintoshrepository.org to help pre-fill the Add Software
+    // form (publisher, category, release year). See macintoshRepository.ts
+    // for details and caveats.
+
+    app.get('/software-lookup/search', requireAuth, async (req, res) => {
+        const q = (req.query.q as string) || '';
+        if (!q.trim()) return res.json({ results: [] });
+        try {
+            const results = await searchMacintoshRepository(q);
+            return res.json({ results });
+        } catch (err: any) {
+            console.error('[software-lookup/search] error:', err?.message || err);
+            return res.status(502).json({ error: 'Lookup failed', results: [] });
+        }
+    });
+
+    app.get('/software-lookup/details', requireAuth, async (req, res) => {
+        const url = req.query.url as string;
+        if (!url) return res.status(400).json({ error: 'url query parameter is required' });
+        try {
+            const details = await fetchMacintoshRepositoryDetails(url);
+            if (!details) return res.status(404).json({ error: 'Not found' });
+            return res.json(details);
+        } catch (err: any) {
+            console.error('[software-lookup/details] error:', err?.message || err);
+            return res.status(400).json({ error: err?.message || 'Lookup failed' });
+        }
     });
 
     // Error handling for multer

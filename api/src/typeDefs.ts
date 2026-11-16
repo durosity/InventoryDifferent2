@@ -111,6 +111,13 @@ export const typeDefs = gql`
     pramBatteryExpiryDate: DateTime
     historicalNotes: String
 
+    platform: String
+    licenceKey: String
+    requiresDongle: Boolean!
+    downloadUrl: String
+    localPath: String
+    hasOriginalManuals: Boolean!
+
     externalUrl: String
 
     popularity: Float
@@ -173,6 +180,10 @@ export const typeDefs = gql`
     name: String!
     type: String!
     sortOrder: Int!
+    showSoftwareFields: Boolean!
+    parentId: Int
+    parent: Category
+    children: [Category!]!
     devices: [Device!]!
   }
 
@@ -807,6 +818,14 @@ export const typeDefs = gql`
     pramBatteryInstalled: Boolean
     pramBatteryExpiryDate: DateTime
     lastPowerOnDate: DateTime
+
+    # Optional - Software specs
+    platform: String
+    licenceKey: String
+    requiresDongle: Boolean
+    downloadUrl: String
+    localPath: String
+    hasOriginalManuals: Boolean
   }
 
   input DeviceUpdateInput {
@@ -861,6 +880,13 @@ export const typeDefs = gql`
     pramBatteryExpiryDate: DateTime
     lastPowerOnDate: DateTime
     deleted: Boolean
+
+    platform: String
+    licenceKey: String
+    requiresDongle: Boolean
+    downloadUrl: String
+    localPath: String
+    hasOriginalManuals: Boolean
   }
 
   input ImageCreateInput {
@@ -1001,8 +1027,8 @@ export const typeDefs = gql`
     updateWishlistItem(id: Int!, data: WishlistItemUpdateInput!): WishlistItem!
     deleteWishlistItem(id: Int!): WishlistItem!
     permanentlyDeleteWishlistItem(id: Int!): WishlistItem!
-    createCategory(name: String!, type: String!, sortOrder: Int): Category!
-    updateCategory(id: Int!, name: String, type: String, sortOrder: Int): Category!
+    createCategory(name: String!, type: String!, sortOrder: Int, showSoftwareFields: Boolean, parentId: Int): Category!
+    updateCategory(id: Int!, name: String, type: String, sortOrder: Int, showSoftwareFields: Boolean, parentId: Int): Category!
     deleteCategory(id: Int!): Category!
     createTemplate(input: TemplateCreateInput!): Template!
     updateTemplate(input: TemplateUpdateInput!): Template!

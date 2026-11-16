@@ -9,11 +9,13 @@ const PROTECTED_ROUTES = [
     '/trash',
     '/backup',
     '/devices/new',
+    '/software/new',
 ];
 
 // Routes that require auth if they match a pattern
 const PROTECTED_PATTERNS = [
     /^\/devices\/\d+\/edit$/,
+    /^\/software\/\d+\/edit$/,
 ];
 
 export function middleware(request: NextRequest) {

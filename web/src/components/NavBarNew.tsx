@@ -19,6 +19,7 @@ const GET_TRASH_COUNT = gql`
 // Shown in the main desktop nav and mobile bottom bar for authenticated users
 const MAIN_NAV = [
   { key: 'devices' as const,    href: '/',            icon: 'devices' },
+  { key: 'software' as const,   href: '/software',    icon: 'apps' },
   { key: 'dashboard' as const,  href: '/dashboard',   icon: 'dashboard' },
   { key: 'financials' as const, href: '/financials',  icon: 'payments' },
   { key: 'wishlist' as const,   href: '/wishlist',    icon: 'auto_awesome_motion' },
@@ -333,7 +334,7 @@ export function NavBar() {
       {/* Desktop FAB — only for authenticated users */}
       {!isGuest && (
         <div className="fixed bottom-12 right-12 hidden md:block z-40">
-          <Link href="/devices/new">
+          <Link href={pathname.startsWith('/software') ? '/software/new' : '/devices/new'}>
             <button className="w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform">
               <span className="material-symbols-outlined">add</span>
             </button>

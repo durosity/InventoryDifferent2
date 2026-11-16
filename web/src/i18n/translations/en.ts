@@ -143,6 +143,7 @@ export type Translations = {
   };
   nav: {
     devices: string;
+    software: string;
     more: string;
     wishlist: string;
     financials: string;
@@ -1255,6 +1256,7 @@ export const en: Translations = {
   },
   nav: {
     devices: "Devices",
+    software: "Software",
     more: "More",
     wishlist: "Wishlist",
     financials: "Financials",

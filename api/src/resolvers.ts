@@ -360,6 +360,8 @@ export const resolvers = {
                         device.displayType,
                         device.displayVariant,
                         device.nativeResolution,
+                        device.platform,
+                        device.licenceKey,
                         ...(device as any).storageEntries?.map((s: any) => s.value) ?? [],
                         ...(device as any).osEntries?.map((o: any) => o.value) ?? [],
                         device.info,
@@ -846,6 +848,7 @@ export const resolvers = {
                 COMPUTER: 'Computer',
                 PERIPHERAL: 'Peripheral',
                 ACCESSORY: 'Accessory',
+                SOFTWARE: 'Software',
                 OTHER: 'Other',
             };
 
@@ -1167,7 +1170,7 @@ export const resolvers = {
                 context.prisma.device.count({
                     where: {
                         ...inCollectionFilter,
-                        category: { type: { notIn: ['ACCESSORY'] as any } },
+                        category: { type: { notIn: ['ACCESSORY', 'SOFTWARE'] as any } },
                         AND: [
                             { OR: [{ cpuType: null }, { cpuType: '' }] },
                             { OR: [{ ram: null }, { ram: '' }] },
@@ -1307,7 +1310,7 @@ export const resolvers = {
         },
         createCategory: async (
             _parent: any,
-            args: { name: string; type: any; sortOrder?: number | null },
+            args: { name: string; type: any; sortOrder?: number | null; showSoftwareFields?: boolean | null; parentId?: number | null },
             context: Context
         ) => {
             requireAuth(context);
@@ -1316,6 +1319,8 @@ export const resolvers = {
                     name: args.name,
                     type: args.type,
                     sortOrder: args.sortOrder ?? 0,
+                    showSoftwareFields: args.showSoftwareFields ?? false,
+                    parentId: args.parentId ?? null,
                 },
             });
         },
@@ -2479,6 +2484,19 @@ export const resolvers = {
         },
         createdAt: (parent: any) => {
             return parent.createdAt instanceof Date ? parent.createdAt.toISOString() : parent.createdAt;
+        },
+    },
+
+    Category: {
+        parent: async (parent: any, _args: any, context: Context) => {
+            if (parent.parentId == null) return null;
+            return (context.prisma as any).category.findUnique({ where: { id: parent.parentId } });
+        },
+        children: async (parent: any, _args: any, context: Context) => {
+            return (context.prisma as any).category.findMany({
+                where: { parentId: parent.id },
+                orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+            });
         },
     },
 };
