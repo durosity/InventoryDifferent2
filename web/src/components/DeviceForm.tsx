@@ -109,6 +109,8 @@ const GET_CATEGORIES = gql`
       name
       type
       showSoftwareFields
+      parentId
+      sortOrder
     }
   }
 `;
@@ -255,6 +257,31 @@ interface Category {
     name: string;
     type: string;
     showSoftwareFields: boolean;
+    parentId: number | null;
+    sortOrder: number;
+}
+
+// Builds a flat, indented option list for a hierarchical category tree —
+// top level first, each followed immediately by its children.
+function buildCategoryOptions(categories: Category[]): (Category & { depth: number })[] {
+    const byParent = new Map<number | null, Category[]>();
+    for (const cat of categories) {
+        const key = cat.parentId && categories.some((c) => c.id === cat.parentId) ? cat.parentId : null;
+        if (!byParent.has(key)) byParent.set(key, []);
+        byParent.get(key)!.push(cat);
+    }
+    for (const list of byParent.values()) {
+        list.sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+    }
+    const result: (Category & { depth: number })[] = [];
+    const walk = (parentId: number | null, depth: number) => {
+        for (const cat of byParent.get(parentId) ?? []) {
+            result.push({ ...cat, depth });
+            walk(cat.id, depth + 1);
+        }
+    };
+    walk(null, 0);
+    return result;
 }
 
 interface Template {
@@ -651,6 +678,7 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
     const showTemplateResults = normalizedTemplateQuery.length > 0;
 
     const categories: Category[] = categoriesData?.categories || [];
+    const categoryOptions = buildCategoryOptions(categories);
     const selectedCategory = categories.find(c => c.id === formData.categoryId);
     const isComputerCategory = selectedCategory?.type === "COMPUTER";
     const isSoftwareCategory = selectedCategory?.showSoftwareFields === true;
@@ -1166,9 +1194,9 @@ export function DeviceForm({ device, mode, prefill }: DeviceFormProps) {
                         className={`${selectClass} ${errors.categoryId ? "border-red-500" : ""}`}
                     >
                         <option value={0}>{t.form.selectCategory}</option>
-                        {categories.map(cat => (
+                        {categoryOptions.map(cat => (
                             <option key={cat.id} value={cat.id}>
-                                {cat.name}
+                                {"\u00A0\u00A0".repeat(cat.depth)}{cat.depth > 0 ? "\u2514 " : ""}{cat.name}
                             </option>
                         ))}
                     </select>

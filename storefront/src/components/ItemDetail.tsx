@@ -37,6 +37,9 @@ const GET_SHOP_DEVICE = gql`
       storageEntries { id value sortOrder }
       osEntries { id value sortOrder }
       isWifiEnabled
+      platform
+      requiresDongle
+      hasOriginalManuals
       accessories {
         id
         name
@@ -50,6 +53,7 @@ const GET_SHOP_DEVICE = gql`
         id
         name
         type
+        showSoftwareFields
       }
       images {
         id
@@ -488,9 +492,16 @@ export default function ItemDetail({ id, contactEmail }: ItemDetailProps) {
                                     device.condition === "FOR_PARTS" ? "For Parts" :
                                     device.condition
                                 ) : null} />
-                                <DetailRow label="Manufacturer" value={device.manufacturer} />
-                                <DetailRow label="Model" value={device.modelNumber} />
+                                <DetailRow label={device.category.showSoftwareFields ? "Publisher" : "Manufacturer"} value={device.manufacturer} />
+                                <DetailRow label={device.category.showSoftwareFields ? "Version" : "Model"} value={device.modelNumber} />
                                 <DetailRow label="Release Year" value={device.releaseYear} />
+                                {device.category.showSoftwareFields && (
+                                    <>
+                                        <DetailRow label="Platform" value={device.platform} />
+                                        <DetailRow label="Requires Dongle" value={device.requiresDongle ? 'Yes' : null} />
+                                        <DetailRow label="Original Manuals" value={device.hasOriginalManuals ? 'Yes' : null} />
+                                    </>
+                                )}
                                 {device.category.type === 'COMPUTER' && (
                                     <>
                                         <DetailRow label="CPU" value={device.cpuType ? device.cpuType + (device.cpuSpeed ? ` @ ${device.cpuSpeed}` : '') : null} />
